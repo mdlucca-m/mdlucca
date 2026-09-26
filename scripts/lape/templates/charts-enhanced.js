@@ -376,75 +376,151 @@ const ChartsEnhanced = (function () {
     });
   }
 
-  /* Gauge de diagnóstico: arco de meia-lua, sem lib nenhuma -- o truque é
-     `pathLength="100"` nos dois arcos (trilho e valor), que normaliza o
-     comprimento para 100 unidades não importa o raio; o arco de valor
-     usa `stroke-dasharray="v 100"` para preencher exatamente v%.
-     `opts.critico` liga o pulso vermelho -- decidido pelo CHAMADOR, com
-     um número real (ex.: 0% de aceite com decisões de verdade no
-     período), nunca aqui dentro. */
+  /* Gauge de diagnóstico: velocímetro de meia-lua, sem lib nenhuma -- virou
+     o padrão do laboratório para "um número contra uma escala" (achado ao
+     vivo, referência que o Mateus mandou de um painel de KPI real com
+     faixas coloridas + ponteiro). Dois modos, escolhidos pelo CHAMADOR:
+
+     - qualitativo (padrão): a escala inteira dividida em faixas de
+       julgamento (Ruim/Regular/Bom/Muito Bom/Ótimo por padrão, ou
+       `opts.faixas` customizado) -- serve para uma TAXA (aceite,
+       cumprimento) que se lê como "bom ou ruim", não como progresso rumo a
+       um alvo.
+     - meta (`opts.meta` presente): a escala vira progresso (cor de destaque
+       até o valor atual, cinza depois) com um marcador no valor da meta e
+       a frase "faltam X% para a meta" -- serve para o que TEM alvo
+       declarado (publicações do ano, banco de horas).
+
+     Cada faixa/ponteiro é um arco calculado à mão (sem pathLength/dasharray
+     -- que só serve para UM arco só): `ponto(t)` percorre a mesma
+     parametrização de 0 (ponta esquerda) a 1 (ponta direita) usada tanto
+     para desenhar as faixas quanto para posicionar a ponta do ponteiro,
+     então os dois nunca desalinham entre si.
+     `opts.critico` liga o pulso vermelho no ponteiro -- decidido pelo
+     CHAMADOR, com um número real (ex.: 0% de aceite com decisões de
+     verdade no período), nunca aqui dentro. */
   function gaugeDiagnostico(valor, opts) {
     const o = opts || {};
-    const w = 320, h = 220, cx = w / 2, cy = 175, raio = 118;
+    const w = 320, h = 244, cx = w / 2, cy = 172, raio = 112, espessura = 24;
     const fig = document.createElement("figure");
     fig.setAttribute("class", "chart");
     const svg = document.createElementNS(NS, "svg");
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
     svg.setAttribute("class", "plot gauge-diagnostico" + (o.critico ? " gauge-critico" : ""));
 
-    function arco(raioArco) {
-      // meia-lua de 180° a 0°, sempre da esquerda para a direita
-      const x0 = cx - raioArco, x1 = cx + raioArco;
-      const p = document.createElementNS(NS, "path");
-      p.setAttribute("d", `M ${x0} ${cy} A ${raioArco} ${raioArco} 0 0 1 ${x1} ${cy}`);
-      p.setAttribute("fill", "none");
-      p.setAttribute("pathLength", "100");
-      return p;
+    function ponto(t, r) {
+      const rr = r === undefined ? raio : r;
+      return { x: cx - rr * Math.cos(Math.PI * t), y: cy - rr * Math.sin(Math.PI * t) };
+    }
+    function texto(x, y, conteudo, tamanho, cor, peso) {
+      const el = document.createElementNS(NS, "text");
+      el.setAttribute("x", x); el.setAttribute("y", y);
+      el.setAttribute("text-anchor", "middle");
+      el.setAttribute("font-size", String(tamanho));
+      el.setAttribute("font-weight", String(peso || 600));
+      el.setAttribute("fill", cor);
+      el.textContent = conteudo;
+      return el;
     }
 
-    const trilho = arco(raio);
-    trilho.setAttribute("stroke", "var(--border)");
-    trilho.setAttribute("stroke-width", "22");
-    trilho.setAttribute("stroke-linecap", "round");
-    svg.appendChild(trilho);
+    const temMeta = o.meta !== undefined && o.meta !== null && isFinite(o.meta);
+    const faixasPadrao = [
+      { ate: 20, cor: "var(--critical)", rotulo: "Ruim" },
+      { ate: 40, cor: "var(--serious)", rotulo: "Regular" },
+      { ate: 60, cor: "var(--warning)", rotulo: "Bom" },
+      { ate: 80, cor: "var(--series-4)", rotulo: "Muito Bom" },
+      { ate: 100, cor: "var(--good)", rotulo: "Ótimo" },
+    ];
+    const faixas = o.faixas || (temMeta
+      ? [{ ate: Math.max(0, Math.min(100, o.meta)), cor: "var(--accent-strong)" },
+        { ate: 100, cor: "var(--border)" }]
+      : faixasPadrao);
+
+    // faixas: arcos separados (não um só com dasharray) -- cada faixa tem
+    // COR própria, então precisa ser um <path> próprio; um respiro de 2px
+    // (mesma lógica angular da rosca em donut()) separa uma da seguinte.
+    let cursor = 0;
+    faixas.forEach(function (faixa) {
+      const t0 = cursor / 100, t1raw = Math.max(cursor, faixa.ate) / 100;
+      const pad = Math.min(0.008, (t1raw - t0) / 4);
+      const t1 = Math.max(t0, t1raw - (t1raw < 1 ? pad : 0));
+      const tIni = t0 + (t0 > 0 ? pad : 0);
+      if (t1 > tIni) {
+        const p0 = ponto(tIni), p1 = ponto(t1);
+        const large = (t1 - tIni) > 0.5 ? 1 : 0;
+        const arco = document.createElementNS(NS, "path");
+        arco.setAttribute("d", `M ${p0.x} ${p0.y} A ${raio} ${raio} 0 ${large} 1 ${p1.x} ${p1.y}`);
+        arco.setAttribute("fill", "none");
+        arco.setAttribute("stroke", faixa.cor);
+        arco.setAttribute("stroke-width", String(espessura));
+        svg.appendChild(arco);
+      }
+      cursor = faixa.ate;
+    });
+
+    // rótulos das pontas da escala -- sem eles um velocímetro sozinho não
+    // diz se a régua vai de 0 a 100 ou de 0 a outra coisa qualquer
+    svg.appendChild(texto(ponto(0.02, raio + 20).x, cy + 16, "0%", 10, "var(--ink-muted)", 500));
+    svg.appendChild(texto(ponto(0.98, raio + 20).x, cy + 16, "100%", 10, "var(--ink-muted)", 500));
+
+    // a marca da meta só é desenhada longe da ponta direita -- rente à
+    // ponta ela cairia em cima do rótulo "100%" que já está ali (meta ===
+    // 100 é o caso comum de "a meta É o fim da escala", ex.: publicações
+    // do ano expressas como % da própria meta).
+    if (temMeta && o.meta < 98.5) {
+      const tMeta = Math.max(0, Math.min(100, o.meta)) / 100;
+      const p0 = ponto(tMeta, raio - espessura / 2 - 2), p1 = ponto(tMeta, raio + espessura / 2 + 8);
+      const marca = document.createElementNS(NS, "line");
+      marca.setAttribute("x1", p0.x); marca.setAttribute("y1", p0.y);
+      marca.setAttribute("x2", p1.x); marca.setAttribute("y2", p1.y);
+      marca.setAttribute("stroke", "var(--ink)"); marca.setAttribute("stroke-width", "2.5");
+      marca.setAttribute("class", "gauge-marca-meta");
+      svg.appendChild(marca);
+      const pRotulo = ponto(tMeta, raio + espessura / 2 + 20);
+      svg.appendChild(texto(pRotulo.x, pRotulo.y + 3, "meta " + fmt(o.meta) + "%", 10, "var(--ink)", 700));
+    }
 
     const temValor = valor !== null && valor !== undefined && isFinite(valor);
     if (temValor) {
-      const v = Math.max(0, Math.min(100, valor));
-      const cor = o.critico ? "var(--critical)" : v >= 50 ? "var(--good)" : "var(--warning)";
-      const arcoValor = arco(raio);
-      arcoValor.setAttribute("stroke", cor);
-      arcoValor.setAttribute("stroke-width", "22");
-      arcoValor.setAttribute("stroke-linecap", "round");
-      arcoValor.setAttribute("stroke-dasharray", `${v} ${100 - v}`);
-      arcoValor.setAttribute("class", "gauge-arco-valor");
-      svg.appendChild(arcoValor);
+      const v = Math.max(0, Math.min(100, valor)) / 100;
+      const ponta = ponto(v, raio - espessura / 2 - 14);
+      const agulha = document.createElementNS(NS, "line");
+      agulha.setAttribute("x1", cx); agulha.setAttribute("y1", cy);
+      agulha.setAttribute("x2", ponta.x); agulha.setAttribute("y2", ponta.y);
+      agulha.setAttribute("stroke", "var(--ink)"); agulha.setAttribute("stroke-width", "4");
+      agulha.setAttribute("stroke-linecap", "round");
+      agulha.setAttribute("class", "gauge-agulha");
+      svg.appendChild(agulha);
+      const cubo = document.createElementNS(NS, "circle");
+      cubo.setAttribute("cx", cx); cubo.setAttribute("cy", cy); cubo.setAttribute("r", "7");
+      cubo.setAttribute("fill", "var(--ink)"); cubo.setAttribute("class", "gauge-cubo");
+      svg.appendChild(cubo);
     }
 
-    const numero = document.createElementNS(NS, "text");
-    numero.setAttribute("x", cx); numero.setAttribute("y", cy - 18);
-    numero.setAttribute("text-anchor", "middle");
-    numero.setAttribute("font-size", "40"); numero.setAttribute("font-weight", "800");
-    numero.setAttribute("fill", o.critico ? "var(--critical)" : "var(--ink)");
-    numero.textContent = temValor ? fmt(valor) + "%" : "sem dado";
-    svg.appendChild(numero);
+    svg.appendChild(texto(cx, cy - 20, temValor ? fmt(valor) + "%" : "sem dado", 38,
+      o.critico ? "var(--critical)" : "var(--ink)", 800));
 
-    if (o.rotulo) {
-      const rotulo = document.createElementNS(NS, "text");
-      rotulo.setAttribute("x", cx); rotulo.setAttribute("y", cy + 10);
-      rotulo.setAttribute("text-anchor", "middle");
-      rotulo.setAttribute("font-size", "13"); rotulo.setAttribute("fill", "var(--ink-2)");
-      rotulo.textContent = o.rotulo;
-      svg.appendChild(rotulo);
+    if (temMeta && temValor) {
+      // `opts.fraseMeta` sobrepõe a frase automática -- necessário quando o
+      // valor real não é uma porcentagem "de verdade" (contagem contra uma
+      // meta, ex.: publicações do ano): a diferença em PONTOS da escala do
+      // mostrador não é a diferença em unidades reais, e escrever uma
+      // sozinha inventaria uma conta que ninguém pediu.
+      const falta = o.meta - valor;
+      const frase = o.fraseMeta || (falta > 0.05 ? "faltam " + fmt(falta) + "% para a meta" : "meta atingida");
+      const bateu = o.fraseMeta ? !!o.metaAtingida : falta <= 0.05;
+      svg.appendChild(texto(cx, cy + 6, frase, 12, bateu ? "var(--good)" : "var(--ink-2)", 700));
+    } else if (!temMeta) {
+      // qualitativo: o nome da própria faixa em que o valor caiu -- "63%"
+      // sozinho não diz se é bom ou ruim para quem olha de longe
+      if (temValor) {
+        const faixaAtual = faixas.find(function (f) { return valor <= f.ate; }) || faixas[faixas.length - 1];
+        if (faixaAtual.rotulo) svg.appendChild(texto(cx, cy + 6, faixaAtual.rotulo, 13, faixaAtual.cor, 700));
+      }
     }
-    if (o.nota) {
-      const nota = document.createElementNS(NS, "text");
-      nota.setAttribute("x", cx); nota.setAttribute("y", cy + 34);
-      nota.setAttribute("text-anchor", "middle");
-      nota.setAttribute("font-size", "11"); nota.setAttribute("fill", "var(--ink-muted)");
-      nota.textContent = o.nota;
-      svg.appendChild(nota);
-    }
+
+    if (o.rotulo) svg.appendChild(texto(cx, cy + 26, o.rotulo, 12, "var(--ink-2)", 600));
+    if (o.nota) svg.appendChild(texto(cx, cy + 44, o.nota, 11, "var(--ink-muted)", 500));
 
     fig.appendChild(svg);
     return fig;

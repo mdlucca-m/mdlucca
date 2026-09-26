@@ -1096,7 +1096,23 @@ function painelInsights(t, kpis, ditos) {
     rotulo: "Taxa de aceite", nota: aceite ? aceite.pe : "", critico: critico,
   });
 
-  const filhos = [el("div", { class: "insights-gauge" }, [gauge])];
+  /* Meta de publicações do ano, no mesmo mostrador -- só quando existe
+     meta DECLARADA (nunca inventada): `meta.pct` já vem pronto de
+     metas.progresso (percentual do realizado sobre a meta), e a frase
+     usa `meta.faltam`, que é uma CONTAGEM real de publicações, não a
+     leitura literal da escala do mostrador (essa é só de 0 a 100%). */
+  const metaPub = t.meta_publicacoes;
+  const gaugeMeta = metaPub && metaPub.meta
+    ? ChartsEnhanced.gaugeDiagnostico(metaPub.pct, {
+        meta: 100, rotulo: "Publicações no ano", metaAtingida: metaPub.veredito === "alcançada",
+        fraseMeta: metaPub.veredito === "alcançada"
+          ? "meta de " + fmt(metaPub.meta) + " publicações atingida"
+          : "faltam " + fmt(metaPub.faltam) + " para a meta de " + fmt(metaPub.meta),
+      })
+    : null;
+
+  const filhos = [el("div", { class: "insights-gauge" + (gaugeMeta ? " duplo" : "") },
+    [gauge, gaugeMeta].filter(Boolean))];
   if (critico) {
     filhos.push(el("p", { class: "insights-alerta" }, [
       el("b", { text: "⚠️ Taxa de aceite em 0%: " }),

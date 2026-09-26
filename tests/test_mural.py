@@ -1625,11 +1625,43 @@ class TestFraseMetaPublicacoes(unittest.TestCase):
         self.assertIn("NÃO deve ser alcançada", frase)
 
 
+class TestGaugeDeMetaNoPainelDeInsights(unittest.TestCase):
+    """O velocímetro de meta de publicações entra ao lado do de taxa de
+    aceite, só quando existe meta DECLARADA -- e a frase usa a CONTAGEM
+    real (`meta.faltam`), nunca a diferença em pontos da escala do
+    mostrador (que é sempre 0-100%, normalizada por metas.progresso;
+    subtrair ali daria uma conta que ninguém pediu)."""
+
+    def _corpo(self):
+        js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        inicio = js.index("function painelInsights(")
+        fim = js.index("\nfunction ", inicio + 10)
+        return js[inicio:fim]
+
+    def test_so_desenha_o_segundo_gauge_quando_ha_meta(self):
+        corpo = self._corpo()
+        self.assertIn("metaPub && metaPub.meta", corpo)
+        self.assertIn("gaugeMeta", corpo)
+
+    def test_a_frase_usa_a_contagem_real_nao_a_escala_do_mostrador(self):
+        corpo = self._corpo()
+        self.assertIn("metaPub.faltam", corpo)
+        self.assertNotIn("metaPub.pct -", corpo)
+
+    def test_o_gauge_de_meta_usa_escala_percentual(self):
+        # meta: 100 -- a escala do velocimetro e sempre 0-100% (o pct que
+        # metas.progresso ja calculou), nunca a contagem bruta de artigos
+        corpo = self._corpo()
+        self.assertIn("meta: 100", corpo)
+
+
 class TestGaugeDeDiagnostico(unittest.TestCase):
-    """`ChartsEnhanced.gaugeDiagnostico` -- o mostrador da taxa de aceite
-    no painel de insights. Crítico é decidido por quem chama (nunca
-    aqui dentro), e só troca a classe/cor -- a tela real nunca inventa
-    um alarme por conta própria."""
+    """`ChartsEnhanced.gaugeDiagnostico` -- o velocímetro padrão do
+    laboratório para "um número contra uma escala" (achado ao vivo,
+    referência que o Mateus mandou de um painel de KPI com faixas
+    coloridas + ponteiro). Crítico é decidido por quem chama (nunca aqui
+    dentro), e só troca a cor do ponteiro -- a tela real nunca inventa um
+    alarme por conta própria."""
 
     DOM_SHIM = """
     class NoFalso {
@@ -1661,12 +1693,16 @@ class TestGaugeDeDiagnostico(unittest.TestCase):
         script = (self.DOM_SHIM + "\n" + chart_src
                   + f"\nconst fig = ChartsEnhanced.gaugeDiagnostico({valor_js}, {json.dumps(opts or {})});"
                   + "\nconst svg = fig.kids[0];"
-                  + "\nconst arcoValor = todos(fig, 'path').find(function (p) {"
-                  + "  return p.attrs.class === 'gauge-arco-valor'; });"
+                  + "\nconst agulha = todos(fig, 'line').find(function (l) {"
+                  + "  return l.attrs.class === 'gauge-agulha'; });"
+                  + "\nconst faixas = todos(fig, 'path');"
+                  + "\nconst marcaMeta = todos(fig, 'line').find(function (l) {"
+                  + "  return l.attrs.class === 'gauge-marca-meta'; });"
                   + "\nprocess.stdout.write(JSON.stringify({"
                   + "  svgClasse: svg.attrs.class,"
-                  + "  temArcoValor: !!arcoValor,"
-                  + "  dashArray: arcoValor ? arcoValor.attrs['stroke-dasharray'] : null,"
+                  + "  temAgulha: !!agulha,"
+                  + "  nFaixas: faixas.length,"
+                  + "  temMarcaMeta: !!marcaMeta,"
                   + "  textos: todos(fig, 'text').map(function (t) { return t.textContent; }) }));")
         return _roda(script)
 
@@ -1676,19 +1712,52 @@ class TestGaugeDeDiagnostico(unittest.TestCase):
         critico = self._gauge(0, {"rotulo": "Taxa de aceite", "critico": True})
         self.assertIn("gauge-critico", critico["svgClasse"])
 
-    def test_sem_dado_nao_desenha_arco_de_valor(self):
+    def test_sem_dado_nao_desenha_agulha(self):
         resultado = self._gauge(None, {"rotulo": "Taxa de aceite"})
-        self.assertFalse(resultado["temArcoValor"])
+        self.assertFalse(resultado["temAgulha"])
         self.assertIn("sem dado", resultado["textos"])
 
-    def test_arco_de_valor_preenche_a_fracao_certa(self):
+    def test_com_dado_desenha_a_agulha(self):
         resultado = self._gauge(30, {"rotulo": "Taxa de aceite"})
-        self.assertEqual(resultado["dashArray"], "30 70")
+        self.assertTrue(resultado["temAgulha"])
 
     def test_numero_e_rotulo_aparecem(self):
         resultado = self._gauge(62, {"rotulo": "Taxa de aceite"})
         self.assertIn("62%", resultado["textos"])
         self.assertIn("Taxa de aceite", resultado["textos"])
+
+    def test_modo_qualitativo_tem_cinco_faixas_e_nomeia_a_faixa_atual(self):
+        # sem opts.meta nem opts.faixas -- cai no padrão de 5 faixas
+        # (Ruim/Regular/Bom/Muito Bom/Ótimo) e nomeia em qual delas o
+        # valor caiu, exatamente como a referência (Ruim/Regular/Bom/...).
+        resultado = self._gauge(15, {"rotulo": "Taxa de aceite"})
+        self.assertEqual(resultado["nFaixas"], 5)
+        self.assertIn("Ruim", resultado["textos"])
+        self.assertFalse(resultado["temMarcaMeta"])
+
+    def test_modo_meta_mostra_a_marca_e_a_frase_de_progresso(self):
+        resultado = self._gauge(63, {"rotulo": "Cumprimento semanal", "meta": 85})
+        self.assertTrue(resultado["temMarcaMeta"])
+        self.assertIn("meta 85%", resultado["textos"])
+        self.assertIn("faltam 22% para a meta", resultado["textos"])
+
+    def test_modo_meta_com_meta_batida_nao_mostra_faltam(self):
+        resultado = self._gauge(90, {"rotulo": "Cumprimento semanal", "meta": 85})
+        self.assertIn("meta atingida", resultado["textos"])
+        self.assertFalse(any("faltam" in t for t in resultado["textos"]))
+
+    def test_frase_meta_customizada_sobrepoe_a_automatica(self):
+        # publicações do ano: a escala do mostrador é 0-100% (percentual da
+        # meta), mas a frase precisa da CONTAGEM real, não da diferença em
+        # pontos da escala -- por isso o chamador pode sobrepor a frase.
+        resultado = self._gauge(80, {
+            "rotulo": "Publicações no ano", "meta": 100,
+            "fraseMeta": "faltam 4 para a meta de 20",
+        })
+        self.assertIn("faltam 4 para a meta de 20", resultado["textos"])
+        # meta=100: rente à ponta direita, a marca não é desenhada (já
+        # existe o rótulo "100%" ali)
+        self.assertFalse(resultado["temMarcaMeta"])
 
 
 class TestGloboNeonDoPeloMundo(unittest.TestCase):

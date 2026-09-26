@@ -20,6 +20,7 @@ import threading
 import unittest
 import urllib.error
 import urllib.request
+from datetime import date, timedelta
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
@@ -1531,6 +1532,101 @@ class TestABandeiraQueTreme(unittest.TestCase):
         for proibido in (".bar", ".mark", "svg", ".plot", ".numero"):
             with self.subTest(alvo=proibido):
                 self.assertNotIn(proibido, bloco)
+
+
+class TestPainelDePessoas(unittest.TestCase):
+    """`metrics.painel_pessoas` -- o painel "estilo RH" pedido pela
+    coordenação, mas só com o que o cadastro de verdade guarda: sem
+    salário, sem gênero (colunas que `members` nunca teve -- ver
+    sql/schema.sql). Inventar um número ou um "M/F" que ninguém preencheu
+    seria pior que não mostrar nada; no lugar entram produção (citações,
+    artigos) e permanência (tempo de vínculo)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "pessoas.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def pessoa(self, nome, **campos):
+        mid = self.db.member_id(nome, create=True)
+        linha = campos.pop("research_line", None)
+        campos.setdefault("is_external", 0)
+        campos.setdefault("active", 1)
+        if linha:
+            campos["research_line_id"] = self.db.research_line_id(linha)
+        sets = ", ".join(f"{k} = ?" for k in campos)
+        if sets:
+            self.db.execute(f"UPDATE members SET {sets} WHERE id = ?",
+                             (*campos.values(), mid))
+        self.db.conn.commit()
+        return mid
+
+    def test_nao_leva_salario_nem_genero(self):
+        self.pessoa("Alexandro Andrade", role="coordenacao")
+        bruto = json.dumps(metrics.painel_pessoas(self.db), default=str).lower()
+        for proibido in ("salario", "salário", "genero", "gênero", "sexo", "idade"):
+            with self.subTest(campo=proibido):
+                self.assertNotIn(proibido, bruto)
+
+    def test_ativos_e_desligados_contados_separado(self):
+        self.pessoa("Ativa", role="bolsista_ic", active=1)
+        self.pessoa("Desligado", role="voluntario", active=0, left_on="2024-01-01")
+        painel = metrics.painel_pessoas(self.db)
+        self.assertEqual(painel["resumo"]["total_ativos"], 1)
+        self.assertEqual(painel["resumo"]["total_desligados"], 1)
+
+    def test_colaborador_externo_fica_de_fora(self):
+        self.pessoa("Colaborador Externo", role="professor", is_external=1)
+        painel = metrics.painel_pessoas(self.db)
+        self.assertEqual(painel["pessoas"], [])
+
+    def test_tempo_de_vinculo_calculado_da_data_de_ingresso(self):
+        entrou = (date.today() - timedelta(days=730)).isoformat()
+        self.pessoa("Dois Anos", role="bolsista_ic", joined_on=entrou)
+        painel = metrics.painel_pessoas(self.db)
+        self.assertAlmostEqual(painel["pessoas"][0]["tempo_vinculo_anos"], 2.0, delta=0.1)
+
+    def test_sem_data_de_ingresso_nao_inventa_tempo(self):
+        self.pessoa("Sem Data", role="bolsista_ic")
+        painel = metrics.painel_pessoas(self.db)
+        self.assertIsNone(painel["pessoas"][0]["tempo_vinculo_anos"])
+
+    def test_por_papel_soma_citacoes_e_ordena_de_quem_mais_produziu(self):
+        self.pessoa("Docente Sênior Alfa", role="professor", citations_total=50)
+        self.pessoa("Bolsista Júnior Beta", role="bolsista_ic", citations_total=2)
+        painel = metrics.painel_pessoas(self.db)
+        self.assertEqual([p["papel"] for p in painel["por_papel"]], ["professor", "bolsista_ic"])
+
+    def test_por_linha_conta_so_quem_esta_ativo(self):
+        self.pessoa("Ativa Na Linha", role="bolsista_ic", research_line="Biomecânica", active=1)
+        self.pessoa("Desligada Na Linha", role="bolsista_ic", research_line="Biomecânica",
+                    active=0, left_on="2023-01-01")
+        painel = metrics.painel_pessoas(self.db)
+        linha = next(p for p in painel["por_linha"] if p["linha"] == "Biomecânica")
+        self.assertEqual(linha["n"], 1)
+
+
+class TestRotaDoPainelDePessoas(unittest.TestCase):
+    """Mesma trava de `/api/ponto/equipe`: é vista da coordenação, e uma
+    aba que responde 403 é pior que aba nenhuma."""
+
+    def _api_src(self):
+        return (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+
+    def test_a_funcao_confere_por_conta_propria(self):
+        corpo = self._api_src()
+        corpo = corpo[corpo.index("def route_painel_pessoas("):]
+        corpo = corpo[:corpo.index("\ndef ")]
+        self.assertIn('auth.require(ctx.user, "coordenacao")', corpo)
+
+    def test_rota_registrada_com_o_perfil_certo(self):
+        rota = re.search(
+            r'\("GET",\s*r"\^/api/painel/pessoas[^"]*",\s*route_painel_pessoas,\s*"(\w+)"\)',
+            self._api_src())
+        self.assertIsNotNone(rota)
+        self.assertEqual(rota.group(1), "coordenacao")
 
 
 if __name__ == "__main__":

@@ -207,6 +207,8 @@ body { background: var(--surface-sunken); }
 .insights-painel { display: flex; flex-direction: column; gap: 10px; min-height: 0; flex: 1; }
 .insights-gauge { display: flex; justify-content: center; }
 .insights-gauge svg { max-width: 260px; }
+.insights-gauge.duplo { gap: 6px; flex-wrap: wrap; }
+.insights-gauge.duplo svg { max-width: 220px; flex: 1 1 200px; }
 .insights-alerta { font-size: clamp(11px, .85vw, calc(13.5px * var(--zoom, 1)));
   color: var(--critical); background: color-mix(in srgb, var(--critical) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--critical) 40%, transparent);
@@ -218,12 +220,12 @@ body { background: var(--surface-sunken); }
 .insights-predicao { font-size: clamp(11px, .85vw, calc(13.5px * var(--zoom, 1))); color: var(--ink-2); }
 .insights-predicao b { color: var(--accent-strong); }
 @media (prefers-reduced-motion: reduce) { .insights-alerta { animation: none; } }
-.gauge-critico .gauge-arco-valor { animation: pulsaArcoCritico 1.6s ease-in-out infinite; }
+.gauge-critico .gauge-agulha, .gauge-critico .gauge-cubo { animation: pulsaArcoCritico 1.6s ease-in-out infinite; }
 @keyframes pulsaArcoCritico {
   0%, 100% { filter: drop-shadow(0 0 4px var(--critical)); }
   50% { filter: drop-shadow(0 0 14px var(--critical)); }
 }
-@media (prefers-reduced-motion: reduce) { .gauge-critico .gauge-arco-valor { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .gauge-critico .gauge-agulha, .gauge-critico .gauge-cubo { animation: none; } }
 /* Globo neon: a "girada" é só CSS 3D (perspective no quadro, rotateY no
    grupo) -- sem canvas, sem laço de animação em JS. `svg.globo-neon`
    precisa do `perspective` no PAI para o rotateY do filho ganhar

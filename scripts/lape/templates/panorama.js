@@ -152,14 +152,16 @@ const ABAS = [
   { id: "lacunas", rotulo: "Lacunas e insights", icone: "explorar", grupo: "Leitura" },
   { id: "extracao", rotulo: "Extração", icone: "dados", grupo: "Leitura" },
   { id: "equipe", rotulo: "Equipe e ponto", icone: "relogio", grupo: "Equipe" },
+  { id: "pessoas", rotulo: "Painel de pessoas", icone: "pessoas", grupo: "Equipe" },
 ];
 
-/* A aba do ponto só aparece para quem pode abri-la. Aba que responde 403
-   é pior que aba nenhuma: promete e nega. */
+/* A aba do ponto (e a do painel de pessoas, mesma trava) só aparece para
+   quem pode abri-la. Aba que responde 403 é pior que aba nenhuma: promete
+   e nega. */
 function abasVisiveis() {
   const papel = ((D.usuario || {}).papel) || "leitura";
   const manda = papel === "coordenacao" || papel === "admin";
-  return ABAS.filter(function (a) { return a.id !== "equipe" || manda; });
+  return ABAS.filter(function (a) { return (a.id !== "equipe" && a.id !== "pessoas") || manda; });
 }
 
 function montarNav() {
@@ -3369,6 +3371,144 @@ function variacaoCurta(v) {
 }
 
 /* ==================================================================== */
+/* Painel de pessoas -- só leitura, estilo painel de RH, referência que  */
+/* o Mateus mandou de um dashboard de acompanhamento. A referência tinha */
+/* salário e gênero; o cadastro do LAPE nunca teve essas colunas (ver    */
+/* `members` em sql/schema.sql), e inventar um número ou um "M/F" que    */
+/* ninguém preencheu seria pior que não mostrar nada -- ficam de fora,   */
+/* de propósito. No lugar entra o que o laboratório de fato mede:       */
+/* produção (citações, artigos) e permanência (tempo de vínculo); no     */
+/* lugar de "faltas" entra o déficit real do banco de horas de quem tem  */
+/* carga obrigatória (o mesmo dado já pronto de ponto.banco_de_horas_    */
+/* equipe, aba "Equipe e ponto" -- aqui só reaproveitado).               */
+/* ==================================================================== */
+let PESSOAS_ADMIN = null;
+const ST_PESSOAS = { papel: "todos", situacao: "ativos", busca: "" };
+
+function verPessoas(palco) {
+  palco.appendChild(cabeca("pessoas", "Painel de pessoas",
+    "Só leitura -- um retrato de quem está (e de quem passou) pelo laboratório. "
+    + "Sem salário e sem gênero: o cadastro nunca teve essas colunas, e não é este "
+    + "painel que vai inventar um número ou um \"M/F\" que ninguém preencheu."));
+
+  if (!PESSOAS_ADMIN) {
+    palco.appendChild(el("p", { class: "hint", text: "Carregando o painel de pessoas…" }));
+    api("/api/painel/pessoas").then(function (dados) {
+      PESSOAS_ADMIN = dados;
+      if (ST.aba === "pessoas") desenhar();
+    }).catch(function (erro) {
+      PESSOAS_ADMIN = { erro: erro.message, pessoas: [], por_papel: [], por_linha: [], resumo: {} };
+      if (ST.aba === "pessoas") desenhar();
+    });
+    return;
+  }
+  if (PESSOAS_ADMIN.erro) {
+    palco.appendChild(nota("<b>Não deu para ler o painel de pessoas.</b> " + PESSOAS_ADMIN.erro
+      + " — esta aba é da coordenação."));
+    return;
+  }
+
+  const r = PESSOAS_ADMIN.resumo || {};
+  palco.appendChild(el("div", { class: "grade g4" }, [
+    indicador("Integrantes ativos", r.total_ativos || 0, "sem contar colaboradores externos", "pessoas"),
+    indicador("Desligados", r.total_desligados || 0, "com vínculo encerrado", "aviso"),
+    indicador("Tempo médio de vínculo", r.tempo_vinculo_medio_anos != null
+      ? r.tempo_vinculo_medio_anos.toFixed(1).replace(".", ",") + " anos" : "—",
+      "entre quem está ativo", "relogio"),
+    indicador("Citações acumuladas", C.fmt(r.total_citacoes || 0), "soma de quem está ativo", "citacao"),
+  ]));
+
+  const porPapel = PESSOAS_ADMIN.por_papel || [];
+  const porLinha = PESSOAS_ADMIN.por_linha || [];
+  palco.appendChild(el("div", { class: "grade g2", style: "margin-top:14px" }, [
+    cartao("hierarquia", "Integrantes por vínculo", "Ativos e desligados, dos dois lados.",
+      porPapel.length
+        ? C.donut({ items: porPapel.map(function (p, i) {
+            return { label: p.label, value: p.n, color: C.token("--series-" + (i % 8 + 1)) }; }),
+            unit: "pessoa(s)" })
+        : el("p", { class: "hint", text: "Sem vínculo cadastrado ainda." })),
+    cartao("mapa", "Integrantes por linha de pesquisa", "Só quem está ativo agora.",
+      porLinha.length
+        ? C.donut({ items: porLinha.map(function (p, i) {
+            return { label: p.linha, value: p.n, color: C.token("--series-" + (i % 8 + 1)) }; }),
+            unit: "pessoa(s)" })
+        : el("p", { class: "hint", text: "Ninguém com linha de pesquisa declarada." })),
+  ]));
+
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("citacao",
+    "Citações por vínculo", "Soma de quem está ativo e desligado, do vínculo que mais produziu para o que menos.",
+    porPapel.length
+      ? C.bars({ items: porPapel.filter(function (p) { return p.citacoes > 0; })
+          .map(function (p) { return { label: p.label, value: p.citacoes }; }),
+          mono: true, unit: "citação(ões)" })
+      : el("p", { class: "hint", text: "Sem citação registrada ainda." }))));
+
+  /* déficit do banco de horas -- o mesmo cálculo da aba "Equipe e ponto",
+     só reaproveitado; pior saldo primeiro, sem inventar limiar novo. */
+  const deficit = (PESSOAS_ADMIN.banco_de_horas_bolsistas || [])
+    .filter(function (b) { return b.saldo_acumulado < 0; });
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("relogio",
+    "Déficit no banco de horas (" + deficit.length + ")",
+    "Bolsistas com carga semanal obrigatória, abaixo da meta acumulada.",
+    deficit.length
+      ? C.bars({ items: deficit.map(function (b) {
+          return { label: b.quem, value: Math.abs(b.saldo_acumulado), color: C.token("--critical") }; }),
+          mono: true, unit: "h a menos" })
+      : el("p", { class: "hint", text: "Ninguém com déficit no banco de horas." }))));
+
+  /* ---- filtros (nome, vínculo, situação) sobre a lista abaixo ---- */
+  const papeis = [{ papel: "todos", label: "Todos" }].concat(
+    porPapel.map(function (p) { return { papel: p.papel, label: p.label }; }));
+  palco.appendChild(el("div", { style: "margin-top:18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center" }, [
+    el("div", { class: "atalhos" }, papeis.map(function (p) {
+      return el("button", {
+        class: ST_PESSOAS.papel === p.papel ? "on" : "", text: p.label,
+        onclick: function () { ST_PESSOAS.papel = p.papel; desenhar(); },
+      });
+    })),
+    el("select", {
+      onchange: function (ev) { ST_PESSOAS.situacao = ev.target.value; desenhar(); },
+    }, [
+      el("option", { value: "ativos", selected: ST_PESSOAS.situacao === "ativos", text: "Só ativos" }),
+      el("option", { value: "desligados", selected: ST_PESSOAS.situacao === "desligados", text: "Só desligados" }),
+      el("option", { value: "todos", selected: ST_PESSOAS.situacao === "todos", text: "Ativos e desligados" }),
+    ]),
+    el("input", {
+      type: "search", placeholder: "Buscar pelo nome…", value: ST_PESSOAS.busca,
+      style: "flex:1;min-width:180px",
+      oninput: function (ev) { ST_PESSOAS.busca = ev.target.value; desenhar(); },
+    }),
+  ]));
+
+  const busca = ST_PESSOAS.busca.trim().toLowerCase();
+  const filtradas = (PESSOAS_ADMIN.pessoas || []).filter(function (p) {
+    if (ST_PESSOAS.papel !== "todos" && p.papel !== ST_PESSOAS.papel) return false;
+    if (ST_PESSOAS.situacao === "ativos" && !p.ativo) return false;
+    if (ST_PESSOAS.situacao === "desligados" && p.ativo) return false;
+    if (busca && p.nome.toLowerCase().indexOf(busca) === -1) return false;
+    return true;
+  }).sort(function (a, b) { return b.citacoes - a.citacoes; });
+
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("balanca",
+    "Citações por integrante (" + filtradas.length + ")",
+    "Ordenado de quem mais acumulou citações para quem menos -- não é ranking de esforço, é de produção já publicada.",
+    filtradas.length
+      ? C.bars({
+          items: filtradas.slice(0, 30).map(function (p) {
+            return { label: p.nome, value: p.citacoes }; }),
+          mono: true, unit: "citação(ões)",
+          table: { cols: ["Nome", "Vínculo", "Linha de pesquisa", "Situação", "Ingressou em",
+                          "Tempo de vínculo (anos)", "Artigos", "Citações", "H-index"],
+                   rows: filtradas.map(function (p) {
+                     return [p.nome, p.papel_label, p.linha_pesquisa || "—",
+                             p.ativo ? "Ativo" : "Desligado", p.ingressou_em || "—",
+                             p.tempo_vinculo_anos != null ? p.tempo_vinculo_anos : "—",
+                             p.artigos, p.citacoes, p.h_index != null ? p.h_index : "—"]; }) },
+        })
+      : el("p", { class: "hint", text: "Nenhum integrante para este filtro." }))));
+}
+
+/* ==================================================================== */
 function desenhar() {
   montarNav();
   /* O relogio da curva aponta para um palco que esta prestes a ser
@@ -3386,7 +3526,7 @@ function desenhar() {
      curvas: verCurvas, rede: verRede, mapa: verMapa, sintese: verSintese,
      lacunas: verLacunas, extracao: verExtracao, funil: verFunil,
      triangulo: verTriangulo, projetos: verProjetos, estatistica: verEstatistica,
-     equipe: verEquipe }[ST.aba] || verVisao)(palco);
+     equipe: verEquipe, pessoas: verPessoas }[ST.aba] || verVisao)(palco);
 }
 
 /* ==================================================================== */

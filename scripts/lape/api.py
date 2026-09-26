@@ -2336,6 +2336,16 @@ def route_ponto_equipe(ctx: "Context") -> Any:
     }
 
 
+def route_painel_pessoas(ctx: "Context") -> Any:
+    """Painel de pessoas da coordenacao/admin -- so leitura (ver
+    metrics.painel_pessoas). O deficit do banco de horas entra aqui porque
+    ja existe pronto em ponto.banco_de_horas_equipe -- juntar os dois numa
+    resposta so poupa a tela de duas idas ao servidor."""
+    auth.require(ctx.user, "coordenacao")
+    painel = metrics.painel_pessoas(ctx.db)
+    return {**painel, "banco_de_horas_bolsistas": ponto.banco_de_horas_equipe(ctx.db)}
+
+
 def route_ponto_analytics(ctx: "Context") -> Any:
     """Esforco (horas) ao lado do resultado (producao), pessoa a pessoa,
     e o tempo somado por atividade anotada -- para a aba "Gestao de
@@ -2956,6 +2966,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
     ("POST", r"^/api/ponto/informar-saida/?$", route_ponto_informar_saida, "integrante"),
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
+    ("GET", r"^/api/painel/pessoas/?$", route_painel_pessoas, "coordenacao"),
     ("GET", r"^/api/ponto/analytics/?$", route_ponto_analytics, "coordenacao"),
     ("GET", r"^/api/producao/?$", route_producao, "leitura"),
     ("POST", r"^/api/producao/importar/?$", route_producao_importar, "coordenacao"),

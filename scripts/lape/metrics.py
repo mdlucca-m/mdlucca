@@ -455,6 +455,93 @@ def sem_dados_da_coordenacao(org: dict[str, Any]) -> dict[str, Any]:
     return {**org, "people": pessoas, "teses": [], "restrito": True}
 
 
+def _data(valor: Any) -> date | None:
+    if not valor:
+        return None
+    try:
+        return date.fromisoformat(str(valor)[:10])
+    except ValueError:
+        return None
+
+
+def painel_pessoas(db: Database) -> dict[str, Any]:
+    """O "painel de pessoas" da coordenacao/admin -- so leitura, no estilo
+    de um painel de RH, mas so com o que a ficha do membro de fato guarda.
+
+    Nao tem salario nem genero aqui: essas colunas nunca existiram no
+    cadastro (ver `members` em sql/schema.sql), e inventar um numero ou um
+    "M/F" que ninguem preencheu seria pior que nao mostrar nada. No lugar
+    de folha de pagamento entra o que o laboratorio de fato mede -- producao
+    (citacoes, artigos) e permanencia (tempo de vinculo); no lugar de
+    "faltas" entra o deficit real do banco de horas de quem tem carga
+    obrigatoria (ver ponto.banco_de_horas_equipe, que ja soma isso semana a
+    semana -- este painel so junta o resultado, nao recalcula nada). """
+    from .mapping import ROLE_LABEL
+
+    linhas = db.dicts(
+        """
+        SELECT m.id, m.full_name, m.role, m.active,
+               m.joined_on, m.left_on, m.scholarship,
+               m.citations_total, m.h_index,
+               (SELECT COUNT(DISTINCT aa.article_id) FROM article_authors aa
+                  WHERE aa.member_id = m.id) AS n_articles,
+               rl.name AS research_line
+        FROM members m
+        LEFT JOIN research_lines rl ON rl.id = m.research_line_id
+        WHERE m.is_external = 0
+        ORDER BY m.full_name
+        """
+    )
+    hoje = TODAY
+    pessoas = []
+    for linha in linhas:
+        inicio = _data(linha["joined_on"])
+        fim = _data(linha["left_on"]) or hoje
+        tempo_dias = (fim - inicio).days if inicio else None
+        papel = linha["role"] or ""
+        pessoas.append({
+            "id": linha["id"],
+            "nome": linha["full_name"],
+            "papel": papel or "sem_vinculo",
+            "papel_label": ROLE_LABEL.get(papel, "Sem vínculo declarado"),
+            "linha_pesquisa": linha["research_line"],
+            "ativo": bool(linha["active"]),
+            "ingressou_em": linha["joined_on"],
+            "saiu_em": linha["left_on"],
+            "tempo_vinculo_anos": round(tempo_dias / 365.25, 1) if tempo_dias else None,
+            "vinculo_bolsa": linha["scholarship"],
+            "citacoes": linha["citations_total"] or 0,
+            "h_index": linha["h_index"],
+            "artigos": linha["n_articles"],
+        })
+
+    ativos = [p for p in pessoas if p["ativo"]]
+    desligados = [p for p in pessoas if not p["ativo"]]
+    tempos = [p["tempo_vinculo_anos"] for p in ativos if p["tempo_vinculo_anos"] is not None]
+
+    por_papel: dict[str, dict[str, Any]] = {}
+    for p in pessoas:
+        registro = por_papel.setdefault(p["papel"],
+            {"papel": p["papel"], "label": p["papel_label"], "n": 0, "citacoes": 0})
+        registro["n"] += 1
+        registro["citacoes"] += p["citacoes"]
+
+    contagem_linha = Counter(p["linha_pesquisa"] or "Sem linha declarada" for p in ativos)
+
+    return {
+        "pessoas": pessoas,
+        "resumo": {
+            "total_ativos": len(ativos),
+            "total_desligados": len(desligados),
+            "tempo_vinculo_medio_anos": round(statistics.mean(tempos), 1) if tempos else None,
+            "total_citacoes": sum(p["citacoes"] for p in ativos),
+        },
+        "por_papel": sorted(por_papel.values(), key=lambda x: -x["citacoes"]),
+        "por_linha": [{"linha": k, "n": v} for k, v in
+                      sorted(contagem_linha.items(), key=lambda kv: -kv[1])],
+    }
+
+
 def collaboration_network(db: Database, min_weight: int = 1) -> dict[str, Any]:
     """Rede de coautoria: nos = integrantes, arestas = artigos em comum."""
     rows = db.dicts(
