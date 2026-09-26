@@ -2332,6 +2332,7 @@ def route_ponto_equipe(ctx: "Context") -> Any:
         "serie": ponto.serie(ctx.db, None, dias=dias),
         "resumo": ponto.resumo(ctx.db, None),
         "producao": ponto.producao_no_periodo(ctx.db, None, dias=dias),
+        "banco_de_horas_bolsistas": ponto.banco_de_horas_equipe(ctx.db),
     }
 
 

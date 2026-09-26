@@ -715,6 +715,42 @@ class TestMetaSemanalEBancoDeHoras(BasePonto):
         self.assertEqual(banco["semanas"][-1]["saldo_acumulado"], -5.0)
 
 
+class TestBancoDeHorasEquipe(BasePonto):
+    """A visao da coordenacao: todo mundo que tem carga obrigatoria, numa
+    lista so, pior saldo primeiro -- para cobrar quem esta devendo."""
+
+    def membro(self, nome, role, scholarship=None, active=1):
+        return self.db.member_id(nome, role=role, scholarship=scholarship, active=active)
+
+    def test_so_lista_quem_tem_carga_obrigatoria(self):
+        self.membro("Bolsista Com Carga", "bolsista_ic")
+        self.membro("Voluntaria Sem Carga", "voluntario")
+        lista = ponto.banco_de_horas_equipe(self.db)
+        nomes = [p["quem"] for p in lista]
+        self.assertIn("Bolsista Com Carga", nomes)
+        self.assertNotIn("Voluntaria Sem Carga", nomes)
+
+    def test_nao_lista_membro_inativo(self):
+        self.membro("Bolsista Desligada", "bolsista_ic", active=0)
+        lista = ponto.banco_de_horas_equipe(self.db)
+        self.assertNotIn("Bolsista Desligada", [p["quem"] for p in lista])
+
+    def test_ordena_do_pior_saldo_para_o_melhor(self):
+        hoje = date(2026, 9, 28)
+        semana_passada = date(2026, 9, 21)
+        em_dia = self.membro("Bolsista Em Dia", "bolsista_ic")
+        devendo = self.membro("Bolsista Devendo", "bolsista_ic")
+        for dia_offset in range(5):     # 30h na semana -- excedente
+            self.sessao((semana_passada + timedelta(days=dia_offset)).isoformat(),
+                        "08:00", "14:00", member_id=em_dia)
+        self.sessao(semana_passada.isoformat(), "08:00", "13:00",
+                    member_id=devendo)   # so 5h -- deficit
+        lista = ponto.banco_de_horas_equipe(self.db, hoje=hoje, semanas=1)
+        self.assertEqual(lista[0]["quem"], "Bolsista Devendo")
+        self.assertEqual(lista[-1]["quem"], "Bolsista Em Dia")
+        self.assertLess(lista[0]["saldo_acumulado"], lista[-1]["saldo_acumulado"])
+
+
 class TestRotasDoPonto(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -825,7 +861,8 @@ class TestRotasDoPonto(unittest.TestCase):
     def test_a_coordenacao_ve_a_equipe(self):
         status, dados = self.chamar("/api/ponto/equipe", self.ana)
         self.assertEqual(status, 200)
-        for chave in ("pessoas", "agora", "serie", "resumo", "producao"):
+        for chave in ("pessoas", "agora", "serie", "resumo", "producao",
+                      "banco_de_horas_bolsistas"):
             self.assertIn(chave, dados)
 
     def test_quem_so_e_integrante_nao_ve_a_equipe(self):

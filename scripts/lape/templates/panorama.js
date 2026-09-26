@@ -3286,6 +3286,35 @@ function verEquipe(palco) {
         }))
       : el("p", { class: "hint", text: "Ninguém com entrada em aberto." }))));
 
+  /* ---- banco de horas: quem tem carga obrigatoria de bolsa ----
+     Ordenado do pior saldo para o melhor (ver ponto.banco_de_horas_equipe)
+     -- quem precisa ser cobrado aparece primeiro, sem precisar procurar. */
+  const bolsistas = EQUIPE.banco_de_horas_bolsistas || [];
+  if (bolsistas.length) {
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "relogio", "Banco de horas — bolsistas (" + bolsistas.length + ")",
+      "20h semanais obrigatórias. Soma das semanas já fechadas contra a meta; "
+      + "a semana em andamento fica de fora do saldo até fechar.",
+      el("div", { style: "display:grid;gap:2px" }, bolsistas.map(function (b) {
+        const sa = b.semana_atual;
+        const semanaTxto = horasCurtas(sa.horas) + " de " + b.meta_semanal + "h esta semana"
+          + (sa.faltam > 0 ? " · faltam " + horasCurtas(sa.faltam)
+            : sa.excedente > 0 ? " · " + horasCurtas(sa.excedente) + " além da meta" : " · cumprida");
+        const cor = b.saldo_acumulado >= 0 ? "var(--good)" : "var(--critical)";
+        const saldoTxt = (b.saldo_acumulado > 0 ? "+" : "")
+          + horasCurtas(Math.abs(b.saldo_acumulado))
+          + (b.saldo_acumulado < 0 ? " a menos" : b.saldo_acumulado > 0 ? " a mais" : "");
+        return el("div", { style: "display:flex;justify-content:space-between;"
+          + "align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid var(--border)" }, [
+          el("div", {}, [
+            el("b", { text: b.quem }),
+            el("small", { style: "display:block;color:var(--ink-2)", text: semanaTxto }),
+          ]),
+          el("b", { style: "color:" + cor + ";white-space:nowrap", text: saldoTxt }),
+        ]);
+      })))));
+  }
+
   /* ---- horas por pessoa ---- */
   const pessoas = EQUIPE.pessoas || [];
   palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(

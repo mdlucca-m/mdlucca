@@ -607,6 +607,33 @@ def banco_de_horas(db: Database, member_id: int, meta_semanal: float,
     }
 
 
+def banco_de_horas_equipe(db: Database, hoje: date | None = None,
+                          semanas: int = 12) -> list[dict[str, Any]]:
+    """O banco de horas de cada bolsista, para a coordenacao ver quem esta
+    em dia e quem esta devendo -- so quem tem carga obrigatoria (ver
+    meta_semanal_horas), ordenado do pior saldo para o melhor: quem
+    precisa ser cobrado aparece primeiro."""
+    fechar_esquecidos(db)
+    hoje = hoje or date.today()
+    membros = db.dicts(
+        "SELECT id AS member_id, full_name AS quem, role AS vinculo"
+        "  FROM members WHERE active = 1")
+    saida: list[dict[str, Any]] = []
+    for m in membros:
+        meta = meta_semanal_horas(db, m["member_id"])
+        if not meta:
+            continue
+        banco = banco_de_horas(db, m["member_id"], meta, semanas=semanas, hoje=hoje)
+        saida.append({
+            "member_id": m["member_id"], "quem": m["quem"], "vinculo": m["vinculo"],
+            "meta_semanal": meta,
+            "semana_atual": banco["semana_atual"],
+            "saldo_acumulado": banco["saldo_acumulado"],
+        })
+    saida.sort(key=lambda x: x["saldo_acumulado"])
+    return saida
+
+
 def producao_no_periodo(db: Database, member_id: int | None = None,
                         dias: int = 30, hoje: date | None = None) -> dict[str, int]:
     """O que saiu de trabalho no mesmo periodo -- para nao ler hora sozinha.
