@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import statistics
 from collections import Counter, defaultdict
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from itertools import combinations
 from typing import Any, Iterable, Sequence
 
@@ -480,7 +480,7 @@ def painel_pessoas(db: Database) -> dict[str, Any]:
 
     linhas = db.dicts(
         """
-        SELECT m.id, m.full_name, m.role, m.active,
+        SELECT m.id, m.full_name, m.role, m.active, m.degree,
                m.joined_on, m.left_on, m.scholarship,
                m.citations_total, m.h_index,
                (SELECT COUNT(DISTINCT aa.article_id) FROM article_authors aa
@@ -505,6 +505,7 @@ def painel_pessoas(db: Database) -> dict[str, Any]:
             "papel": papel or "sem_vinculo",
             "papel_label": ROLE_LABEL.get(papel, "Sem vínculo declarado"),
             "linha_pesquisa": linha["research_line"],
+            "escolaridade": linha["degree"],
             "ativo": bool(linha["active"]),
             "ingressou_em": linha["joined_on"],
             "saiu_em": linha["left_on"],
@@ -527,6 +528,38 @@ def painel_pessoas(db: Database) -> dict[str, Any]:
         registro["citacoes"] += p["citacoes"]
 
     contagem_linha = Counter(p["linha_pesquisa"] or "Sem linha declarada" for p in ativos)
+    contagem_escolaridade = Counter(p["escolaridade"] or "Sem escolaridade declarada" for p in pessoas)
+
+    # Saída precoce: desligado com MENOS de um ano de vínculo -- um proxy
+    # honesto e descritivo (não um julgamento de "má contratação", que o
+    # dado não sustenta) para quem saiu rápido demais para o laboratório
+    # ter aproveitado o treinamento investido.
+    saidas_precoces = [p for p in desligados
+                       if p["tempo_vinculo_anos"] is not None and p["tempo_vinculo_anos"] < 1]
+
+    # Taxa de saída dos últimos 12 meses: quem desligou nesse intervalo,
+    # sobre quem estava "em risco" de desligar (ativos de agora + quem já
+    # saiu no intervalo) -- não é o total histórico de desligados sobre o
+    # total já cadastrado, que multiplicaria artificialmente com a idade
+    # do laboratório.
+    corte = hoje - timedelta(days=365)
+    saidas_12_meses = [p for p in desligados if p["saiu_em"] and (_data(p["saiu_em"]) or hoje) >= corte]
+    base_turnover = len(ativos) + len(saidas_12_meses)
+    taxa_saida_12_meses = round(100 * len(saidas_12_meses) / base_turnover, 1) if base_turnover else None
+
+    # Fluxo anual: quantos entraram e quantos saíram, ano a ano -- direto
+    # das mesmas datas já lidas para o tempo de vínculo, sem recontar nada.
+    # É o que dá ao painel a dimensão de TEMPO que a lista sozinha não tem
+    # (quem cresce, quem estabilizou, quem perdeu gente).
+    por_ano: dict[str, dict[str, int]] = {}
+    for p in pessoas:
+        if p["ingressou_em"]:
+            ano = str(p["ingressou_em"])[:4]
+            por_ano.setdefault(ano, {"entradas": 0, "saidas": 0})["entradas"] += 1
+        if p["saiu_em"]:
+            ano = str(p["saiu_em"])[:4]
+            por_ano.setdefault(ano, {"entradas": 0, "saidas": 0})["saidas"] += 1
+    fluxo_anual = [{"ano": ano, **valores} for ano, valores in sorted(por_ano.items())]
 
     return {
         "pessoas": pessoas,
@@ -535,10 +568,20 @@ def painel_pessoas(db: Database) -> dict[str, Any]:
             "total_desligados": len(desligados),
             "tempo_vinculo_medio_anos": round(statistics.mean(tempos), 1) if tempos else None,
             "total_citacoes": sum(p["citacoes"] for p in ativos),
+            # Sinal de qualidade do próprio cadastro -- se a maior parte
+            # está "sem vínculo"/"sem linha", o painel não pode fingir que
+            # não é assim: precisa dizer, para que alguém vá lá e preencha.
+            "total_sem_vinculo": por_papel.get("sem_vinculo", {}).get("n", 0),
+            "total_sem_linha": contagem_linha.get("Sem linha declarada", 0),
+            "saidas_precoces": len(saidas_precoces),
+            "taxa_saida_12_meses": taxa_saida_12_meses,
         },
         "por_papel": sorted(por_papel.values(), key=lambda x: -x["citacoes"]),
         "por_linha": [{"linha": k, "n": v} for k, v in
                       sorted(contagem_linha.items(), key=lambda kv: -kv[1])],
+        "por_escolaridade": [{"escolaridade": k, "n": v} for k, v in
+                             sorted(contagem_escolaridade.items(), key=lambda kv: -kv[1])],
+        "fluxo_anual": fluxo_anual,
     }
 
 

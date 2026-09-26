@@ -904,7 +904,16 @@ function slideFrameworkN8n() {
 
   const container = el("div", { class: "slide slide-framework-n8n" });
 
-  const w = 440, h = 440, cx = w / 2, cy = h / 2, rInt = 78, rExt = 186, vao = 360 / FASES.length, gap = 2.6;
+  /* Achado ao vivo: com a caixa em 440x440, os rótulos quase horizontais
+     ("Submetido" à direita pura, "Publicado" à esquerda pura) e o mais
+     comprido ("Rejeitado/Arquivado") furavam a borda do viewBox e saíam
+     cortados -- SVG recorta por padrão o que passa da borda, e a margem
+     entre `rExt` e a borda (34px) nunca foi larga o bastante para texto
+     nenhum. A caixa cresce para 640x640 SEM mexer em `rInt`/`rExt`: o
+     hexágono continua do mesmo tamanho de sempre (mesmo raio, em
+     unidades absolutas), só ganha mais margem ao redor para o rótulo
+     caber -- ver o mesmo ajuste em `max-width` no CSS. */
+  const w = 640, h = 640, cx = w / 2, cy = h / 2, rInt = 78, rExt = 186, vao = 360 / FASES.length, gap = 2.6;
   const svg = elSvg("svg", { viewBox: `0 0 ${w} ${h}`, class: "plot hexagono-framework" });
 
   FASES.forEach(function (fase, i) {

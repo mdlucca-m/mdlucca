@@ -1566,7 +1566,10 @@ class TestPainelDePessoas(unittest.TestCase):
     def test_nao_leva_salario_nem_genero(self):
         self.pessoa("Alexandro Andrade", role="coordenacao")
         bruto = json.dumps(metrics.painel_pessoas(self.db), default=str).lower()
-        for proibido in ("salario", "salário", "genero", "gênero", "sexo", "idade"):
+        # "idade" fica de fora da lista: "escolaridade" contém a
+        # substring "idade" (escol-aridade), e escolaridade é campo real
+        # do cadastro (members.degree) -- não é a idade da pessoa.
+        for proibido in ("salario", "salário", "genero", "gênero", "sexo"):
             with self.subTest(campo=proibido):
                 self.assertNotIn(proibido, bruto)
 
@@ -1606,6 +1609,55 @@ class TestPainelDePessoas(unittest.TestCase):
         painel = metrics.painel_pessoas(self.db)
         linha = next(p for p in painel["por_linha"] if p["linha"] == "Biomecânica")
         self.assertEqual(linha["n"], 1)
+
+    def test_por_escolaridade_agrupa_ativos_e_desligados(self):
+        self.pessoa("Com Mestrado", degree="Mestrado", active=1)
+        self.pessoa("Sem Escolaridade Declarada", active=1)
+        painel = metrics.painel_pessoas(self.db)
+        rotulos = {e["escolaridade"]: e["n"] for e in painel["por_escolaridade"]}
+        self.assertEqual(rotulos["Mestrado"], 1)
+        self.assertEqual(rotulos["Sem escolaridade declarada"], 1)
+
+    def test_fluxo_anual_conta_entradas_e_saidas_pelo_ano(self):
+        self.pessoa("Entrou Em 2022", joined_on="2022-03-01")
+        self.pessoa("Entrou E Saiu Em 2023", joined_on="2023-01-10",
+                    active=0, left_on="2023-11-20")
+        painel = metrics.painel_pessoas(self.db)
+        por_ano = {f["ano"]: f for f in painel["fluxo_anual"]}
+        self.assertEqual(por_ano["2022"]["entradas"], 1)
+        self.assertEqual(por_ano["2022"]["saidas"], 0)
+        self.assertEqual(por_ano["2023"]["entradas"], 1)
+        self.assertEqual(por_ano["2023"]["saidas"], 1)
+
+    def test_saida_precoce_e_desligado_com_menos_de_um_ano(self):
+        entrou = (date.today() - timedelta(days=200)).isoformat()
+        saiu = date.today().isoformat()
+        self.pessoa("Saiu Rapido", joined_on=entrou, active=0, left_on=saiu)
+        entrou_ha_muito = (date.today() - timedelta(days=1500)).isoformat()
+        self.pessoa("Ficou Anos", joined_on=entrou_ha_muito, active=0, left_on=saiu)
+        painel = metrics.painel_pessoas(self.db)
+        self.assertEqual(painel["resumo"]["saidas_precoces"], 1)
+
+    def test_taxa_de_saida_so_conta_quem_saiu_nos_ultimos_12_meses(self):
+        self.pessoa("Ativa", active=1)
+        saiu_recente = (date.today() - timedelta(days=30)).isoformat()
+        self.pessoa("Saiu Recente", active=0, left_on=saiu_recente)
+        saiu_faz_tempo = (date.today() - timedelta(days=800)).isoformat()
+        self.pessoa("Saiu Faz Tempo", active=0, left_on=saiu_faz_tempo)
+        painel = metrics.painel_pessoas(self.db)
+        # base = 1 ativa + 1 saída recente = 2; só a recente conta na taxa
+        self.assertAlmostEqual(painel["resumo"]["taxa_saida_12_meses"], 50.0)
+
+    def test_sem_ninguem_ativo_ou_desligado_recente_nao_inventa_taxa(self):
+        painel = metrics.painel_pessoas(self.db)
+        self.assertIsNone(painel["resumo"]["taxa_saida_12_meses"])
+
+    def test_resumo_expoe_o_tamanho_do_cadastro_incompleto(self):
+        self.pessoa("Com Vinculo E Linha", role="bolsista_ic", research_line="Biomecânica")
+        self.pessoa("Sem Vinculo Nem Linha")
+        painel = metrics.painel_pessoas(self.db)
+        self.assertEqual(painel["resumo"]["total_sem_vinculo"], 1)
+        self.assertEqual(painel["resumo"]["total_sem_linha"], 1)
 
 
 class TestRotaDoPainelDePessoas(unittest.TestCase):

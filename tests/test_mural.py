@@ -1194,6 +1194,44 @@ class TestFrameworkViraHexagono(unittest.TestCase):
                 self.assertNotIn(sumiu, self.css)
 
 
+class TestHexagonoTemMargemParaOsRotulos(unittest.TestCase):
+    """Achado ao vivo (screenshot que o Mateus mandou): com a caixa em
+    440x440, rótulos quase horizontais ("Submetido" à direita pura,
+    "Publicado" à esquerda pura) e o mais comprido ("Rejeitado/Arquivado")
+    furavam a borda do viewBox e saíam cortados -- SVG recorta por padrão
+    o que passa da borda, e a margem entre `rExt` e a borda nunca foi
+    larga o bastante para texto nenhum. A caixa cresceu para 640x640 sem
+    mexer em `rInt`/`rExt` (o hexágono continua do mesmo tamanho de
+    sempre); esta é a marca d'água geométrica de que a margem ficou
+    generosa o bastante -- não o pixel exato, que só um navegador de
+    verdade confere."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+
+    def _numero(self, nome):
+        corpo = self.js[self.js.index("function slideFrameworkN8n("):
+                        self.js.index("function slideKPIsAnalyticos(")]
+        m = re.search(nome + r"\s*=\s*([\d.]+)", corpo)
+        self.assertIsNotNone(m, f"não achei a constante {nome}")
+        return float(m.group(1))
+
+    def test_margem_entre_o_anel_de_rotulos_e_a_borda_e_generosa(self):
+        w = self._numero("w")
+        rExt = self._numero("rExt")
+        margem = w / 2 - rExt
+        # "Rejeitado/Arquivado" é o rótulo mais comprido do hexágono; os
+        # 34px da caixa antiga (440x440) nunca foram o bastante para ele,
+        # nem para "Submetido"/"Publicado" na posição due-horizontal.
+        self.assertGreaterEqual(margem, 100)
+
+    def test_o_hexagono_em_si_nao_encolheu(self):
+        # a correção é de MARGEM, não de tamanho -- rInt/rExt continuam
+        # os mesmos de antes do ajuste
+        self.assertEqual(self._numero("rInt"), 78)
+        self.assertEqual(self._numero("rExt"), 186)
+
+
 class TestPontoNoCirculo(unittest.TestCase):
     """`pontoNoCirculo` -- a trigonometria por trás de cada fatia do
     hexágono (e do rótulo/número dela). 0° tem de cair no TOPO (não na

@@ -3384,6 +3384,18 @@ function variacaoCurta(v) {
 /* ==================================================================== */
 let PESSOAS_ADMIN = null;
 const ST_PESSOAS = { papel: "todos", situacao: "ativos", busca: "" };
+/* Faixas de leitura para a taxa de saída -- ao contrário da taxa de
+   aceite, aqui MENOS é melhor, então as cores andam na ordem invertida
+   (verde perto de zero, vermelho perto de cem). Os limiares são um
+   ponto de partida honesto (não um padrão do setor que o LAPE declarou
+   seguir), e ficam soltos aqui para o próprio rótulo dizer isso. */
+const FAIXAS_TAXA_DE_SAIDA = [
+  { ate: 10, cor: "var(--good)", rotulo: "Ótimo" },
+  { ate: 20, cor: "var(--series-4)", rotulo: "Bom" },
+  { ate: 35, cor: "var(--warning)", rotulo: "Regular" },
+  { ate: 50, cor: "var(--serious)", rotulo: "Alto" },
+  { ate: 100, cor: "var(--critical)", rotulo: "Crítico" },
+];
 
 function verPessoas(palco) {
   palco.appendChild(cabeca("pessoas", "Painel de pessoas",
@@ -3409,6 +3421,29 @@ function verPessoas(palco) {
   }
 
   const r = PESSOAS_ADMIN.resumo || {};
+  /* Sinal de qualidade do próprio cadastro -- pedido de "mais analítico":
+     um painel que mostra "53% sem vínculo" sem dizer que ISSO é o achado
+     (não falta de dado do painel, falta de cadastro preenchido) deixa
+     quem olha achando que o gráfico está quebrado. Só aparece quando é
+     grande o bastante para valer a pena agir. */
+  const totalPessoas = (r.total_ativos || 0) + (r.total_desligados || 0);
+  const pctSemVinculo = totalPessoas ? Math.round(100 * (r.total_sem_vinculo || 0) / totalPessoas) : 0;
+  const pctSemLinha = r.total_ativos ? Math.round(100 * (r.total_sem_linha || 0) / r.total_ativos) : 0;
+  if (pctSemVinculo >= 25 || pctSemLinha >= 25) {
+    const partes = [];
+    if (pctSemVinculo >= 25) {
+      partes.push(C.fmt(r.total_sem_vinculo) + " de " + C.fmt(totalPessoas) + " (" + pctSemVinculo
+        + "%) sem vínculo declarado");
+    }
+    if (pctSemLinha >= 25) {
+      partes.push(C.fmt(r.total_sem_linha) + " de " + C.fmt(r.total_ativos) + " ativo(s) (" + pctSemLinha
+        + "%) sem linha de pesquisa declarada");
+    }
+    palco.appendChild(nota("<b>Cadastro incompleto, não gráfico quebrado:</b> " + partes.join("; ")
+      + ". Atualize as fichas em <a href='/app#equipe'>Área do integrante</a> para o painel refletir a "
+      + "realidade."));
+  }
+
   palco.appendChild(el("div", { class: "grade g4" }, [
     indicador("Integrantes ativos", r.total_ativos || 0, "sem contar colaboradores externos", "pessoas"),
     indicador("Desligados", r.total_desligados || 0, "com vínculo encerrado", "aviso"),
@@ -3417,6 +3452,25 @@ function verPessoas(palco) {
       "entre quem está ativo", "relogio"),
     indicador("Citações acumuladas", C.fmt(r.total_citacoes || 0), "soma de quem está ativo", "citacao"),
   ]));
+
+  /* Saída da equipe: taxa dos últimos 12 meses (velocímetro -- o mesmo
+     mostrador padrão do mural, com faixas invertidas porque aqui MENOS é
+     melhor) ao lado de saídas precoces, um proxy honesto de treinamento
+     não aproveitado -- nunca chamado de "má contratação", julgamento que
+     o dado não sustenta. */
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("balanca", "Saída da equipe",
+    "Taxa dos últimos 12 meses: quem desligou no período, sobre quem estava em risco de desligar "
+    + "(ativos de agora + quem já saiu no intervalo).",
+    el("div", { style: "display:flex;gap:18px;align-items:center;flex-wrap:wrap" }, [
+      r.taxa_saida_12_meses != null
+        ? el("div", { style: "flex:1 1 220px;max-width:260px" },
+            [ChartsEnhanced.gaugeDiagnostico(r.taxa_saida_12_meses, { faixas: FAIXAS_TAXA_DE_SAIDA })])
+        : el("p", { class: "hint", text: "Sem base para calcular ainda (ninguém ativo nem desligado)." }),
+      el("div", {}, [
+        el("div", { class: "numero", text: String(r.saidas_precoces || 0) }),
+        el("div", { class: "hint", text: "saída(s) com menos de 1 ano de vínculo" }),
+      ]),
+    ]))));
 
   const porPapel = PESSOAS_ADMIN.por_papel || [];
   const porLinha = PESSOAS_ADMIN.por_linha || [];
@@ -3435,6 +3489,23 @@ function verPessoas(palco) {
         : el("p", { class: "hint", text: "Ninguém com linha de pesquisa declarada." })),
   ]));
 
+  /* Fluxo anual: a dimensão de TEMPO que a lista sozinha não dá --
+     entradas e saídas, ano a ano, direto das mesmas datas do cadastro. */
+  const fluxo = PESSOAS_ADMIN.fluxo_anual || [];
+  if (fluxo.length) {
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("linhas",
+      "Entradas e saídas por ano", "Da data de ingresso e de desligamento de cada ficha -- quem cresceu, quem estabilizou.",
+      C.columns({
+        labels: fluxo.map(function (f) { return f.ano; }),
+        mode: "agrupado",
+        series: [
+          { label: "Entradas", color: C.token("--good"), values: fluxo.map(function (f) { return f.entradas; }) },
+          { label: "Saídas", color: C.token("--critical"), values: fluxo.map(function (f) { return f.saidas; }) },
+        ],
+        unit: "pessoa(s)",
+      }))));
+  }
+
   palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("citacao",
     "Citações por vínculo", "Soma de quem está ativo e desligado, do vínculo que mais produziu para o que menos.",
     porPapel.length
@@ -3442,6 +3513,14 @@ function verPessoas(palco) {
           .map(function (p) { return { label: p.label, value: p.citacoes }; }),
           mono: true, unit: "citação(ões)" })
       : el("p", { class: "hint", text: "Sem citação registrada ainda." }))));
+
+  const porEscolaridade = PESSOAS_ADMIN.por_escolaridade || [];
+  if (porEscolaridade.length) {
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("hierarquia",
+      "Integrantes por escolaridade", "Ativos e desligados, dos dois lados.",
+      C.bars({ items: porEscolaridade.map(function (e) { return { label: e.escolaridade, value: e.n }; }),
+        mono: true, unit: "pessoa(s)" }))));
+  }
 
   /* déficit do banco de horas -- o mesmo cálculo da aba "Equipe e ponto",
      só reaproveitado; pior saldo primeiro, sem inventar limiar novo. */
