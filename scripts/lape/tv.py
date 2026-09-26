@@ -316,10 +316,21 @@ def _organograma_para_tv(db: Database) -> dict[str, Any]:
     -- o mural não inventa outra árvore. `organograma_publico` já tira o
     que é só da coordenação (bolsa, prazo de defesa); aqui só falta somar
     quem está com o ponto aberto agora.
+
+    `organograma_publico` mostra "sem vínculo" de propósito -- é a
+    ferramenta da coordenação para achar cadastro incompleto. Na parede
+    do corredor isso vira o oposto: dezenas de coautores importados junto
+    de artigos, sem vínculo nenhum com o laboratório, empilhados numa
+    grade sem hierarquia nenhuma, abafando a árvore de verdade que está
+    em cima. Achado ao vivo (print do Mateus): 15 cartões "sem vínculo"
+    antes de 13 pessoas com vínculo real. Aqui, e só aqui, fica de fora
+    quem não tem `role` -- e como isso é filtro sobre a mesma consulta ao
+    banco, atualiza sozinho a cada cadastro novo, sem lista fixa nenhuma.
     """
     from . import metrics, ponto
 
     org = metrics.organograma_publico(db)
+    org = {**org, "people": [p for p in org["people"] if p.get("role")]}
     presentes = {p["member_id"]: p for p in ponto.agora(db)}
     for pessoa in org["people"]:
         presenca = presentes.get(pessoa["id"])

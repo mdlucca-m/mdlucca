@@ -178,6 +178,44 @@ class TestLinhasDePesquisaParaOMural(BaseDaTv):
         self.assertEqual(linha["taxa_publicacao"], 0)
 
 
+class TestOrganogramaDaParedeSoQuemTemVinculo(BaseDaTv):
+    """`_organograma_para_tv` -- achado ao vivo (print do Mateus): a parede
+    mostrava também quem não tem `role` nenhum (coautor importado junto de
+    artigo, nunca cadastrado como integrante de verdade) numa grade sem
+    hierarquia, abafando a árvore de quem tem vínculo real. `organograma`
+    e `organograma_publico` continuam mostrando todo mundo -- é a
+    ferramenta da coordenação para achar cadastro incompleto -- só a
+    versão que vai para a TV corta quem não tem vínculo."""
+
+    def test_quem_nao_tem_vinculo_fica_de_fora_da_parede(self):
+        self.db.member_id("Professora Com Vínculo", role="professor")
+        self.db.member_id("Coautor Sem Vínculo")
+        org = tv._organograma_para_tv(self.db)
+        nomes = [p["full_name"] for p in org["people"]]
+        self.assertIn("Professora Com Vínculo", nomes)
+        self.assertNotIn("Coautor Sem Vínculo", nomes)
+
+    def test_organograma_publico_continua_mostrando_todo_mundo(self):
+        """A ferramenta da coordenação não perde o sinal de cadastro
+        incompleto -- só a parede corta."""
+        from lape import metrics
+
+        self.db.member_id("Coautor Sem Vínculo")
+        publico = metrics.organograma_publico(self.db)
+        self.assertIn("Coautor Sem Vínculo", [p["full_name"] for p in publico["people"]])
+
+    def test_atualiza_sozinho_conforme_o_cadastro_muda(self):
+        """Não é lista fixa: dar um vínculo a alguém já cadastrado faz a
+        pessoa entrar na próxima vez que a parede pedir o organograma."""
+        mid = self.db.member_id("Vai Ganhar Vínculo")
+        self.assertNotIn("Vai Ganhar Vínculo",
+                        [p["full_name"] for p in tv._organograma_para_tv(self.db)["people"]])
+        self.db.execute("UPDATE members SET role = 'bolsista_ic' WHERE id = ?", (mid,))
+        self.db.conn.commit()
+        self.assertIn("Vai Ganhar Vínculo",
+                      [p["full_name"] for p in tv._organograma_para_tv(self.db)["people"]])
+
+
 class TestAsNoticias(BaseDaTv):
 
     def test_publicados_do_mais_novo_para_o_mais_velho_e_o_sem_data_pelo_ano(self):
