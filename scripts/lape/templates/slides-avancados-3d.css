@@ -602,113 +602,61 @@
   flex: 1;
 }
 
-/* Era um cartão retangular com brilho "escaneando" sem parar, canto de
-   HUD e o número entrando com um bounce elástico -- achado ao vivo
-   (referências que o Mateus mandou, fluxos numerados em círculo ligados
-   por uma faixa única): a etapa de um pipeline se lê melhor como um
-   círculo simples, com o rótulo do lado de fora dele, ligado ao próximo
-   por uma faixa grossa e sólida -- não uma linha fina com seta e uma
-   partícula viajando nela. */
-.framework-pipeline {
+/* Era um pipeline linear (círculos ligados por uma faixa) -- pedido
+   depois de ver a referência de um hexágono giratório de 6 pétalas: as
+   6 partes agora são os 6 estados reais do banco (as 5 fases do fluxo
+   principal mais rejeitado/arquivado, o desfecho que já existia à
+   parte), desenhadas como fatias de anel ao redor de um miolo central
+   com o total em fluxo. */
+.hexagono-caixa {
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: clamp(2px, .6vw, 8px);
-  flex-wrap: wrap;
-}
-
-.etapa-framework {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  position: relative;
-  animation: framewokEntra .35s ease backwards;
-  animation-delay: calc(var(--index) * 70ms);
-}
-
-.etapa-circulo {
-  --cor: var(--accent-strong);
-  width: clamp(72px, 7vw, 104px);
-  height: clamp(72px, 7vw, 104px);
-  border-radius: 50%;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  border: 3px solid var(--cor);
-  background: var(--surface-raised);
-  transition: transform .2s ease;
 }
-.etapa-circulo[data-tom="azul"]     { --cor: var(--series-1); }
-.etapa-circulo[data-tom="laranja"]  { --cor: var(--series-2); }
-.etapa-circulo[data-tom="verde"]    { --cor: var(--series-3); }
-.etapa-circulo[data-tom="ambar"]    { --cor: var(--series-4); }
-.etapa-circulo[data-tom="magenta"]  { --cor: var(--series-5); }
-.etapa-circulo[data-tom="violeta"]  { --cor: var(--series-7); }
-.etapa-circulo[data-tom="bom"]      { --cor: var(--good); }
-.etapa-circulo[data-tom="alerta"]   { --cor: var(--warning); }
+.hexagono-caixa figure.chart { width: 100%; height: 100%; max-width: 440px; margin: 0; }
+.hexagono-framework { width: 100%; height: 100%; }
 
-.etapa-framework:hover .etapa-circulo { transform: scale(1.06); }
+.fatia-hexagono { transition: opacity .2s ease; }
+.hexagono-framework:hover .fatia-hexagono { opacity: .82; }
+.hexagono-framework .fatia-hexagono:hover { opacity: 1; }
 
-/* Gargalo é a única etapa com um sinal de alerta -- e um só, não três
-   efeitos empilhados: o anel pulsa em `--critical` por cima da própria
-   cor da etapa, sem trocar o resto do cartão. */
-.etapa-framework.gargalo .etapa-circulo {
-  animation: pulsoGargalo 1.8s ease-in-out infinite;
+/* Gargalo é a única fatia com um sinal de alerta -- e um só, não vários
+   empilhados: a borda pulsa em `--critical` por cima da própria cor da
+   fatia, sem mexer em mais nada. */
+.fatia-hexagono.gargalo {
+  stroke: var(--critical);
+  animation: pulsoHexagono 1.8s ease-in-out infinite;
 }
-@keyframes pulsoGargalo {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--critical) 55%, transparent); }
-  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--critical) 35%, transparent); }
-}
-.etapa-flag {
-  font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--critical); background: color-mix(in srgb, var(--critical) 14%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--critical) 45%, transparent);
-  border-radius: 999px; padding: 2px 8px;
+@keyframes pulsoHexagono {
+  0%, 100% { stroke-width: 2px; stroke-opacity: .6; }
+  50%      { stroke-width: 5px; stroke-opacity: 1; }
 }
 
-.etapa-numero {
-  font-size: clamp(20px, 2.2vw, 30px);
+.hex-numero {
+  font-size: 22px;
   font-weight: 800;
-  color: var(--cor);
+  fill: #fff;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, .35);
+  stroke-width: 3px;
 }
-.etapa-rotulo {
-  font-size: clamp(11px, .95vw, 14px);
+.hex-rotulo {
+  font-size: 12.5px;
   font-weight: 650;
-  color: var(--ink-2);
-  text-align: center;
+  fill: var(--ink-2);
 }
-
-/* A faixa: uma barra sólida e grossa, com o degradê indo da cor da
-   etapa anterior para a da próxima -- "uma trilha só" ligando o pipeline
-   inteiro, como nas referências, alinhada ao centro do círculo (não do
-   cartão inteiro, que também carrega o rótulo abaixo). */
-.conector-framework {
-  flex: 1;
-  min-width: clamp(16px, 2.2vw, 36px);
-  height: clamp(5px, .7vh, 8px);
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--de), var(--ate));
-  align-self: flex-start;
-  margin-top: calc(clamp(72px, 7vw, 104px) / 2 - clamp(2.5px, .35vh, 4px));
+.hex-flag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  fill: var(--critical);
 }
-
-.framework-desfecho {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  font-size: clamp(11px, .9vw, 13px); color: var(--ink-muted);
-  padding-top: 4px;
-}
-
-@keyframes framewokEntra {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+.hex-hub { fill: var(--surface); stroke: var(--border); stroke-width: 1px; }
+.hex-hub-numero { font-size: 34px; font-weight: 800; fill: var(--ink); text-anchor: middle; font-variant-numeric: tabular-nums; }
+.hex-hub-rotulo { font-size: 12px; font-weight: 650; fill: var(--ink-2); text-anchor: middle; }
 
 .resumo-workflow {
   display: flex;

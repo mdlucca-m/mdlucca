@@ -182,7 +182,7 @@ function slidePesquisasLinhas3D() {
 
     const nodeRadius = Math.max(20, Math.min(60, 20 + (n_artigos / 5)));
     /* Cor por IDENTIDADE da linha (categórica, uma por linha, igual ao
-       resto do mural -- ver .cartao-pessoa/.etapa-framework), não mais
+       resto do mural -- ver .cartao-pessoa/.fatia-hexagono), não mais
        por taxa de publicação: com só 3 cores por faixa, linhas
        diferentes na mesma faixa ficavam indistinguíveis no grafo. A taxa
        de publicação continua visível, mas como número (badgeTaxa
@@ -725,95 +725,112 @@ function slideOrganogramaMetodologico() {
 }
 
 /* ==================== FRAMEWORK DE PESQUISA (PIPELINE REAL) ==================== */
-/* O mesmo mapa tom -> variável de cor que `.etapa-framework[data-tom=...]`
-   usa no CSS -- aqui só para o conector poder ler a cor de verdade da
-   etapa de cada lado dele (a variável precisa ir no `style` inline
-   porque cada conector fica ENTRE duas etapas, sem herdar `--cor` de
-   nenhuma delas sozinho). */
+/* O mesmo mapa tom -> variável de cor que `.cartao-pessoa[data-tom=...]`
+   usa no CSS -- aqui reaproveitado para colorir a fatia de cada fase do
+   hexágono. */
 const TOM_VAR = {
   azul: "--series-1", laranja: "--series-2", verde: "--series-3", ambar: "--series-4",
   magenta: "--series-5", violeta: "--series-7", bom: "--good", alerta: "--warning",
 };
 
-/* As fases batem exato com os status do banco (config.ARTICLE_STATUS) --
-   nunca um estágio inventado que o sistema não consegue contar de verdade.
-   Rejeitado/arquivado são desfechos, não um próximo passo: entram à parte,
-   nunca escondidos, nunca forçados dentro do fluxo principal.
+/* Um ponto num círculo, a partir do centro, do raio e do ângulo em graus
+   (0° = topo, sentido horário) -- a mesma trigonometria de sempre, só
+   para não repeti-la em cada segmento do hexágono. */
+function pontoNoCirculo(cx, cy, raio, anguloGraus) {
+  const rad = (anguloGraus - 90) * Math.PI / 180;
+  return { x: cx + raio * Math.cos(rad), y: cy + raio * Math.sin(rad) };
+}
 
-   Referências que o Mateus mandou (fluxos numerados em círculo, ligados
-   por uma faixa/trilha única) concordam com o organograma num ponto:
-   círculo simples > cartão retangular com brilho varrendo sem parar. O
-   cartão retangular saiu; a etapa agora é um círculo com o número dentro
-   e o rótulo embaixo, e o conector virou uma faixa grossa colorida (a
-   trilha) em vez de uma linha fina com seta e partícula andando. */
+/* As fases batem exato com os status do banco (config.ARTICLE_STATUS) --
+   nunca um estágio inventado que o sistema não consegue contar de
+   verdade. Rejeitado/arquivado sempre foram um desfecho à parte do fluxo
+   principal (nunca escondido, nunca forçado como "próximo passo") -- e é
+   exatamente esse sexto estado real que fecha as 6 partes do hexágono
+   pedido, sem inventar uma fase que não existe no banco.
+
+   Referência que o Mateus mandou é um hexágono giratório, 6 pétalas ao
+   redor de um centro. Aqui cada pétala é uma fatia de anel (SVG puro,
+   sem lib nova): o miolo mostra o total em fluxo, e a fatia do gargalo
+   (a etapa com mais manuscritos parados antes da publicação) pulsa uma
+   borda -- um efeito só, não vários empilhados. */
 function slideFrameworkN8n() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados do framework não disponíveis.")));
 
   const FASES = [
-    { id: "em_producao", label: "Em Produção", icone: "producao", tom: "azul" },
-    { id: "submetido", label: "Submetido", icone: "submissao", tom: "violeta" },
-    { id: "em_revisao", label: "Em Revisão", icone: "processo", tom: "ambar" },
-    { id: "aceito", label: "Aceito", icone: "aceite", tom: "bom" },
-    { id: "publicado", label: "Publicado", icone: "livro", tom: "verde" },
+    { id: "em_producao", label: "Em Produção", tom: "azul" },
+    { id: "submetido", label: "Submetido", tom: "violeta" },
+    { id: "em_revisao", label: "Em Revisão", tom: "ambar" },
+    { id: "aceito", label: "Aceito", tom: "bom" },
+    { id: "publicado", label: "Publicado", tom: "verde" },
+    { id: "rejeitado_arquivado", label: "Rejeitado/Arquivado", tom: "alerta" },
   ];
 
   const contagem = {};
   FASES.forEach(f => { contagem[f.id] = 0; });
-  let rejeitados = 0;
   artigos().forEach(function (a) {
     if (contagem.hasOwnProperty(a.status)) contagem[a.status]++;
-    else if (a.status === "rejeitado" || a.status === "arquivado") rejeitados++;
+    else if (a.status === "rejeitado" || a.status === "arquivado") contagem.rejeitado_arquivado++;
   });
 
   const total = Object.values(contagem).reduce((a, b) => a + b, 0);
-  if (!total && !rejeitados) {
+  if (!total) {
     return escalonar(el("div", { class: "slide" }, vazio("Nenhum artigo cadastrado ainda.")));
   }
 
-  /* Gargalo real: a etapa anterior à publicação com mais artigos parados. */
-  const antesDePublicar = FASES.slice(0, -1);
+  /* Gargalo real: a etapa anterior à publicação com mais artigos parados
+     -- nunca o desfecho (rejeitado/arquivado não é "onde o fluxo travou",
+     é onde ele terminou). */
+  const antesDePublicar = FASES.filter(f => f.id !== "publicado" && f.id !== "rejeitado_arquivado");
   const gargalo = antesDePublicar.reduce((pior, f) =>
     contagem[f.id] > (contagem[pior.id] || 0) ? f : pior, antesDePublicar[0]);
+  const gargaloId = gargalo && contagem[gargalo.id] > 0 ? gargalo.id : null;
 
   const container = el("div", { class: "slide slide-framework-n8n" });
-  const pipeline = el("div", { class: "framework-pipeline" });
 
-  FASES.forEach((fase, idx) => {
-    const count = contagem[fase.id] || 0;
-    const ehGargalo = fase.id === gargalo.id && count > 0;
+  const w = 440, h = 440, cx = w / 2, cy = h / 2, rInt = 78, rExt = 186, vao = 360 / FASES.length, gap = 2.6;
+  const svg = elSvg("svg", { viewBox: `0 0 ${w} ${h}`, class: "plot hexagono-framework" });
 
-    const card = el("div", {
-      class: "etapa-framework" + (ehGargalo ? " gargalo" : ""),
-      style: `--index:${idx};`,
-    }, [
-      el("div", { class: "etapa-circulo", "data-tom": fase.tom }, [
-        Icons.badge(fase.icone, fase.tom, 22),
-        el("div", { class: "etapa-numero", text: String(count) }),
-      ]),
-      el("div", { class: "etapa-rotulo", text: fase.label }),
-      ehGargalo ? el("div", { class: "etapa-flag", text: "gargalo" }) : null,
-    ]);
-    pipeline.appendChild(card);
+  FASES.forEach(function (fase, i) {
+    const a0 = i * vao + gap / 2, a1 = (i + 1) * vao - gap / 2, meio = (a0 + a1) / 2;
+    const pInt0 = pontoNoCirculo(cx, cy, rInt, a0), pExt0 = pontoNoCirculo(cx, cy, rExt, a0);
+    const pExt1 = pontoNoCirculo(cx, cy, rExt, a1), pInt1 = pontoNoCirculo(cx, cy, rInt, a1);
+    const d = `M ${pInt0.x} ${pInt0.y} L ${pExt0.x} ${pExt0.y} `
+      + `A ${rExt} ${rExt} 0 0 1 ${pExt1.x} ${pExt1.y} L ${pInt1.x} ${pInt1.y} `
+      + `A ${rInt} ${rInt} 0 0 0 ${pInt0.x} ${pInt0.y} Z`;
+    svg.appendChild(elSvg("path", {
+      d, fill: `var(${TOM_VAR[fase.tom]})`,
+      class: "fatia-hexagono" + (fase.id === gargaloId ? " gargalo" : ""),
+    }));
 
-    if (idx < FASES.length - 1) {
-      const seguinte = FASES[idx + 1];
-      pipeline.appendChild(el("div", { class: "conector-framework", style:
-        `--index:${idx};--de:var(${TOM_VAR[fase.tom]});--ate:var(${TOM_VAR[seguinte.tom]})` }));
+    const pMeio = pontoNoCirculo(cx, cy, (rInt + rExt) / 2, meio);
+    svg.appendChild(elSvg("text", { x: pMeio.x, y: pMeio.y + 6, "text-anchor": "middle",
+      class: "hex-numero" }, String(contagem[fase.id] || 0)));
+
+    const pLabel = pontoNoCirculo(cx, cy, rExt + 22, meio);
+    const ancora = Math.abs(pLabel.x - cx) < 8 ? "middle" : (pLabel.x < cx ? "end" : "start");
+    svg.appendChild(elSvg("text", { x: pLabel.x, y: pLabel.y, "text-anchor": ancora,
+      class: "hex-rotulo" }, fase.label));
+
+    if (fase.id === gargaloId) {
+      const pFlag = pontoNoCirculo(cx, cy, rExt + 40, meio);
+      svg.appendChild(elSvg("text", { x: pFlag.x, y: pFlag.y, "text-anchor": ancora,
+        class: "hex-flag" }, "GARGALO"));
     }
   });
 
-  container.appendChild(pipeline);
+  svg.appendChild(elSvg("circle", { cx, cy, r: rInt - 6, class: "hex-hub" }));
+  svg.appendChild(elSvg("text", { x: cx, y: cy - 6, "text-anchor": "middle", class: "hex-hub-numero" }, String(total)));
+  svg.appendChild(elSvg("text", { x: cx, y: cy + 16, "text-anchor": "middle", class: "hex-hub-rotulo" }, "em fluxo"));
 
-  if (rejeitados > 0) {
-    container.appendChild(el("div", { class: "framework-desfecho" }, [
-      Icons.badge("aviso", "alerta", 18),
-      el("span", { text: rejeitados + " manuscrito(s) rejeitado(s)/arquivado(s) -- fora do fluxo principal" }),
-    ]));
-  }
+  const fig = document.createElement("figure");
+  fig.setAttribute("class", "chart");
+  fig.appendChild(svg);
+  container.appendChild(el("div", { class: "hexagono-caixa" }, [fig]));
 
-  /* Resumo textual */
-  const resumo = el("div", { class: "resumo-workflow" }, [
+  /* Resumo textual, embaixo do hexágono -- o mesmo par de fatos que o
+     pipeline linear já mostrava. */
+  container.appendChild(el("div", { class: "resumo-workflow" }, [
     el("div", { class: "resumo-item" }, [
       el("span", { class: "resumo-label", text: "Total em fluxo:" }),
       el("span", { class: "resumo-valor", text: String(total) }),
@@ -821,10 +838,9 @@ function slideFrameworkN8n() {
     el("div", { class: "resumo-item" }, [
       el("span", { class: "resumo-label", text: "Gargalo:" }),
       el("span", { class: "resumo-valor",
-        text: gargalo && contagem[gargalo.id] > 0 ? gargalo.label + " (" + contagem[gargalo.id] + ")" : "nenhum" }),
+        text: gargaloId ? gargalo.label + " (" + contagem[gargaloId] + ")" : "nenhum" }),
     ]),
-  ]);
-  container.appendChild(resumo);
+  ]));
 
   return escalonar(container);
 }

@@ -1090,40 +1090,79 @@ class TestCartaoDaPessoaNaArvore(unittest.TestCase):
         self.assertIn("border-left", trecho)
 
 
-class TestEtapaDoFrameworkViraCirculo(unittest.TestCase):
-    """`slideFrameworkN8n` -- mesmo achado do organograma, mesma correção:
-    o cartão retangular com brilho "escaneando" sem parar, canto de HUD e
-    número entrando com bounce virou um círculo simples, ligado ao
-    próximo por uma faixa sólida (não uma linha fina com seta e
-    partícula animada)."""
+class TestFrameworkViraHexagono(unittest.TestCase):
+    """`slideFrameworkN8n` -- pedido explícito do Mateus (referência de
+    hexágono giratório de 6 pétalas): o pipeline linear de círculos
+    ligados por uma faixa virou um hexágono, uma fatia de anel por
+    estado real do banco. As 5 fases do fluxo mais rejeitado/arquivado
+    (o desfecho que já existia à parte) fecham as 6 partes -- nenhuma
+    fase inventada."""
 
     def setUp(self):
         self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
         self.css = (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8")
 
-    def test_a_etapa_e_um_circulo(self):
-        corpo = self.js[self.js.index("function slideFrameworkN8n("):
-                        self.js.index("function slideKPIsAnalyticos(")]
-        self.assertIn("etapa-circulo", corpo)
+    @property
+    def corpo(self):
+        return self.js[self.js.index("function slideFrameworkN8n("):
+                       self.js.index("function slideKPIsAnalyticos(")]
 
-    def test_a_faixa_liga_a_cor_de_uma_etapa_a_outra(self):
-        corpo = self.js[self.js.index("function slideFrameworkN8n("):
-                        self.js.index("function slideKPIsAnalyticos(")]
-        self.assertIn("--de:", corpo)
-        self.assertIn("--ate:", corpo)
-        self.assertIn("TOM_VAR", corpo)
+    def test_seis_fases_reais_nenhuma_inventada(self):
+        corpo = self.corpo
+        self.assertEqual(corpo.count('id: "'), 6)
+        for fase in ("em_producao", "submetido", "em_revisao", "aceito",
+                     "publicado", "rejeitado_arquivado"):
+            with self.subTest(fase=fase):
+                self.assertIn(f'"{fase}"', corpo)
 
-    def test_efeitos_antigos_sairam(self):
+    def test_desenha_fatias_de_anel_nao_circulos_ligados_por_faixa(self):
+        corpo = self.corpo
+        self.assertIn("fatia-hexagono", corpo)
+        self.assertIn("hex-hub", corpo)
+        for sumiu in ("etapa-circulo", "conector-framework", "framework-pipeline"):
+            with self.subTest(sumiu=sumiu):
+                self.assertNotIn(sumiu, corpo)
+
+    def test_gargalo_nunca_e_o_desfecho(self):
+        """Rejeitado/arquivado não é "onde o fluxo travou" -- é onde ele
+        terminou. Só as fases antes de publicar competem pelo gargalo."""
+        corpo = self.corpo
+        self.assertIn('f.id !== "publicado" && f.id !== "rejeitado_arquivado"', corpo)
+
+    def test_gargalo_pulsa_um_efeito_so(self):
+        trecho = self.css[self.css.index(".fatia-hexagono.gargalo"):
+                          self.css.index("@keyframes pulsoHexagono")]
+        self.assertEqual(trecho.count("animation:"), 1)
+
+    def test_efeitos_antigos_do_pipeline_linear_sairam(self):
         for sumiu in ("varreduraFramework", "countBounce", "particula-conector",
-                      "seta-conector", "fluxoArtigos"):
+                      "seta-conector", "fluxoArtigos", "etapa-circulo",
+                      "conector-framework", "etapa-numero", "etapa-rotulo"):
             with self.subTest(sumiu=sumiu):
                 self.assertNotIn(sumiu, self.js)
                 self.assertNotIn(sumiu, self.css)
 
-    def test_gargalo_pulsa_uma_vez_so_nao_empilhado_com_outros_efeitos(self):
-        corpo = self.css[self.css.index(".etapa-framework.gargalo"):
-                        self.css.index(".etapa-flag")]
-        self.assertEqual(corpo.count("animation:"), 1)
+
+class TestPontoNoCirculo(unittest.TestCase):
+    """`pontoNoCirculo` -- a trigonometria por trás de cada fatia do
+    hexágono (e do rótulo/número dela). 0° tem de cair no TOPO (não na
+    direita, que é a convenção padrão de ângulo em matemática) -- é o que
+    faz a primeira fase do pipeline nascer no topo do hexágono, como
+    num relógio."""
+
+    def _ponto(self, cx, cy, raio, angulo):
+        fonte = _recorta_3d("pontoNoCirculo")
+        return _no_node(fonte, f"pontoNoCirculo({cx}, {cy}, {raio}, {angulo})")
+
+    def test_zero_graus_cai_no_topo(self):
+        p = self._ponto(100, 100, 50, 0)
+        self.assertAlmostEqual(p["x"], 100, delta=0.01)
+        self.assertAlmostEqual(p["y"], 50, delta=0.01)
+
+    def test_noventa_graus_cai_na_direita(self):
+        p = self._ponto(100, 100, 50, 90)
+        self.assertAlmostEqual(p["x"], 150, delta=0.01)
+        self.assertAlmostEqual(p["y"], 100, delta=0.01)
 
 
 class TestQuemTemOrientadorNoOrganograma(unittest.TestCase):
