@@ -935,7 +935,11 @@ function slideFrameworkN8n() {
     }
   });
 
-  svg.appendChild(elSvg("circle", { cx, cy, r: rInt - 6, class: "hex-hub" }));
+  /* Pedido depois de ver a referência de novo: as pétalas soltas do
+     miolo, com um respiro visível entre elas -- não coladas (mesma
+     geometria de fatia de anel, só com o hub menor que `rInt`, então
+     sobra um anel vazio entre os dois). */
+  svg.appendChild(elSvg("circle", { cx, cy, r: rInt - 26, class: "hex-hub" }));
   svg.appendChild(elSvg("text", { x: cx, y: cy - 6, "text-anchor": "middle", class: "hex-hub-numero" }, String(total)));
   svg.appendChild(elSvg("text", { x: cx, y: cy + 16, "text-anchor": "middle", class: "hex-hub-rotulo" }, "em fluxo"));
 
