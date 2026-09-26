@@ -690,7 +690,7 @@ function graficoDasAreas() {
   return {
     titulo: "Publicados, citações e produção por linha", icone: "barras",
     nota: fmt(arts.length) + " artigos",
-    grafico: comDado.length ? matrizImpactoPorLinha(comDado, semDado)
+    grafico: comDado.length ? faixasPorLinha(comDado, semDado)
       : vazio(porLinha.length
         ? "As linhas de pesquisa estão cadastradas, e nenhum dos "
           + fmt(arts.length) + " artigos está ligado a uma delas. A linha se "
@@ -707,46 +707,23 @@ function temPotencialAlto(linha) {
   return (linha.publicados || 0) <= 1 && (linha.producao || 0) > 0;
 }
 
-/* Dispersão 3D isométrica no lugar das faixas horizontais: eixo X é o
-   volume publicado, eixo Y é o impacto real (citações pela melhor fonte,
-   nunca somando bases), e eixo Z é a carga de trabalho atual (manuscritos
-   em produção agora). O tamanho da esfera segue o total do acervo daquela
-   linha. */
-function matrizImpactoPorLinha(porLinha, semDado) {
-  const dados = porLinha.map(function (x) {
-    return {
-      nome: x.nome, x: x.publicados, y: x.citacoes, z: x.producao,
-      tamanho: x.total, destaque: temPotencialAlto(x),
-    };
-  });
-  const grafico = ChartsEnhanced.scatter3d(dados, {
-    eixos: { x: "Publicados", y: "Citações", z: "Em produção" },
-  });
-  const destaques = dados.filter(function (d) { return d.destaque; });
-  const filhos = [grafico];
-  if (destaques.length) {
-    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
-      el("span", { class: "ponto-vivo" }),
-      el("b", { text: " Piscando em ciano: " }),
-      el("span", { text: destaques.map(function (d) { return d.nome; }).join(" · ")
-        + " -- poucos artigos publicados, produção real em andamento" }),
-    ]));
-  }
-  if (semDado && semDado.length) {
-    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
-      el("b", { text: semDado.length + " linha(s) sem artigo ainda: " }),
-      el("span", { text: semDado.map(function (x) { return x.nome; }).join(" · ") }),
-    ]));
-  }
-  return el("div", { class: "faixas-caixa" }, filhos);
-}
-
 /* Faixas horizontais, uma por linha, com o nome inteiro e o ícone da
    linha. Era um gráfico de colunas: com duas linhas povoadas e seis
    vazias saíam duas colunas magras num quadro do tamanho da parede, e os
    nomes cortados em "Fibromialgia e doença…". Na horizontal o nome cabe,
    e as três situações se empilham na mesma faixa, na ordem em que o
    artigo anda: em produção, em avaliação, publicado.
+
+   Esta lâmina já foi uma dispersão 3D isométrica (esferas em x/y/z de
+   publicados/citações/produção). Achado ao vivo: com o acervo real --
+   muitas linhas com números baixos e parecidos entre si -- quase todo
+   mundo normaliza perto da origem e as esferas se amontoam num
+   quadradinho no meio de um cartão do tamanho da parede, com os rótulos
+   empilhados uns sobre os outros tentando escapar da colisão. Legível de
+   perto, numa mesa; ilegível de longe, num corredor -- e é assim que a
+   parede é lida. Voltou a ser a faixa: cada linha é uma comparação de
+   MAGNITUDE (publicados/produção/citações), e a forma certa para
+   magnitude, a esta distância, é a barra -- não a dispersão.
 
    `porLinha` só traz quem já TEM artigo -- uma faixa de zero ao lado de
    barras de verdade não ajuda a ler, só dilui a atenção (mesmo raciocínio
@@ -760,6 +737,7 @@ function faixasPorLinha(porLinha, semDado) {
     ["avaliacao", "Em avaliação", "--series-2"],
     ["publicados", "Publicados", "--series-1"],
   ];
+  const destaques = porLinha.filter(temPotencialAlto);
   const lista = el("ul", { class: "faixas" }, porLinha.map(function (x, i) {
     const trilho = el("div", { class: "trilho-faixa" }, partes.map(function (p) {
       const largura = 100 * x[p[0]] / teto;
@@ -767,16 +745,33 @@ function faixasPorLinha(porLinha, semDado) {
         title: p[1] + ": " + fmt(x[p[0]]) }, x[p[0]] && largura >= 9 ? [el("b", { text: fmt(x[p[0]]) })] : []);
     }));
     return el("li", { style: "--i:" + i }, [
-      el("div", { class: "quem" }, [Icons.badge(x.icone, null, 26),
+      el("div", { class: "quem" }, [
+        temPotencialAlto(x) ? el("span", { class: "ponto-vivo",
+          style: "background:var(--accent-strong);box-shadow:0 0 6px 1px "
+            + "color-mix(in srgb, var(--accent-strong) 70%, transparent)",
+          title: "Poucos artigos publicados, produção real em andamento" })
+          : Icons.badge(x.icone, null, 26),
         el("span", { text: x.nome, title: x.nome })]),
       trilho,
-      el("span", { class: "total", text: fmt(x.total) }),
+      el("div", { style: "text-align:right" }, [
+        el("span", { class: "total", text: fmt(x.total) }),
+        el("small", { class: "total-citacoes", text: fmt(x.citacoes) + " cit." }),
+      ]),
     ]);
   }));
   const legenda = el("div", { class: "legenda-faixas" }, partes.map(function (p) {
     return el("span", {}, [el("i", { style: "background:var(" + p[2] + ")" }), document.createTextNode(p[1])]);
   }));
   const filhos = [lista, legenda];
+  if (destaques.length) {
+    filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
+      el("span", { class: "ponto-vivo",
+        style: "background:var(--accent-strong);box-shadow:0 0 6px 1px "
+          + "color-mix(in srgb, var(--accent-strong) 70%, transparent)" }),
+      el("b", { text: " Poucos publicados, produção real em andamento: " }),
+      el("span", { text: destaques.map(function (x) { return x.nome; }).join(" · ") }),
+    ]));
+  }
   if (semDado && semDado.length) {
     filhos.push(el("p", { class: "linhas-pesquisa-vazias" }, [
       el("b", { text: semDado.length + " linha(s) sem artigo ainda: " }),

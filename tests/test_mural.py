@@ -822,6 +822,41 @@ class TestCitacoesNaParede(unittest.TestCase):
         self.assertIn("linhas-pesquisa-vazias", corpo)
         self.assertIn("sem artigo ainda", corpo)
 
+    def test_a_dispersao_3d_saiu_e_a_faixa_horizontal_voltou(self):
+        """Achado ao vivo (print do Mateus): com o acervo real, a maioria
+        das linhas tem números baixos e parecidos -- a esfera 3D
+        normalizava quase todo mundo perto da origem, e um quadro do
+        tamanho da parede virava um amontoado ilegível no meio da tela,
+        com os rótulos empilhados tentando escapar da colisão. A barra
+        horizontal, que já existia e foi feita para exatamente esta
+        distância de leitura, voltou a ser o gráfico desta lâmina."""
+        corpo = self.js[self.js.index("function graficoDasAreas"):
+                        self.js.index("function slideCitados")]
+        self.assertIn("faixasPorLinha(comDado, semDado)", corpo)
+        self.assertNotIn("matrizImpactoPorLinha", self.js)
+        self.assertNotIn("scatter3d", self.js)
+        chart_js = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        self.assertNotIn("scatter3d", chart_js)
+
+    def test_a_faixa_mostra_citacoes_da_linha_tambem(self):
+        """O título promete "publicados, citações e produção por linha" --
+        a faixa horizontal não pode ficar só com os três status e perder
+        a citação que a dispersão 3D antes mostrava num eixo."""
+        corpo = self.js[self.js.index("function faixasPorLinha"):
+                        self.js.index("function slideCitados")]
+        self.assertIn("total-citacoes", corpo)
+        self.assertIn("x.citacoes", corpo)
+
+    def test_linha_de_alto_potencial_continua_sinalizada(self):
+        """O destaque ("poucos publicados, produção real em andamento")
+        que a dispersão 3D piscava em ciano continua existindo -- só que
+        na faixa, não na esfera."""
+        corpo = self.js[self.js.index("function faixasPorLinha"):
+                        self.js.index("function slideCitados")]
+        self.assertIn("temPotencialAlto", corpo)
+        self.assertIn("ponto-vivo", corpo)
+        self.assertIn("produção real em andamento", corpo)
+
     def test_a_producao_por_area_mora_nesta_tela(self):
         """Era uma tela so dela, tres telas adiante; virou o grafico daqui."""
         self.assertIn("graficoDasAreas()", self.tela)
@@ -1310,120 +1345,6 @@ class TestTemPotencialAlto(unittest.TestCase):
 
     def test_campos_ausentes_nao_quebram(self):
         self.assertFalse(self._rodar({}))
-
-
-class TestDispersao3DDeImpactoPorLinha(unittest.TestCase):
-    """`ChartsEnhanced.scatter3d` -- reaproveitado pela primeira vez (já
-    existia no arquivo, sem nenhum chamador) para a lâmina "Citações e
-    produção por área", no lugar das faixas horizontais empilhadas."""
-
-    DOM_SHIM = """
-    class NoFalso {
-      constructor(tag) {
-        this.tag = tag; this.attrs = {}; this.kids = []; this._text = "";
-        this.style = { _props: {}, setProperty(k, v) { this._props[k] = v; } };
-        this.classList = { toggle() {} };
-      }
-      setAttribute(k, v) { this.attrs[k] = String(v); }
-      appendChild(kid) { this.kids.push(kid); return kid; }
-      set textContent(v) { this._text = String(v); }
-      get textContent() { return this._text; }
-    }
-    global.document = {
-      createElementNS: (ns, tag) => new NoFalso(tag),
-      createElement: (tag) => new NoFalso(tag),
-    };
-    global.fmt = function (v) { return String(v); };
-    function todos(no, tag, saida) {
-      saida = saida || [];
-      if (no.tag === tag) saida.push(no);
-      no.kids.forEach((k) => todos(k, tag, saida));
-      return saida;
-    }
-    """
-
-    def _grafico(self, dados, opts=None):
-        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
-        inicio = texto.index("const ChartsEnhanced")
-        fim = texto.index("\n})();", inicio) + len("\n})();")
-        chart_src = texto[inicio:fim]
-        script = (self.DOM_SHIM + "\n" + chart_src
-                  + f"\nconst fig = ChartsEnhanced.scatter3d({json.dumps(dados)}, {json.dumps(opts or {})});"
-                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); }"
-                  + "\nelse {"
-                  + "\nconst circulos = todos(fig, 'circle');"
-                  + "\nconst textos = todos(fig, 'text').map(function (t) { return t.textContent; });"
-                  + "\nconst grupos = fig.kids[0].kids.filter(function (k) { return k.tag === 'g'; });"
-                  + "\nprocess.stdout.write(JSON.stringify({"
-                  + "  figClasse: fig.attrs.class, svgClasse: fig.kids[0].attrs.class,"
-                  + "  nCirculos: circulos.length, textos: textos,"
-                  + "  classesGrupo: grupos.map(function (g) { return g.attrs.class; }),"
-                  + "  circulosXYR: circulos.map(function (c) {"
-                  + "    return [Number(c.attrs.cx), Number(c.attrs.cy), Number(c.attrs.r)]; }),"
-                  + "  rotulosXY: todos(fig, 'text').map(function (t) {"
-                  + "    return [t.textContent, Number(t.attrs.x), Number(t.attrs.y)]; }) }));"
-                  + "\n}")
-        return _roda(script)
-
-    def test_sem_dados_nao_desenha_nada(self):
-        self.assertIsNone(self._grafico([]))
-
-    def test_figura_e_svg_levam_as_classes_que_o_css_do_quadro_espera(self):
-        dados = [{"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15}]
-        resultado = self._grafico(dados)
-        self.assertEqual(resultado["figClasse"], "chart")
-        self.assertEqual(resultado["svgClasse"], "plot scatter3d")
-
-    def test_nomes_dos_eixos_de_verdade_aparecem_no_grafico(self):
-        dados = [{"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15}]
-        resultado = self._grafico(dados, {"eixos": {"x": "Publicados", "y": "Citações", "z": "Em produção"}})
-        self.assertIn("Publicados", resultado["textos"])
-        self.assertIn("Citações", resultado["textos"])
-        self.assertIn("Em produção", resultado["textos"])
-
-    def test_uma_esfera_por_ponto_e_o_nome_aparece_como_rotulo(self):
-        dados = [
-            {"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15},
-            {"nome": "Fibromialgia", "x": 8, "y": 10, "z": 4, "tamanho": 9},
-        ]
-        resultado = self._grafico(dados)
-        self.assertEqual(resultado["nCirculos"], 2)
-        self.assertIn("Dor crônica", resultado["textos"])
-        self.assertIn("Fibromialgia", resultado["textos"])
-
-    def test_rotulo_nunca_pousa_em_cima_de_esfera_vizinha(self):
-        # Achado ao vivo (verificação com Playwright, feedback do
-        # Mateus): duas linhas de pesquisa com números parecidos caem
-        # perto uma da outra no isométrico -- o afastamento de rótulos já
-        # existia, mas só olhava para OUTROS RÓTULOS, nunca para as
-        # esferas. O rótulo de uma ficava livre de outros textos e mesmo
-        # assim pousava em cima da esfera vizinha (o nome escrito sobre o
-        # disco colorido, ilegível). Aqui três linhas ficam bem próximas
-        # de propósito, para reproduzir o cacho.
-        dados = [
-            {"nome": "Dor crônica", "x": 5, "y": 6, "z": 3, "tamanho": 14},
-            {"nome": "Fibromialgia e dor difusa", "x": 5, "y": 5, "z": 3, "tamanho": 11},
-            {"nome": "Sono e recuperação", "x": 4, "y": 6, "z": 2, "tamanho": 9},
-            {"nome": "Psicologia do exercício", "x": 20, "y": 35, "z": 8, "tamanho": 18},
-        ]
-        resultado = self._grafico(dados)
-        circulos = resultado["circulosXYR"]
-        for nome, x, y in resultado["rotulosXY"]:
-            if nome not in [d["nome"] for d in dados]:
-                continue  # rótulo dos eixos, não de um ponto
-            for cx, cy, r in circulos:
-                dentro = ((x - cx) ** 2 + (y - cy) ** 2) ** 0.5 < r
-                self.assertFalse(dentro,
-                    f"rótulo '{nome}' em ({x},{y}) cai dentro de uma esfera em ({cx},{cy},r={r})")
-
-    def test_destaque_pisca_em_ciano_quem_nao_e_destaque_nao_pisca(self):
-        dados = [
-            {"nome": "Câncer", "x": 0, "y": 0, "z": 2, "tamanho": 2, "destaque": True},
-            {"nome": "Dor crônica", "x": 12, "y": 30, "z": 2, "tamanho": 15, "destaque": False},
-        ]
-        resultado = self._grafico(dados)
-        self.assertTrue(any("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
-        self.assertFalse(all("esfera-pisca-ciano" in (c or "") for c in resultado["classesGrupo"]))
 
 
 class TestFraseMetaPublicacoes(unittest.TestCase):

@@ -200,17 +200,6 @@ body { background: var(--surface-sunken); }
 .onda-liquida { animation: moverOndaLiquida 2.6s linear infinite; }
 @keyframes moverOndaLiquida { from { transform: translateX(0); } to { transform: translateX(calc(var(--onda-passo, 20px) * -2)); } }
 @media (prefers-reduced-motion: reduce) { .onda-liquida { animation: none; } }
-/* Esfera do gráfico de dispersão 3D: brilho fixo na cor da própria série
-   (nunca cor nova -- lida de `--cor-esfera`, posta pelo JS), e piscar em
-   ciano só quando a linha de pesquisa é destaque real (poucos artigos
-   publicados, produção em andamento). */
-.esfera-3d circle { filter: drop-shadow(0 0 6px var(--cor-esfera)); }
-.esfera-pisca-ciano circle { animation: piscaEsferaCiano 1.7s ease-in-out infinite; }
-@keyframes piscaEsferaCiano {
-  0%, 100% { filter: drop-shadow(0 0 6px var(--cor-esfera)); opacity: .85; }
-  50% { filter: drop-shadow(0 0 16px var(--cor-esfera)); opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) { .esfera-pisca-ciano circle { animation: none; } }
 /* Painel de insights ("O que os indicadores dizem"): gauge da taxa de
    aceite em cima, alerta e projeção do ano como texto abaixo -- crítico
    pulsa em vermelho de verdade (`--critical`, a mesma rampa do tema),
@@ -460,7 +449,9 @@ svg.globo-neon { overflow: visible; }
   font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
 @keyframes enche-faixa { to { width: var(--w, 0%); } }
 .faixas .total { font-size: clamp(14px, 1.3vw, calc(22px * var(--zoom, 1))); font-weight: 700;
-  font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right; }
+  font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right; display: block; }
+.faixas .total-citacoes { display: block; font-size: clamp(9.5px, .7vw, calc(11.5px * var(--zoom, 1)));
+  color: var(--ink-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .legenda-faixas { display: flex; gap: 16px; flex-wrap: wrap; font-size: clamp(11px, .8vw, calc(13.5px * var(--zoom, 1)));
   color: var(--ink-2); }
 .legenda-faixas span { display: inline-flex; align-items: center; gap: 6px; }
