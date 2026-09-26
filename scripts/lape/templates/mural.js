@@ -1729,6 +1729,8 @@ const SLIDES = [
   /* Slides 3D avançados com gráficos interativos e animações */
   { id: "linhas-3d", titulo: "Linhas de Pesquisa 3D", icone: "linhas", montar: slidePesquisasLinhas3D, tv: true, emRotacao: false,
     apresenta: "Árvore radial 3D mostrando cada linha de pesquisa com volume de artigos, taxa de publicação e colaborações." },
+  { id: "impacto-esforco", titulo: "Impacto x Esforço", icone: "achado", montar: slideImpactoEsforco, tv: true, emRotacao: false,
+    apresenta: "Cada linha de pesquisa por impacto (citações por artigo) e esforço (artigos em produção agora) -- onde priorizar energia." },
   /* Substitui as três telas separadas (Coordenação e Docentes / Pós-
      graduação / Bolsistas e Demais): mesma árvore, mesma regra de "cada
      pessoa mora num balde só", agora numa lâmina com três seções. As três

@@ -167,7 +167,19 @@ class TestLinhasDePesquisaParaOMural(BaseDaTv):
         self.assertEqual(linha["artigos"], 2)
         self.assertEqual(linha["publicados"], 1)
         self.assertEqual(linha["citacoes"], 12)
-        self.assertAlmostEqual(linha["taxa_publicacao"], 0.5)
+        self.assertEqual(linha["em_producao"], 1)
+
+    def test_em_producao_e_o_esforco_de_agora_nao_o_volume_historico(self):
+        """A lâmina "Impacto x esforço" usa `em_producao` como o esforço
+        ATUAL da linha -- uma linha com muitos artigos publicados ao
+        longo dos anos mas nada em andamento agora não pode aparecer
+        como "muito esforço" só por ter um histórico grande."""
+        lid = self._linha("linha-historica", "Linha Histórica")
+        for i in range(5):
+            _artigo(self.db, f"Publicado antigo {i}", research_line_id=lid, status="publicado")
+        linha = next(l for l in tv._linhas_pesquisa(self.db) if l["id"] == lid)
+        self.assertEqual(linha["artigos"], 5)
+        self.assertEqual(linha["em_producao"], 0)
 
     def test_linha_sem_nenhum_artigo_vem_zerada_nao_ausente(self):
         lid = self._linha("linha-vazia", "Linha Vazia")

@@ -429,6 +429,105 @@ function slidePesquisasLinhas3D() {
   return escalonar(container);
 }
 
+/* ==================== IMPACTO x ESFORÇO DAS LINHAS DE PESQUISA ==================== */
+/* O corte que separa "alto" de "baixo" em cada eixo -- a MEDIANA das
+   próprias linhas plotadas, nunca um número fixo cravado no código: uma
+   mediana chumbada quando o laboratório tinha 5 linhas nunca
+   acompanharia o dia em que tivesse 20. Fora como função pura para poder
+   testar a matemática sem montar a lâmina inteira. */
+function medianaDe(valores) {
+  const s = [...valores].sort((a, b) => a - b), m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+}
+
+/* Pedido explícito (referência de matriz 2x2): cada linha de pesquisa
+   como um ponto, impacto (citações por artigo -- o quanto o que sai
+   dali costuma repercutir, não o total bruto que só premia quem é
+   antigo) no eixo vertical, esforço (artigos em produção AGORA, ver
+   `_linhas_pesquisa` em tv.py) no eixo horizontal. Os quatro quadrantes
+   nascem do corte pela mediana (`medianaDe`) das próprias linhas. */
+function slideImpactoEsforco() {
+  const t = tv();
+  if (!t) return escalonar(el("div", { class: "slide" }, vazio("Linhas de pesquisa ainda não carregadas.")));
+
+  const todasLinhas = t.linhas || [];
+  /* Impacto por artigo só existe para quem já publicou algo -- dividir
+     por zero linha sem nenhum artigo inventaria um ponto no meio do
+     nada. A mesma regra de sempre: sem dado, fora do gráfico, nunca um
+     zero forçado. */
+  const linhas = todasLinhas
+    .filter((l) => (l.artigos || 0) > 0)
+    .map((l) => ({ ...l, impacto: (l.citacoes || 0) / l.artigos }));
+  if (linhas.length < 2) {
+    return escalonar(el("div", { class: "slide" },
+      vazio("Poucas linhas com produção para comparar impacto x esforço ainda.")));
+  }
+
+  const medianaImpacto = medianaDe(linhas.map((l) => l.impacto));
+  const medianaEsforco = medianaDe(linhas.map((l) => l.em_producao || 0));
+  const maiorImpacto = Math.max(medianaImpacto * 2, ...linhas.map((l) => l.impacto), 1);
+  const maiorEsforco = Math.max(medianaEsforco * 2, ...linhas.map((l) => l.em_producao || 0), 1);
+
+  const container = el("div", { class: "slide slide-impacto-esforco moldura-viva" });
+  const w = 720, h = 560, m = 56;
+  const x0 = m, x1 = w - m, y0 = m, y1 = h - m;
+  const xDe = (esforco) => x0 + (esforco / maiorEsforco) * (x1 - x0);
+  const yDe = (impacto) => y1 - (impacto / maiorImpacto) * (y1 - y0);
+  const xMediana = xDe(medianaEsforco), yMediana = yDe(medianaImpacto);
+
+  const svg = elSvg("svg", { viewBox: `0 0 ${w} ${h}`, class: "plot impacto-esforco" });
+
+  /* Os quatro quadrantes, cada um com a própria cor e legenda -- a
+     mesma leitura da referência ("priorize isso" / "esqueça disso"),
+     adaptada para linha de pesquisa em vez de projeto genérico. */
+  const QUADRANTES = [
+    { x: x0, y: y0, xf: xMediana, yf: yMediana, tom: "azul", legenda: "Priorize" },
+    { x: xMediana, y: y0, xf: x1, yf: yMediana, tom: "bom", legenda: "Grande aposta" },
+    { x: x0, y: yMediana, xf: xMediana, yf: y1, tom: "ambar", legenda: "Efeito marginal" },
+    { x: xMediana, y: yMediana, xf: x1, yf: y1, tom: "alerta", legenda: "Reavalie" },
+  ];
+  QUADRANTES.forEach(function (q) {
+    svg.appendChild(elSvg("rect", {
+      x: q.x, y: q.y, width: q.xf - q.x, height: q.yf - q.y,
+      class: "quadrante-fundo", "data-tom": q.tom,
+    }));
+    const cxq = (q.x + q.xf) / 2, cyq = q.y < yMediana ? q.y + 20 : q.yf - 12;
+    svg.appendChild(elSvg("text", { x: cxq, y: cyq, "text-anchor": "middle",
+      class: "quadrante-legenda", "data-tom": q.tom }, q.legenda));
+  });
+
+  // Eixos e linhas de mediana (tracejadas: são um corte estatístico, não
+  // uma fronteira física como o contorno do plano).
+  svg.appendChild(elSvg("line", { x1: xMediana, y1: y0, x2: xMediana, y2: y1, class: "linha-mediana" }));
+  svg.appendChild(elSvg("line", { x1: x0, y1: yMediana, x2: x1, y2: yMediana, class: "linha-mediana" }));
+  svg.appendChild(elSvg("rect", { x: x0, y: y0, width: x1 - x0, height: y1 - y0, class: "moldura-plano", fill: "none" }));
+  svg.appendChild(elSvg("text", { x: (x0 + x1) / 2, y: h - 16, "text-anchor": "middle", class: "eixo-rotulo" },
+    "Esforço agora (artigos em produção) →"));
+  svg.appendChild(elSvg("text", { x: 18, y: (y0 + y1) / 2, "text-anchor": "middle", class: "eixo-rotulo",
+    transform: `rotate(-90 18 ${(y0 + y1) / 2})` }, "↑ Impacto (citações por artigo)"));
+
+  const raio = (l) => 6 + 10 * Math.sqrt((l.artigos || 0) / Math.max(1, ...linhas.map((x) => x.artigos || 0)));
+  linhas.forEach(function (l) {
+    const px = xDe(l.em_producao || 0), py = yDe(l.impacto);
+    const ponto = elSvg("circle", { cx: px, cy: py, r: raio(l), class: "ponto-impacto-esforco" });
+    ponto.appendChild(elSvg("title", {},
+      `${l.nome}: ${fmt(Math.round(l.impacto * 10) / 10)} citações/artigo, `
+      + `${l.em_producao || 0} em produção agora`));
+    svg.appendChild(ponto);
+    svg.appendChild(elSvg("text", { x: px, y: py - raio(l) - 6, "text-anchor": "middle",
+      class: "rotulo-impacto-esforco" }, cortar(l.nome, 20)));
+  });
+
+  container.appendChild(el("div", { class: "impacto-esforco-caixa" }, [(function () {
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    fig.appendChild(svg);
+    return fig;
+  })()]));
+
+  return escalonar(container);
+}
+
 /* ==================== ORGANOGRAMA COM INDICADOR DE PONTO ==================== */
 /* Ícone e tom temáticos por vínculo -- os 11 códigos que a coordenação usa
    (ver mapping.VINCULOS), mais o que não tem vínculo declarado. A mesma

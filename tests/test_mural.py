@@ -1165,6 +1165,63 @@ class TestPontoNoCirculo(unittest.TestCase):
         self.assertAlmostEqual(p["y"], 100, delta=0.01)
 
 
+class TestMedianaDe(unittest.TestCase):
+    """`medianaDe` -- o corte entre "alto" e "baixo" na lâmina Impacto x
+    Esforço, sempre calculado das próprias linhas plotadas (nunca um
+    número fixo que não acompanharia o laboratório crescendo)."""
+
+    def _mediana(self, valores):
+        fonte = _recorta_3d("medianaDe")
+        return _no_node(fonte, f"medianaDe({json.dumps(valores)})")
+
+    def test_quantidade_impar_pega_o_do_meio(self):
+        self.assertEqual(self._mediana([1, 5, 3]), 3)
+
+    def test_quantidade_par_e_a_media_dos_dois_do_meio(self):
+        self.assertEqual(self._mediana([1, 2, 3, 4]), 2.5)
+
+    def test_nao_depende_da_ordem_de_entrada(self):
+        self.assertEqual(self._mediana([9, 1, 5, 3, 7]), 5)
+
+
+class TestImpactoXEsforcoDasLinhas(unittest.TestCase):
+    """`slideImpactoEsforco` -- pedido explícito (referência de matriz
+    2x2): cada linha de pesquisa por impacto (citações por artigo) x
+    esforço (artigos em produção agora), quatro quadrantes cortados pela
+    mediana das próprias linhas."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+
+    @property
+    def corpo(self):
+        return self.js[self.js.index("function slideImpactoEsforco("):
+                       self.js.index("/* ==================== ORGANOGRAMA")]
+
+    def test_impacto_e_citacoes_por_artigo_nao_o_total_bruto(self):
+        self.assertIn("l.citacoes || 0) / l.artigos", self.corpo)
+
+    def test_esforco_e_em_producao_agora_nao_o_historico(self):
+        self.assertIn("l.em_producao", self.corpo)
+
+    def test_linha_sem_nenhum_artigo_fica_fora_do_grafico(self):
+        """Dividir por zero artigo inventaria um ponto no meio do nada --
+        a mesma regra de sempre: sem dado, fora do gráfico."""
+        self.assertIn("filter((l) => (l.artigos || 0) > 0)", self.corpo)
+
+    def test_os_quatro_quadrantes_usam_a_mediana_nao_numero_fixo(self):
+        corpo = self.corpo
+        self.assertIn("medianaDe(linhas.map((l) => l.impacto))", corpo)
+        self.assertIn("medianaDe(linhas.map((l) => l.em_producao || 0))", corpo)
+
+    def test_slide_esta_registrado_no_roteiro(self):
+        js_mural = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+        roteiro = js_mural[js_mural.index("const SLIDES = ["):]
+        roteiro = roteiro[:roteiro.index("];")]
+        self.assertIn('id: "impacto-esforco"', roteiro)
+        self.assertIn("slideImpactoEsforco", roteiro)
+
+
 class TestQuemTemOrientadorNoOrganograma(unittest.TestCase):
     """`temOrientadorVisivel` -- decide quem NUNCA pode ser raiz solta no
     organograma do mural. Bug real: sem essa checagem, uma pessoa cuja

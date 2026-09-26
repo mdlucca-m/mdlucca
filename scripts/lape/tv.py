@@ -271,11 +271,17 @@ def _health_rotina(db: Database) -> dict[str, Any]:
 
 
 def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
-    """Linhas de pesquisa com número de artigos, taxa de publicação e
-    citações -- citações lidas de `articles.openalex_citations`, a mesma
-    coluna que a rotina automática mantém sincronizada e que
-    `_citacoes_bases_dados` usa (ver o comentário lá sobre por que não
-    busca na OpenAlex de novo aqui)."""
+    """Linhas de pesquisa com número de artigos, taxa de publicação,
+    citações e o que está em produção agora -- citações lidas de
+    `articles.openalex_citations`, a mesma coluna que a rotina automática
+    mantém sincronizada e que `_citacoes_bases_dados` usa (ver o
+    comentário lá sobre por que não busca na OpenAlex de novo aqui).
+
+    `em_producao` é o ESFORÇO atual da lâmina "Impacto x esforço" (quanto
+    trabalho a linha está consumindo agora, não o volume publicado ao
+    longo dos anos) -- por isso é uma contagem à parte de `artigos`
+    (o total histórico), nunca derivada dele.
+    """
     saida = []
     linhas = db.dicts(
         "SELECT id, name FROM research_lines WHERE active ORDER BY name"
@@ -294,6 +300,10 @@ def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
             "SELECT COALESCE(SUM(a.openalex_citations), 0) FROM articles a"
             " WHERE a.research_line_id = ?", (lid,)
         ) or 0)
+        em_producao = int(db.scalar(
+            "SELECT COUNT(*) FROM articles a"
+            " WHERE a.research_line_id = ? AND a.status = 'em_producao'", (lid,)
+        ) or 0)
         taxa = publicados / total_artigos if total_artigos > 0 else 0
         saida.append({
             "id": lid,
@@ -302,6 +312,7 @@ def _linhas_pesquisa(db: Database) -> list[dict[str, Any]]:
             "publicados": publicados,
             "citacoes": citacoes,
             "taxa_publicacao": taxa,
+            "em_producao": em_producao,
         })
     return saida
 
