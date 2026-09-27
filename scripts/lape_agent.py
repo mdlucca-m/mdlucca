@@ -480,6 +480,35 @@ def cmd_biblioteca(args: argparse.Namespace) -> int:
     db = Database(args.db)
     db.migrate()
     biblioteca.instalar(db)
+
+    if args.remover:
+        ids = tuple(args.id or ())
+        if not ids:
+            print("! informe pelo menos um --id (confira antes com --revisar)")
+            db.close()
+            return 1
+        tirados = biblioteca.remover_itens(db, args.remover, ids)
+        print(f"{tirados} item(ns) removido(s) de “{args.remover}”.")
+        db.close()
+        return 0
+
+    if args.revisar:
+        r = biblioteca.revisar_populacao(db, args.revisar)
+        if r["restricao"] is None:
+            print(f"“{r['biblioteca']}” não tem restrição de população declarada.")
+            db.close()
+            return 0
+        print(f"{r['biblioteca']} -- restrição: {', '.join(r['restricao'])}")
+        print(f"{len(r['candidatos'])} de {r['total']} item(ns) sem nenhum desses termos"
+              " no título/resumo/palavras-chave:\n")
+        for c in r["candidatos"]:
+            print(f"  #{c['id']:<6d} {c['year'] or '----':4}  {c['base']:8s} {c['title'][:70]}")
+        print("\nNada foi apagado -- confira cada um e, se não servir mais:")
+        print("  python scripts\\lape_agent.py biblioteca --remover " + args.revisar
+              + " --id ID [--id ID ...]")
+        db.close()
+        return 0
+
     acervos = biblioteca.todas(db, perfil="admin")
     if not args.atualizar:
         print(f"Banco: {args.db}")
@@ -1115,6 +1144,16 @@ def build_parser() -> argparse.ArgumentParser:
     bib_parser.add_argument(
         "--code", action="append", metavar="CODIGO",
         help="limita a este acervo (pode repetir)")
+    bib_parser.add_argument(
+        "--revisar", metavar="CODIGO",
+        help="lista o que já está guardado e não bate mais com a população "
+             "de hoje (nunca apaga sozinho -- veja biblioteca.revisar_populacao)")
+    bib_parser.add_argument(
+        "--remover", metavar="CODIGO",
+        help="tira do acervo os --id conferidos à mão (use depois de olhar --revisar)")
+    bib_parser.add_argument(
+        "--id", action="append", type=int, metavar="ID",
+        help="o id de um item de biblioteca_item a remover com --remover (pode repetir)")
     bib_parser.set_defaults(func=cmd_biblioteca)
 
     status_parser = subparsers.add_parser("status", help="resumo do banco e das lacunas")

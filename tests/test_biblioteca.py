@@ -16,6 +16,8 @@ esporte sem nenhum aviso.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import sqlite3
 import re
@@ -1342,15 +1344,16 @@ class TestOAcervoDosEsportesEsteticos(BaseBiblioteca):
         self.assertIn("disordered eating", termos)
         self.assertIn("body image", termos)
 
-    def test_a_busca_geral_pede_as_tres_coisas_ao_mesmo_tempo(self):
-        """Construto E populacao. Um OR entre os dois traria humor de
-        qualquer um e esporte estetico sem humor nenhum.
+    def test_a_busca_geral_pede_as_quatro_coisas_ao_mesmo_tempo(self):
+        """Construto E populacao E a restricao de sexo. Um OR entre eles
+        traria humor de qualquer um, ou esporte estetico masculino/misto,
+        que e exatamente o que a restricao existe para excluir.
         """
         q = biblioteca.query_de(self.DECL, base=biblioteca.WOS)
-        self.assertEqual(q.count(" AND "), 1)
+        self.assertEqual(q.count(" AND "), 2)
         com_tema = biblioteca.query_de(
             self.DECL, self.DECL["segmentos"][0][1], biblioteca.WOS)
-        self.assertEqual(com_tema.count(" AND "), 2)
+        self.assertEqual(com_tema.count(" AND "), 3)
 
     def test_o_acervo_entra_no_banco_com_as_buscas_dos_temas(self):
         biblioteca.instalar(self.db)
@@ -1360,6 +1363,152 @@ class TestOAcervoDosEsportesEsteticos(BaseBiblioteca):
         n = self.db.scalar(
             "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?", (bid,))
         self.assertEqual(n, (1 + len(self.DECL["segmentos"])) * len(biblioteca.BASES))
+
+    def test_restrito_a_atleta_mulher(self):
+        """Pedido da coordenação: o acervo passa a ser só de mulher.
+
+        A restrição é um AND separado da população -- somar "female" no
+        MESMO bloco OR da população alargaria o acervo (traria também o
+        que só tem a modalidade, sem sexo nenhum) em vez de recortá-lo.
+        """
+        self.assertEqual(self.DECL["restricao"], biblioteca.FEMININO_TERMOS)
+        for base in (biblioteca.PUBMED, biblioteca.SCOPUS, biblioteca.WOS):
+            with self.subTest(base=base):
+                q = biblioteca.query_de(self.DECL, base=base)
+                self.assertIn("female", q)
+                self.assertIn("women", q)
+                # a modalidade continua no seu proprio bloco -- nao some
+                self.assertIn("gymnastics", q)
+
+    def test_a_restricao_nao_usa_mesh_de_sexo(self):
+        """O check-tag `Female[MeSH Terms]` e indexacao humana e atrasada:
+        um artigo de 2025 pode nao te-lo posto ainda. Texto livre pega o
+        artigo assim que ele existe."""
+        self.assertNotIn("MeSH", " ".join(biblioteca.FEMININO_TERMOS))
+
+    def test_titulo_e_descricao_dizem_que_e_so_mulher(self):
+        self.assertIn("femininos", self.DECL["title"])
+        self.assertIn("mulher", self.DECL["descricao"])
+
+    def test_outro_acervo_sem_restricao_nao_ganha_o_bloco_a_mais(self):
+        """`restricao` e por acervo -- humor_esporte (o de atleta em
+        geral) nao pode herdar a restricao de sexo do estetico."""
+        geral = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "humor_esporte")
+        self.assertNotIn("restricao", geral)
+        q = biblioteca.query_de(geral, base=biblioteca.WOS)
+        self.assertNotIn("female", q)
+
+
+class TestRevisaoDaPopulacao(BaseBiblioteca):
+    """`revisar_populacao` -- o que já estava guardado antes do acervo
+    virar só de mulher, e continua lá porque `atualizar()` só acrescenta.
+
+    Nunca apaga sozinha: só lista candidatos, porque o sistema não sabe
+    separar "não é sobre mulher" de "não repetiu o sexo no resumo"."""
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+        self.bid = self.db.scalar(
+            "SELECT id FROM biblioteca WHERE code = ?", ("humor_estetico",))
+
+    def _item(self, titulo, resumo="", ano=2020, base="pubmed"):
+        self.db.execute(
+            "INSERT INTO biblioteca_item (biblioteca_id, chave, chave_titulo,"
+            "   title, abstract, year, base) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (self.bid, titulo.lower(), titulo.lower(), titulo, resumo, ano, base))
+        self.db.conn.commit()
+
+    def test_item_sem_termo_de_sexo_e_candidato(self):
+        self._item("Mood states in male gymnasts", "male competitive gymnasts")
+        r = biblioteca.revisar_populacao(self.db, "humor_estetico")
+        self.assertEqual(len(r["candidatos"]), 1)
+        self.assertEqual(r["candidatos"][0]["title"], "Mood states in male gymnasts")
+
+    def test_item_com_termo_de_sexo_no_resumo_nao_e_candidato(self):
+        self._item("Mood states in gymnasts", "female artistic gymnasts")
+        r = biblioteca.revisar_populacao(self.db, "humor_estetico")
+        self.assertEqual(r["candidatos"], [])
+
+    def test_acervo_sem_restricao_nao_lista_candidato_nenhum(self):
+        r = biblioteca.revisar_populacao(self.db, "humor_esporte")
+        self.assertIsNone(r["restricao"])
+        self.assertEqual(r["candidatos"], [])
+
+    def test_acervo_inexistente_reclama(self):
+        with self.assertRaises(ValueError):
+            biblioteca.revisar_populacao(self.db, "nao-existe")
+
+    def test_remover_tira_so_os_ids_pedidos(self):
+        self._item("Male gymnasts", "male athletes")
+        self._item("Female gymnasts", "female athletes")
+        candidatos = biblioteca.revisar_populacao(self.db, "humor_estetico")["candidatos"]
+        self.assertEqual(len(candidatos), 1)
+        tirados = biblioteca.remover_itens(self.db, "humor_estetico",
+                                           (candidatos[0]["id"],))
+        self.assertEqual(tirados, 1)
+        restantes = self.db.dicts(
+            "SELECT title FROM biblioteca_item WHERE biblioteca_id = ?", (self.bid,))
+        self.assertEqual([r["title"] for r in restantes], ["Female gymnasts"])
+
+    def test_remover_sem_id_nao_apaga_nada(self):
+        self._item("Male gymnasts", "male athletes")
+        tirados = biblioteca.remover_itens(self.db, "humor_estetico", ())
+        self.assertEqual(tirados, 0)
+        total = self.db.scalar(
+            "SELECT COUNT(*) FROM biblioteca_item WHERE biblioteca_id = ?", (self.bid,))
+        self.assertEqual(total, 1)
+
+
+class TestOComandoDeRevisarERemover(BaseBiblioteca):
+    """`lape_agent.py biblioteca --revisar`/`--remover` -- o caminho de
+    quem não quer subir o servidor só para conferir o acervo."""
+
+    def setUp(self):
+        super().setUp()
+        biblioteca.instalar(self.db)
+
+    def _rodar(self, *args):
+        import lape_agent
+
+        parsed = lape_agent.build_parser().parse_args(
+            ["--db", str(self.db.path), "biblioteca", *args])
+        with contextlib.redirect_stdout(io.StringIO()) as saida:
+            codigo = parsed.func(parsed)
+        return codigo, saida.getvalue()
+
+    def _item(self, titulo, resumo=""):
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?", ("humor_estetico",))
+        self.db.execute(
+            "INSERT INTO biblioteca_item (biblioteca_id, chave, chave_titulo,"
+            "   title, abstract, base) VALUES (?, ?, ?, ?, ?, 'pubmed')",
+            (bid, titulo.lower(), titulo.lower(), titulo, resumo))
+        self.db.conn.commit()
+
+    def test_revisar_lista_o_candidato_e_nao_apaga(self):
+        self._item("Male gymnasts", "male athletes")
+        codigo, saida = self._rodar("--revisar", "humor_estetico")
+        self.assertEqual(codigo, 0)
+        self.assertIn("Male gymnasts", saida)
+        self.assertIn("Nada foi apagado", saida)
+        total = self.db.scalar("SELECT COUNT(*) FROM biblioteca_item")
+        self.assertEqual(total, 1)
+
+    def test_remover_sem_id_reclama_e_nao_apaga(self):
+        self._item("Male gymnasts", "male athletes")
+        codigo, saida = self._rodar("--remover", "humor_estetico")
+        self.assertEqual(codigo, 1)
+        total = self.db.scalar("SELECT COUNT(*) FROM biblioteca_item")
+        self.assertEqual(total, 1)
+
+    def test_remover_com_id_tira_do_banco(self):
+        self._item("Male gymnasts", "male athletes")
+        iid = self.db.scalar("SELECT id FROM biblioteca_item")
+        codigo, saida = self._rodar("--remover", "humor_estetico", "--id", str(iid))
+        self.assertEqual(codigo, 0)
+        self.assertIn("1 item(ns) removido(s)", saida)
+        total = self.db.scalar("SELECT COUNT(*) FROM biblioteca_item")
+        self.assertEqual(total, 0)
 
 
 class TestOAcervoDeFibromialgia(BaseBiblioteca):

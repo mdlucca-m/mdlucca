@@ -331,6 +331,26 @@ TEMAS_ESTETICOS: tuple[tuple[str, tuple[str, ...]], ...] = (
      ("injury", "injuries", "pain", "low back pain", "return to sport")),
 )
 
+# Restrição por sexo, pedida pela coordenação: o acervo passa a ser SÓ de
+# atleta mulher, e o que já havia sobre homem/misto na modalidade sai da
+# leitura (ver `revisar_populacao`, mais abaixo, para o que fazer com o
+# que já estava guardado).
+#
+# Texto livre, e não `"Female"[MeSH Terms]`: o check-tag de sexo da PubMed
+# é indexação de gente, e sai bem depois do artigo publicar -- um estudo
+# de 2025 pode ainda não ter o check-tag posto, e sumiria do acervo sem
+# nunca ter sido sobre homem. Texto livre no título/resumo pega o artigo
+# assim que ele existe.
+#
+# Nenhum termo por modalidade (tipo "women's gymnastics"): a população já
+# fixa a modalidade em `ESTETICOS_TERMOS`, e este bloco é só o sexo -- o
+# AND dos dois blocos em `query_de` é o que faz o cruzamento, sem
+# precisar escrever "women's" na frente de cada uma das dez modalidades.
+FEMININO_TERMOS = (
+    "women", "woman", "female", "females", "girls", "girl",
+    "female athlete", "female athletes",
+)
+
 # ----------------------------------------------------------------------
 # Fibromialgia
 # ----------------------------------------------------------------------
@@ -1048,24 +1068,25 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
     },
     {
         "code": "humor_estetico",
-        "title": "Estado de humor nos esportes estéticos",
+        "title": "Estado de humor nos esportes estéticos femininos",
         "linha": "psicologia_do_esporte",
         "eixo": "tema",
         "descricao":
-            "Humor em quem compete em modalidade julgada pela aparência do movimento "
-            "— ginástica artística e rítmica, nado artístico, patinação, saltos "
-            "ornamentais, ballet e dança de competição. É o acervo de base para uma "
-            "revisão sistemática, e por isso se divide por TEMA e não por modalidade: "
-            "a modalidade é a população, e repetir-se-ia em todo segmento. Nestas "
-            "modalidades a nota depende da linha corporal, e a literatura de humor "
-            "gira em torno de imagem corporal, peso e alimentação — que é justamente "
-            "o que não aparece no acervo de humor no esporte em geral.",
+            "Humor em mulheres que competem em modalidade julgada pela aparência do "
+            "movimento — ginástica artística e rítmica, nado artístico, patinação, "
+            "saltos ornamentais, ballet e dança de competição. Restrito a atleta "
+            "mulher (ver FEMININO_TERMOS): é nesta população que a literatura de "
+            "imagem corporal, peso e alimentação nestas modalidades de fato se "
+            "concentra. É o acervo de base para uma revisão sistemática, e por isso "
+            "se divide por TEMA e não por modalidade: a modalidade é a população, e "
+            "repetir-se-ia em todo segmento.",
         # O MESMO vocabulario de humor do outro acervo, de proposito. Sao
         # os instrumentos que este laboratorio usa (POMS e BRUMS), e um
         # segundo vocabulario para o mesmo construto seria dois lugares
         # para consertar e um para esquecer.
         "construto": HUMOR_TERMOS,
         "populacao": ESTETICOS_TERMOS,
+        "restricao": FEMININO_TERMOS,
         # O MeSH das MODALIDADES, e nunca `athletes[MeSH]`: este acervo e
         # de quem compete em esporte julgado, e nao de atleta em geral.
         # Os tres foram conferidos na PubMed e existem. `Diving[MeSH]`
@@ -1364,6 +1385,15 @@ def query_de(decl: dict[str, Any], segmento_termos: tuple[str, ...] | None = Non
             populacao = ""
     if populacao:
         partes.append(f"({populacao})")
+    # Bloco separado da populacao de proposito: `populacao` e um OR entre
+    # sinonimos da MESMA coisa (as modalidades esteticas, por exemplo), e
+    # somar "female"/"women" nesse mesmo OR alargaria o acervo em vez de
+    # restringi-lo -- traria TAMBEM tudo que so tem a modalidade, sem
+    # sexo nenhum. A restricao e outra faceta, e precisa do seu proprio
+    # AND para de fato recortar.
+    restricao = frase(decl.get("restricao") or (), base)
+    if restricao:
+        partes.append(f"({restricao})")
     if segmento_termos:
         partes.append(f"({frase(segmento_termos, base)})")
     return " AND ".join(partes)
@@ -1919,6 +1949,68 @@ def reclassificar(db: Database, code: str) -> dict[str, Any]:
     total = int(db.scalar("SELECT COUNT(*) FROM biblioteca_item WHERE biblioteca_id = ?",
                           (bid,)) or 0)
     return {"mudaram": mudaram, "com_desenho": com_desenho, "total": total}
+
+
+def revisar_populacao(db: Database, code: str) -> dict[str, Any]:
+    """O que já está guardado e não bate mais com a `restricao` de hoje.
+
+    Existe para quando um acervo MUDA de população depois de já ter
+    recolhido artigo -- foi o caso de `humor_estetico`, que passou a ser
+    só de atleta mulher. `instalar()` troca a busca GUARDADA na hora, mas
+    o que já tinha sido trazido pela busca antiga (mais larga) continua
+    no banco: `atualizar()` só acrescenta, nunca tira.
+
+    Esta função NUNCA apaga nada sozinha -- só lista os candidatos. A
+    razão é de fundo, não de cautela por cautela: o sistema sabe procurar
+    "female"/"women" no título e no resumo, mas não sabe ler o método. Um
+    estudo com só atleta mulher pode não repetir o sexo em lugar nenhum do
+    resumo, e apagar pelo texto apagaria também esse. Quem decide tirar é
+    quem lê o artigo -- esta função só junta os candidatos num lugar só,
+    em vez de abrir a lista item por item.
+    """
+    decl = next((d for d in BIBLIOTECAS if d["code"] == code), None)
+    if not decl:
+        raise ValueError(f"biblioteca “{code}” não existe")
+    termos_restricao = decl.get("restricao")
+    if not termos_restricao:
+        return {"biblioteca": decl["title"], "restricao": None, "candidatos": [], "total": 0}
+
+    bid = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    if not bid:
+        return {"biblioteca": decl["title"], "restricao": list(termos_restricao),
+                "candidatos": [], "total": 0}
+
+    termos = [t.lower() for t in termos_restricao]
+    itens = db.dicts(
+        "SELECT id, title, abstract, keywords, year, base"
+        "  FROM biblioteca_item WHERE biblioteca_id = ?", (bid,))
+    candidatos = []
+    for item in itens:
+        texto = " ".join(str(item.get(campo) or "")
+                         for campo in ("title", "abstract", "keywords")).lower()
+        if not any(termo in texto for termo in termos):
+            candidatos.append({"id": item["id"], "title": item["title"],
+                               "year": item["year"], "base": item["base"]})
+    return {"biblioteca": decl["title"], "restricao": list(termos_restricao),
+            "candidatos": candidatos, "total": len(itens)}
+
+
+def remover_itens(db: Database, code: str, ids: tuple[int, ...]) -> int:
+    """Tira, um a um, os itens que quem leu decidiu que não servem mais.
+
+    Recebe só os IDs -- nunca um critério de busca -- porque apagar por
+    critério é exatamente o que `revisar_populacao` se recusa a fazer
+    sozinha. A decisão de quais IDs mandar já leva a leitura humana junto.
+    """
+    bid = db.scalar("SELECT id FROM biblioteca WHERE code = ?", (code,))
+    if not bid or not ids:
+        return 0
+    marcadores = ",".join("?" * len(ids))
+    cursor = db.execute(
+        f"DELETE FROM biblioteca_item WHERE biblioteca_id = ? AND id IN ({marcadores})",
+        (bid, *ids))
+    db.conn.commit()
+    return cursor.rowcount or 0
 
 
 def _colher(base: str, query: str, limite: int) -> list[dict[str, Any]]:
