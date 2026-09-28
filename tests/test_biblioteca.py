@@ -1399,6 +1399,93 @@ class TestOAcervoDosEsportesEsteticos(BaseBiblioteca):
         self.assertNotIn("female", q)
 
 
+class TestOAcervoDePoluicaoDoArEIdosos(BaseBiblioteca):
+    """Reproduz a Tabela 1 de Andrade et al. (2023, IJERPH 20, 3506): idoso
+
+    AND poluição do ar AND exercício -- e só isso, sem os outros nove
+    segmentos do "ar_exercicio" que não são a pergunta desse artigo.
+    """
+
+    DECL = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "poluicao_idosos_af")
+
+    def test_e_um_acervo_a_parte_do_ar_exercicio_mais_amplo(self):
+        """Reusar o "ar_exercicio" (13 segmentos, população de atleta,
+        ciclista, criança etc.) alargaria de volta o que o artigo original
+        recortou. É outro código, outra população, outra restrição.
+        """
+        geral = next(d for d in biblioteca.BIBLIOTECAS if d["code"] == "ar_exercicio")
+        self.assertNotEqual(self.DECL["populacao"], geral["populacao"])
+        self.assertNotEqual(self.DECL["segmentos"], geral["segmentos"])
+
+    def test_idoso_e_a_restricao_nao_a_populacao(self):
+        """Somar "elderly" na MESMA lista OR da população de exercício
+        alargaria a busca (traria também exercício sem nenhum recorte de
+        idade). A restrição é o AND que de fato recorta.
+        """
+        self.assertEqual(self.DECL["restricao"], biblioteca.POLUICAO_IDOSOS_TERMOS)
+        self.assertIn("elderly", self.DECL["restricao"])
+        self.assertNotIn("elderly", self.DECL["populacao"])
+
+    def test_a_busca_pede_as_tres_coisas_ao_mesmo_tempo(self):
+        q = biblioteca.query_de(self.DECL, base=biblioteca.WOS)
+        self.assertEqual(q.count(" AND "), 2)
+        com_tema = biblioteca.query_de(
+            self.DECL, self.DECL["segmentos"][0][1], biblioteca.WOS)
+        self.assertEqual(com_tema.count(" AND "), 3)
+
+    def test_os_termos_batem_com_a_tabela_1_do_artigo(self):
+        for termo in ("air pollution", "particulate matter", "PM10", "PM2.5",
+                      "carbon monoxide", "ozone", "nitrogen dioxide"):
+            with self.subTest(termo=termo):
+                self.assertIn(termo, self.DECL["construto"])
+        for termo in ("exercise", "physical activity", "resistance training",
+                      "athlete", "running", "cycling"):
+            with self.subTest(termo=termo):
+                self.assertIn(termo, self.DECL["populacao"])
+        for termo in ("elderly", "aged", "older adults", "senescence"):
+            with self.subTest(termo=termo):
+                self.assertIn(termo, self.DECL["restricao"])
+
+    def test_nenhum_termo_usa_asterisco_de_truncamento(self):
+        """A Tabela 1 do artigo usa "pollutant*", "sport*" etc. -- nenhuma
+        base neste sistema resolve truncamento com curinga, então os
+        termos entram por extenso (singular e plural)."""
+        for bloco in (self.DECL["construto"], self.DECL["populacao"],
+                      self.DECL["restricao"]):
+            for termo in bloco:
+                with self.subTest(termo=termo):
+                    self.assertNotIn("*", termo)
+
+    def test_nao_tem_mesh_proprio(self):
+        """A Tabela 1 não traz MeSH -- o mapeamento de MeSH está na Tabela
+        S2, um material suplementar que este sistema não tem."""
+        self.assertNotIn("mesh", self.DECL)
+
+    def test_a_linha_e_qualidade_do_ar(self):
+        self.assertEqual(self.DECL["linha"], "qualidade_do_ar")
+
+    def test_os_oito_temas_batem_com_a_classificacao_do_artigo(self):
+        """RQ2 do artigo, seção 3.4: as oito categorias de desfecho
+        adaptadas de Sun e Zhu, na ordem em que o artigo as lista."""
+        nomes = [n for n, _ in self.DECL["segmentos"]]
+        self.assertEqual(len(nomes), 8)
+        self.assertEqual(len(set(nomes)), len(nomes))
+        self.assertIn("Doenças respiratórias", nomes)
+        self.assertIn("Doenças cardiovasculares", nomes)
+        self.assertIn("Câncer", nomes)
+        self.assertIn("Transtornos mentais", nomes)
+
+    def test_o_acervo_entra_no_banco_com_as_buscas_dos_temas(self):
+        biblioteca.instalar(self.db)
+        bid = self.db.scalar("SELECT id FROM biblioteca WHERE code = ?",
+                             ("poluicao_idosos_af",))
+        self.assertIsNotNone(bid)
+        n = self.db.scalar(
+            "SELECT COUNT(*) FROM biblioteca_busca WHERE biblioteca_id = ?", (bid,))
+        total_bases = len(biblioteca.BASES) + len(self.DECL.get("manuais") or ())
+        self.assertEqual(n, (1 + len(self.DECL["segmentos"])) * total_bases)
+
+
 class TestRevisaoDaPopulacao(BaseBiblioteca):
     """`revisar_populacao` -- o que já estava guardado antes do acervo
     virar só de mulher, e continua lá porque `atualizar()` só acrescenta.
