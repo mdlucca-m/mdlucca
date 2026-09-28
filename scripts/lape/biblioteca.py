@@ -929,6 +929,68 @@ TEMAS_AR: tuple[tuple[str, tuple[str, ...]], ...] = (
 )
 
 # ----------------------------------------------------------------------
+# Poluicao do ar e saude do idoso durante a atividade fisica
+# ----------------------------------------------------------------------
+# Nao e o "ar_exercicio" com um filtro de idade em cima -- e a reproducao
+# do recorte exato da Tabela 1 de Andrade et al. (Int. J. Environ. Res.
+# Public Health 2023, 20, 3506): idoso, poluicao do ar e exercicio, os tres
+# ao mesmo tempo, sem os outros nove segmentos (crianca, ciclista, atleta
+# de elite etc.) que fazem parte do "ar_exercicio" mas nao da pergunta
+# desse artigo. Os tres blocos de termos abaixo sao os da propria Tabela 1,
+# com os asteriscos de truncamento (pollutant*, sport* etc.) escritos por
+# extenso -- nenhuma base aqui usa truncamento com curinga.
+POLUICAO_IDOSOS_TERMOS = (
+    "elderly", "aged", "aging", "aged, 80 and over", "older adults",
+    "older women", "older men", "senescence", "oldest old", "old adults",
+    "nonagenarian", "nonagenarians", "octogenarian", "octogenarians",
+    "centenarian", "centenarians",
+)
+POLUICAO_AR_TERMOS = (
+    "air pollution", "air pollutant", "air pollutants", "air quality",
+    "particulate matter", "PM10", "PM2.5", "carbon monoxide",
+    "carbon dioxide", "ozone", "nitrogen dioxide", "sulfur dioxide",
+    "traffic-related air pollution",
+)
+POLUICAO_EXERCICIO_TERMOS = (
+    "exercise", "physical exercise", "physical exercises", "physical activity",
+    "physical exertion", "physical training", "sport", "sports",
+    "resistance training", "strength training", "aerobic exercise",
+    "aerobic fitness", "athlete", "athletic performance", "running", "cycling",
+)
+POLUICAO_IDOSOS_REGIONAIS = (
+    "poluição do ar", "idosos", "atividade física", "contaminación del aire",
+    "personas mayores", "actividad física",
+)
+# Segmentos pela propria classificacao de desfecho do artigo (RQ2, secao
+# 3.4, com a classificacao adaptada de Sun e Zhu): as oito categorias e
+# os exemplos que o proprio artigo usa para cada uma.
+TEMAS_POLUICAO_IDOSOS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Doenças respiratórias",
+     ("asthma", "respiratory infection", "respiratory disorder", "COPD",
+      "chronic obstructive pulmonary disease")),
+    ("Doenças crônicas", ("diabetes", "chronic respiratory disease")),
+    ("Doenças cardiovasculares",
+     ("hypertension", "heart rate variability", "myocardial infarction",
+      "cardiopulmonary disease", "ischemic heart disease", "blood clotting",
+      "deep vein thrombosis", "stroke")),
+    ("Registros de saúde",
+     ("morbidity", "hospital admission", "outpatient consultation",
+      "emergency care", "mortality")),
+    ("Câncer",
+     ("bladder cancer", "brain tumor", "breast cancer", "liver cancer",
+      "lung cancer")),
+    ("Transtornos mentais",
+     ("Alzheimer's disease", "Parkinson's disease", "depression", "stress",
+      "cognitive function", "mental disorder")),
+    ("Outras doenças",
+     ("DNA methylation", "neurobehavioral function", "inflammatory disease",
+      "skin disease")),
+    ("Desfechos gerais de saúde",
+     ("muscle strength", "functional capacity", "inflammatory factor",
+      "health outcome")),
+)
+
+# ----------------------------------------------------------------------
 # Exercicio e saude mental no cancer
 # ----------------------------------------------------------------------
 # A linha nao e "exercicio e cancer" -- que na PubMed sao 24 mil registros
@@ -1296,6 +1358,25 @@ BIBLIOTECAS: tuple[dict[str, Any], ...] = (
         "regionais": AR_REGIONAIS,
         "mesh": ('"Air Pollution"[MeSH Terms]', '"Particulate Matter"[MeSH Terms]'),
         "segmentos": TEMAS_AR,
+        "manuais": BASES_MANUAIS,
+    },
+    {
+        "code": "poluicao_idosos_af",
+        "title": "Poluição do ar e saúde do idoso na atividade física",
+        "linha": "qualidade_do_ar",
+        "eixo": "tema",
+        "descricao":
+            "O recorte exato da Tabela 1 de Andrade et al. (2023, IJERPH 20, 3506): "
+            "poluição do ar, atividade física e pessoa idosa, os três ao mesmo tempo — "
+            "não o acervo mais amplo de “ar_exercicio”, que soma outras nove "
+            "populações (criança, ciclista, atleta de elite etc.) que não são a "
+            "pergunta deste artigo. Serve para atualizar a revisão de mapeamento após "
+            "o corte original de 12/06/2022.",
+        "construto": POLUICAO_AR_TERMOS,
+        "populacao": POLUICAO_EXERCICIO_TERMOS,
+        "restricao": POLUICAO_IDOSOS_TERMOS,
+        "regionais": POLUICAO_IDOSOS_REGIONAIS,
+        "segmentos": TEMAS_POLUICAO_IDOSOS,
         "manuais": BASES_MANUAIS,
     },
     {
