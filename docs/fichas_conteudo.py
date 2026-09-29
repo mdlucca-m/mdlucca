@@ -249,7 +249,121 @@ POTENCIA = {
     ],
 }
 
-FICHAS = {"forca": FORCA, "potencia": POTENCIA}
+
+# ════════════════════════════════════════════════════════════════════════════
+# FORÇA PARA O VOLEIBOL — cada exercício com endereço numa demanda do jogo
+# ════════════════════════════════════════════════════════════════════════════
+# O que faz uma ficha ser "de vôlei" não é o nome no cabeçalho: é cada exercício
+# responder a uma pergunta do jogo. Saltar, aterrissar em apoio assimétrico,
+# desacelerar o corpo na queda, atacar com o braço acima da cabeça centenas de
+# vezes por semana. Supino ficou de fora por isso — está explicado no verso.
+FORCA_VOLEI = {
+    "arquivo": "ELASE-forca-para-o-voleibol.pdf",
+    "meta_titulo": "ELASE - Forca para o voleibol",
+    "meta_assunto": "Sete exercicios de forca, cada um com endereco no jogo",
+    "titulo": "Força para o voleibol",
+    "titulo_verso": "Por que estes sete",
+    "protocolo": "Sete exercícios &nbsp;&middot;&nbsp; carga submáxima "
+                 "&nbsp;&middot;&nbsp; cada um com endereço no jogo",
+    "rotulo_carga": "CARGA",
+    "abertura":
+        "<b>Carga submáxima quer dizer: sobrariam 2 repetições.</b> Se a última "
+        "sai arrastando, está pesado demais e o treino virou outra coisa. "
+        "Os quatro primeiros exercícios são os que constroem o salto e o ataque; "
+        "os três últimos são os que te mantêm inteiro para usá-los. "
+        "<b>Nenhum dos três últimos é acessório opcional</b> — são a parte da "
+        "ficha com mais evidência de reduzir lesão, e a primeira que todo mundo "
+        "corta quando o tempo aperta.",
+    "aquecimento_titulo": "Aquecimento — antes do primeiro exercício com barra",
+    "aquecimento_nota": "Estas séries não contam como treino e não devem cansar.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de tornozelo, quadril e ombro", "6 min", "a mesma do app"],
+        ["Barra vazia no padrão do agachamento", "1 \u00d7 8", "solta"],
+        ["55% da carga de trabalho", "1 \u00d7 5", "1 min"],
+        ["70% da carga de trabalho", "1 \u00d7 3", "2 min"],
+    ],
+    "exercicios": [
+        ("Agachamento", "a força que sustenta o salto",
+         "4 \u00d7 5", "3 min", "80%"),
+        ("Stiff (terra romeno)", "cadeia posterior — é ela que freia a aterrissagem",
+         "4 \u00d7 6", "2 min", "70%"),
+        ("Búlgaro com halteres", "quase todo salto do vôlei sai e cai assimétrico",
+         "3 \u00d7 8 cada", "2 min", "RIR 2"),
+        ("Desenvolvimento com barra", "o braço do ataque trabalha acima da cabeça",
+         "4 \u00d7 5", "2 min", "80%"),
+        ("Remada unilateral com halter", "o contrapeso do trabalho acima da cabeça",
+         "3 \u00d7 8 cada", "90 s", "RIR 2"),
+        ("Nórdico de isquiotibiais", "excêntrica de posterior — desce devagar",
+         "3 \u00d7 6", "2 min", "corpo"),
+        ("Rotadores externos com elástico", "o manguito: o que mais se cobra e menos se treina",
+         "3 \u00d7 15 cada", "60 s", "leve"),
+    ],
+    "nota_tabela":
+        "Anote a carga de cada série, em quilos. É esse número que vira a sua "
+        "referência no próximo ciclo — sem ele, o treino da semana que vem repete "
+        "o desta.",
+    "caixa_duracao":
+        "<b>Duração prevista: 70 a 80 minutos</b> com o aquecimento. Se o tempo "
+        "apertar, <b>corte uma série do agachamento e do desenvolvimento</b> — "
+        "nunca o nórdico e os rotadores. Eles levam 6 minutos somados e são a "
+        "parte da ficha que te mantém jogando.",
+    "verso": [
+        ("h", "Cada exercício e a pergunta do jogo que ele responde"),
+        ("notas", [
+            ("Agachamento", "O salto é extensão de quadril e joelho contra o chão, "
+             "e é o agachamento que constrói essa força. Profundidade até onde o "
+             "quadril desce SEM a lombar arredondar — quem não desce por falta de "
+             "tornozelo tem problema de mobilidade, não de força."),
+            ("Stiff", "O vôlei cobra mais na descida do que na subida: cada "
+             "aterrissagem é a cadeia posterior freando o corpo. Quem só agacha "
+             "fica forte para subir e despreparado para cair. Excêntrica lenta, "
+             "barra rente à perna, joelho levemente solto."),
+            ("Búlgaro", "Quase nenhum salto do jogo sai dos dois pés igualmente, e "
+             "quase nenhuma aterrissagem é simétrica. O trabalho unilateral é o que "
+             "revela e corrige a diferença entre as pernas — e diferença grande "
+             "entre lados é um dos previsores de lesão mais consistentes que existem."),
+            ("Desenvolvimento com barra", "O ataque acontece acima da cabeça, e é "
+             "ali que a força precisa existir. Em pé, glúteo e abdômen apertados; "
+             "se a lombar arqueia para a barra subir, a carga está alta demais."),
+            ("Remada unilateral", "Sem puxada horizontal, quem treina muito acima "
+             "da cabeça perde posição de escápula — e escápula fora de posição é "
+             "como o ombro do atacante começa a doer. Puxa o cotovelo para trás, "
+             "não o ombro para cima."),
+            ("Nórdico de isquiotibiais", "É a dose com melhor evidência para "
+             "reduzir lesão de posterior de coxa. Desça o mais devagar que "
+             "conseguir e use as mãos só no fim. Vai dar dor muscular nas primeiras "
+             "semanas; isso passa, a lesão que ele evita não."),
+            ("Rotadores externos", "O manguito é o que o atacante mais cobra e "
+             "menos treina. Carga leve, cotovelo colado no corpo, movimento vindo "
+             "do ombro e não do tronco. Três minutos por semana aqui valem mais que "
+             "qualquer coisa que se faça depois que o ombro já dói."),
+        ]),
+        ("espaco", 8),
+        ("caixa", "<b>Por que não tem supino.</b> Não é esquecimento. O ataque não "
+                  "é um empurrão horizontal — é um chicote acima da cabeça, e o "
+                  "desenvolvimento chega mais perto disso. Além disso, num atleta "
+                  "que já trabalha muito à frente do corpo, mais volume de peitoral "
+                  "sem puxada equivalente puxa o ombro para a frente e piora a "
+                  "posição de escápula. Se você quiser supino na ficha, ele entra no "
+                  "lugar do desenvolvimento — não somado a ele."),
+        ("espaco", 12),
+        ("h", "Achar a carga sem saber o seu 1RM"),
+        ("passos", [
+            "Depois do aquecimento, escolha uma carga que <b>pareça</b> dar para "
+            "duas repetições a mais do que as prescritas.",
+            "Faça as repetições da folha. Se no fim ainda fariam mais 2 com técnica "
+            "limpa, é essa a carga.",
+            "Sobraria mais de 2, <b>suba</b> de 5 em 5 kg. Sobraria menos, "
+            "<b>desça</b>. Nos exercícios marcados <b>RIR 2</b> a regra é essa "
+            "mesma, e não há percentual nenhum a consultar.",
+            "Anote. Na semana que vem você começa daí, e não do zero.",
+        ]),
+        ("espaco", 10),
+    ],
+}
+
+FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI}
 
 
 def main():
