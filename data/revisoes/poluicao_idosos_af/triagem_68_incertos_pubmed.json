@@ -1,0 +1,682 @@
+[
+ {
+  "pmid": "41461336",
+  "autor": "Guan A",
+  "ano": 2025,
+  "revista": "Environmental research",
+  "doi": "10.1016/j.envres.2025.123581",
+  "titulo": "Linking green space patterns to elderly stress: The serial roles of greenery perception and physical activity.",
+  "dec": "excluir",
+  "motivo": "Foco é espaço verde urbano e estresse mental; poluição do ar (AQI) aparece só como covariável secundária entre vários indicadores de paisagem, sem atividade física como variável de interação central."
+ },
+ {
+  "pmid": "41469911",
+  "autor": "Rho M",
+  "ano": 2026,
+  "revista": "Investigative and clinical urology",
+  "doi": "10.4111/icu.20250290",
+  "titulo": "Risk of BPH-LUTS according to the PM₁₀ exposure: A longitudinal nationwide cohort-based study.",
+  "dec": "excluir",
+  "motivo": "Desfecho é hiperplasia prostática benigna; atividade física aparece apenas como covariável de ajuste em um estudo sobre PM10 na população geral, sem interação central com exercício."
+ },
+ {
+  "pmid": "41563500",
+  "autor": "Wan Z",
+  "ano": 2026,
+  "revista": "International journal of biometeorology",
+  "doi": "10.1007/s00484-025-03122-z",
+  "titulo": "Association between air pollution exposure, physical activity, and risk for cardiometabolic multimorbidity incidence: a cohort study from China.",
+  "dec": "manter",
+  "motivo": "Coorte CHARLS (idosos chineses): poluentes do ar elevam risco de multimorbidade cardiometabólica, e a atividade física modera e medeia parcialmente esse efeito (mediação de 5,7% a 19,9% conforme o poluente)."
+ },
+ {
+  "pmid": "41633627",
+  "autor": "Bhasin A",
+  "ano": 2026,
+  "revista": "Neurology India",
+  "doi": "10.4103/neurol-india.Neurol-India-D-25-00631",
+  "titulo": "Is Air Pollution and Climate Change an Emerging Risk Factor for Stroke - A Prospective Study from India.",
+  "dec": "excluir",
+  "motivo": "Estudo sobre AVC e mudança climática na Índia; atividade física é só uma covariável entre vários fatores, sem população exclusivamente idosa nem interação AF×poluição investigada."
+ },
+ {
+  "pmid": "41832436",
+  "autor": "Gao J",
+  "ano": 2026,
+  "revista": "BMC public health",
+  "doi": "10.1186/s12889-026-26962-9",
+  "titulo": "Impact of multiple air pollutants on probable sarcopenia in the UK population: the mediating role of physical activity and biological aging.",
+  "dec": "incerto",
+  "motivo": "UK Biobank: múltiplos poluentes elevam risco de sarcopenia provável, com inatividade física como mediadora real — mas a população não é exclusivamente idosa (adultos em geral) e a sarcopenia por si só não define envelhecimento no resumo."
+ },
+ {
+  "pmid": "41840534",
+  "autor": "Zhang S",
+  "ano": 2026,
+  "revista": "BMC public health",
+  "doi": "10.1186/s12889-026-26824-4",
+  "titulo": "Associations of long-term PMexposure and physical activity on sleep: a cross-sectional analysis.",
+  "dec": "incerto",
+  "motivo": "UK Biobank: atividade física atenua efeito do PM2,5 sobre o sono, efeito mais robusto em idosos citado como subgrupo — mas a população da coorte não é exclusivamente idosa."
+ },
+ {
+  "pmid": "41977096",
+  "autor": "Kwak K",
+  "ano": 2026,
+  "revista": "Journal of clinical medicine",
+  "doi": "10.3390/jcm15072797",
+  "titulo": "Association Between Long-Term Exposure to Particulate Matter and Glycated Hemoglobin Levels: A Cohort Study from the Korean Genome and Epidemiology Study.",
+  "dec": "excluir",
+  "motivo": "Coorte coreana sobre PM e hemoglobina glicada; exercício aparece só como variável de estratificação demográfica, sem ser testado como modificador de efeito."
+ },
+ {
+  "pmid": "42012390",
+  "autor": "Curto A",
+  "ano": 2026,
+  "revista": "Diabetes care",
+  "doi": "10.2337/dc25-2497",
+  "titulo": "Long-term Air Pollution and Overall and Regional Body Composition in Older Adults With Overweight or Obesity and Metabolic Syndrome.",
+  "dec": "manter",
+  "motivo": "Coorte PREDIMED-Plus (54–75 anos, Espanha): poluição do ar associada a pior composição corporal em idosos com obesidade/síndrome metabólica; atividade física testada como possível modificador (sem diferença significativa encontrada, mas testada de fato)."
+ },
+ {
+  "pmid": "42102276",
+  "autor": "Ramjan S",
+  "ano": 2026,
+  "revista": "JMIR formative research",
+  "doi": "10.2196/86615",
+  "titulo": "Feasibility of Integrating Wearable Devices and Ecological Momentary Assessment for Real-Time Environmental Exposure Estimation: Proof-of-Concept Study.",
+  "dec": "excluir",
+  "motivo": "Estudo piloto de viabilidade com jovens de 16 a 24 anos — população não é idosa."
+ },
+ {
+  "pmid": "42243777",
+  "autor": "Yılmaz S",
+  "ano": 2026,
+  "revista": "BMC public health",
+  "doi": "10.1186/s12889-026-27950-9",
+  "titulo": "How environmental health burdens shape physical activity patterns: age-specific evidence from OECD countries.",
+  "dec": "manter",
+  "motivo": "Dados de 38 países da OCDE, com subgrupo específico de idosos (70+): carga de poluição do ar associada a menor prevalência de atividade física nessa faixa etária — mesma lógica de estudos já aceitos sobre poluição desencorajando a prática de exercício."
+ },
+ {
+  "pmid": "42413509",
+  "autor": "Dorner T",
+  "ano": 2026,
+  "revista": "Gesundheitswesen (Bundesverband der Arzte des Offentlichen Gesundheitsdienstes (Germany))",
+  "doi": "10.1055/a-2872-3795",
+  "titulo": "Adaptations to Climate Change-Related Environmental Phenomena to Achieve Physical Activity Recommendations for Adults Aged 65 and Older.",
+  "dec": "excluir",
+  "motivo": "Documento de recomendações e diretrizes (revisão sistemática + processo Delphi) para adultos 65+, não um estudo empírico primário — foge do critério de desenho (S) do artigo original."
+ },
+ {
+  "pmid": "42612777",
+  "autor": "Kang S",
+  "ano": 2026,
+  "revista": "Environmental pollution (Barking, Essex : 1987)",
+  "doi": "10.1016/j.envpol.2026.128985",
+  "titulo": "Short-term ambient air pollution and acute osteoarthritis morbidity across population subgroups: A nationwide case-crossover study of hospital visits in South Korea.",
+  "dec": "excluir",
+  "motivo": "Estudo sobre osteoartrite e poluição na Coreia do Sul; atividade física é uma entre várias variáveis de subgrupo testadas, sem foco central nela nem população exclusivamente idosa."
+ },
+ {
+  "pmid": "42721376",
+  "autor": "Cibulcova V",
+  "ano": 2026,
+  "revista": "Stress (Amsterdam, Netherlands)",
+  "doi": "10.1080/10253890.2026.2721526",
+  "titulo": "Intensity-dependent associations of physical activity and cardiorespiratory fitness with hair cortisol concentrations in the context of lifetime air pollution exposure.",
+  "dec": "incerto",
+  "motivo": "Estudo sobre cortisol capilar, aptidão cardiorrespiratória, atividade física e poluição do ar ao longo da vida — população do estudo (4HAIE) não tem idade claramente informada como idosa no resumo."
+ },
+ {
+  "pmid": "42763185",
+  "autor": "Liu Q",
+  "ano": 2026,
+  "revista": "Zhonghua liu xing bing xue za zhi = Zhonghua liuxingbingxue zazhi",
+  "doi": "10.3760/cma.j.cn112338-20251220-00911",
+  "titulo": "[Association of exposure to fine particulate matter and its components with frailty in middle-aged and older adults in Beijing-Tianjin-Hebei region and surrounding areas].",
+  "dec": "manter",
+  "motivo": "Estudo transversal na região de Pequim-Tianjin-Hebei (média de 65 anos): exposição a PM2,5 e seus componentes associada a fragilidade em adultos de meia-idade e idosos; atividade física testada em análise de subgrupo."
+ },
+ {
+  "pmid": "38593183",
+  "autor": "Li L",
+  "ano": 2025,
+  "revista": "The Journal of clinical endocrinology and metabolism",
+  "doi": "10.1210/clinem/dgae219",
+  "titulo": "Air Pollution and Diabetes Mellitus: Association and Validation in a Desert Area in China.",
+  "dec": "incerto",
+  "motivo": "Estudo com mais de 2,9 milhões de adultos numa região desértica da China sobre poluição do ar e diabetes; pessoas com 50 anos ou mais e sem prática de exercício aparecem como mais suscetíveis, mas a população do estudo não é exclusivamente idosa."
+ },
+ {
+  "pmid": "39674022",
+  "autor": "Wang Z",
+  "ano": 2024,
+  "revista": "Ecotoxicology and environmental safety",
+  "doi": "10.1016/j.ecoenv.2024.117525",
+  "titulo": "Association between exposure to ambient air pollutants and metabolic syndrome in the vicinity of the Taklamakan Desert.",
+  "dec": "excluir",
+  "motivo": "Estudo sobre poluição do ar e síndrome metabólica próximo ao deserto de Taklamakan; população geral de adultos, atividade física é só covariável de ajuste."
+ },
+ {
+  "pmid": "39716384",
+  "autor": "Zhu A",
+  "ano": 2025,
+  "revista": "The journals of gerontology. Series A, Biological sciences and medical sciences",
+  "doi": "10.1093/gerona/glae302",
+  "titulo": "Black Carbon Air Pollution and Incident Mortality Among the Advance-Aged Adults in China: A Prospective Cohort Study.",
+  "dec": "manter",
+  "motivo": "Coorte chinesa de idosos avançados (idade mediana de 88 anos): fuligem (black carbon) associada a maior mortalidade, com menor atividade física identificada como subgrupo de maior risco."
+ },
+ {
+  "pmid": "39808871",
+  "autor": "Dalecká A",
+  "ano": 2025,
+  "revista": "International journal of hygiene and environmental health",
+  "doi": "10.1016/j.ijheh.2025.114521",
+  "titulo": "Neighborhood environment and cognitive functioning in middle-aged and older population: A mediating role of physical activity.",
+  "dec": "manter",
+  "motivo": "Coorte HAPIEE (45–69 anos, República Tcheca): poluição do ar (PM) associada a pior função cognitiva, com papel mediador real da atividade física demonstrado por modelagem de equações estruturais."
+ },
+ {
+  "pmid": "40073624",
+  "autor": "Zhu Y",
+  "ano": 2025,
+  "revista": "Ecotoxicology and environmental safety",
+  "doi": "10.1016/j.ecoenv.2025.118027",
+  "titulo": "Residential greenness, air pollution, genetic predisposition and the risk of lung cancer.",
+  "dec": "incerto",
+  "motivo": "UK Biobank (37–73 anos): o foco principal é espaço verde residencial e câncer de pulmão; poluição do ar e atividade física aparecem como mediadores secundários da associação principal, não como o eixo central do estudo."
+ },
+ {
+  "pmid": "40140715",
+  "autor": "Wei J",
+  "ano": 2025,
+  "revista": "Scientific reports",
+  "doi": "10.1038/s41598-025-94865-7",
+  "titulo": "Association between indoor ventilation frequency and low muscle mass among older adults in China: a national cross-sectional research.",
+  "dec": "incerto",
+  "motivo": "Idosos chineses (CLHLS): ventilação residencial (proxy de poluição do ar doméstica) associada a massa muscular, mas 'exercício' é só uma entre várias covariáveis testadas, sem ser o foco de interação do estudo."
+ },
+ {
+  "pmid": "40145001",
+  "autor": "Alyami M",
+  "ano": 2025,
+  "revista": "Frontiers in public health",
+  "doi": "10.3389/fpubh.2025.1507882",
+  "titulo": "Urban air pollution and chronic respiratory diseases in adults: insights from a cross-sectional study.",
+  "dec": "excluir",
+  "motivo": "Estudo transversal sobre poluição urbana e doenças respiratórias crônicas; atividade física é covariável de ajuste, população adulta geral, não idosa."
+ },
+ {
+  "pmid": "40241955",
+  "autor": "Riedlova P",
+  "ano": 2025,
+  "revista": "Frontiers in public health",
+  "doi": "10.3389/fpubh.2025.1505170",
+  "titulo": "The impact of environmental conditions on lifestyle quality in industrial and non-industrial region in the Czech Republic.",
+  "dec": "incerto",
+  "motivo": "Comparação de regiões industriais/não industriais na República Tcheca (35–65 anos): poluição associada a maior atividade física (achado na direção oposta à esperada), mas a faixa etária não é claramente idosa."
+ },
+ {
+  "pmid": "40280890",
+  "autor": "Zhang Z",
+  "ano": 2025,
+  "revista": "International journal of geriatric psychiatry",
+  "doi": "10.1002/gps.70082",
+  "titulo": "China's Healthy City Pilot Policy Improves Physical and Mental Health Outcomes for Middle-Aged and Older Adults: A Quasi-Natural Experiment Based on CHARLS.",
+  "dec": "incerto",
+  "motivo": "Avaliação de política pública (Healthy City Pilot Policy) via CHARLS, com benefício maior em idosos e mecanismo citando exercício físico e qualidade do ar — mas é um desenho de política pública (quase-experimento), não um estudo individual de interação poluição×AF."
+ },
+ {
+  "pmid": "40301484",
+  "autor": "Liu X",
+  "ano": 2025,
+  "revista": "Scientific reports",
+  "doi": "10.1038/s41598-025-00160-w",
+  "titulo": "Causal association between PMand metabolic syndrome in the Chinese elderly population-insights from a cohort study of CHARLS.",
+  "dec": "manter",
+  "motivo": "Coorte CHARLS (idosos chineses): PM2,5 aumenta risco de síndrome metabólica, com efeito moderador real e mensurado do exercício físico (protetor em intensidade baixa, adverso em intensidade alta para a circunferência da cintura)."
+ },
+ {
+  "pmid": "40346027",
+  "autor": "Lofuta Olenga Vuvu P",
+  "ano": 2025,
+  "revista": "Physiological reports",
+  "doi": "10.14814/phy2.70368",
+  "titulo": "Effects of chronic exposure to biomass pollutants on cardiorespiratory responses and the occurrence of exercise-induced bronchoconstriction in healthy men.",
+  "dec": "excluir",
+  "motivo": "Estudo com homens saudáveis de 23 a 39 anos (produtores de carvão vs. agricultores) — população não é idosa."
+ },
+ {
+  "pmid": "40495115",
+  "autor": "Ndikubwimana A",
+  "ano": 2025,
+  "revista": "BMC public health",
+  "doi": "10.1186/s12889-025-23380-1",
+  "titulo": "Exposure-response relationship of household air pollution on body mass index among women in rural areas of Guatemala, India, Peru and Rwanda: household air pollution intervention network trial.",
+  "dec": "incerto",
+  "motivo": "Ensaio HAPIN com mulheres de 40 a 79 anos (Guatemala, Índia, Peru, Ruanda): poluição do ar doméstica e IMC, com atividade física apenas como covariável de sensibilidade, faixa etária não exclusivamente idosa."
+ },
+ {
+  "pmid": "40604741",
+  "autor": "Yu Z",
+  "ano": 2025,
+  "revista": "BMC public health",
+  "doi": "10.1186/s12889-025-23211-3",
+  "titulo": "Impact of air pollution and behavioral factors on cognitive decline among middle-aged and elderly populations in China: a retrospective cohort study based on CHARLS.",
+  "dec": "manter",
+  "motivo": "Coorte CHARLS (meia-idade e idosos): PM2,5 é o fator mais associado a declínio cognitivo entre múltiplas variáveis, com atividade física identificada como fator relevante por modelo de floresta aleatória."
+ },
+ {
+  "pmid": "40670690",
+  "autor": "Xiao W",
+  "ano": 2025,
+  "revista": "Scientific reports",
+  "doi": "10.1038/s41598-025-11616-4",
+  "titulo": "Impact of exposure to ambient air pollution on health related quality of life of rural elderly in western China.",
+  "dec": "incerto",
+  "motivo": "Idosos rurais do oeste da China: poluição do ar associada a pior qualidade de vida; status de exercício é covariável independente, não testada como moduladora do efeito da poluição."
+ },
+ {
+  "pmid": "40691072",
+  "autor": "Chen C",
+  "ano": 2025,
+  "revista": "Environmental health and preventive medicine",
+  "doi": "10.1265/ehpm.24-00357",
+  "titulo": "Air pollution exposure associated with decline rates in skeletal muscle mass and grip strength and increase rate in body fat in elderly: a 5-year follow-up study.",
+  "dec": "manter",
+  "motivo": "Idosos de Taipei, seguimento de 5 anos: poluição do ar associada a declínio de força de preensão e massa muscular, com frequência de exercício vigoroso like modificador real do efeito."
+ },
+ {
+  "pmid": "40817279",
+  "autor": "Lan Y",
+  "ano": 2025,
+  "revista": "Scientific reports",
+  "doi": "10.1038/s41598-025-15114-5",
+  "titulo": "Long-term exposure to air pollution and liver fibrosis in the elderly with MASLD.",
+  "dec": "manter",
+  "motivo": "Idosos chineses com 65 anos ou mais (MASLD): poluentes do ar associados a fibrose hepática, efeito mais pronunciado entre os fisicamente inativos — modificador testado."
+ },
+ {
+  "pmid": "40833783",
+  "autor": "Zhao Q",
+  "ano": 2025,
+  "revista": "The journals of gerontology. Series A, Biological sciences and medical sciences",
+  "doi": "10.1093/gerona/glaf171",
+  "titulo": "Healthy lifestyle mitigates the adverse association of particulate matter with cognitive function: a 10-year longitudinal analysis of older adults in China.",
+  "dec": "manter",
+  "motivo": "Coorte CLHLS (65 anos ou mais, 10 anos de seguimento): estilo de vida favorável — incluindo atividade física regular — atenua de forma significativa o efeito adverso do material particulado sobre a função cognitiva."
+ },
+ {
+  "pmid": "40835477",
+  "autor": "Zeng T",
+  "ano": 2025,
+  "revista": "Environmental health and preventive medicine",
+  "doi": "10.1265/ehpm.24-00280",
+  "titulo": "Interaction of household air pollution and healthy lifestyle on the risk of sarcopenia: China Health and Retirement Longitudinal Study.",
+  "dec": "manter",
+  "motivo": "Coorte CHARLS: poluição do ar doméstica e estilo de vida (incluindo atividade física) associados a sarcopenia; interação entre os dois fatores testada explicitamente (sem interação aditiva significativa, mas efeitos isolados reais)."
+ },
+ {
+  "pmid": "40964161",
+  "autor": "Zhang J",
+  "ano": 2025,
+  "revista": "Frontiers in endocrinology",
+  "doi": "10.3389/fendo.2025.1629050",
+  "titulo": "Environmental exposures, sleep, physical activity, and risk of thyroid nodules in older adults: a cross-sectional study.",
+  "dec": "excluir",
+  "motivo": "Exposição ambiental principal é ruído residencial, não poluição do ar; desfecho são nódulos de tireoide, fora do escopo do artigo original."
+ },
+ {
+  "pmid": "41120987",
+  "autor": "Fu H",
+  "ano": 2025,
+  "revista": "BMC public health",
+  "doi": "10.1186/s12889-025-24837-z",
+  "titulo": "Association between long-term exposure to air pollutant mixture and the risk of Alzheimer's disease among older people: a prospective cohort study in China.",
+  "dec": "manter",
+  "motivo": "Coorte chinesa (60 anos ou mais): mistura de poluentes do ar associada a maior risco de Alzheimer, com interação significativa entre a carga de poluição e a prática de exercício."
+ },
+ {
+  "pmid": "41243869",
+  "autor": "Hong J",
+  "ano": 2025,
+  "revista": "Clinical transplantation",
+  "doi": "10.1111/ctr.70376",
+  "titulo": "Ambient Air Pollution, Cognitive Impairment, and Dementia Among Older Patients Being Evaluated for Kidney Transplantation.",
+  "dec": "manter",
+  "motivo": "Pacientes idosos (50 anos ou mais) em avaliação para transplante renal: PM2,5 associado a pior função cognitiva, efeito mais forte entre os com baixa atividade física — interação testada e significativa."
+ },
+ {
+  "pmid": "41254492",
+  "autor": "Feng Z",
+  "ano": 2025,
+  "revista": "BMC geriatrics",
+  "doi": "10.1186/s12877-025-06619-9",
+  "titulo": "Associations between housing type and home conditions with exercise and physical activity among older adults.",
+  "dec": "excluir",
+  "motivo": "Exposição estudada é condição habitacional (danos estruturais, mofo), não poluição do ar atmosférica propriamente dita."
+ },
+ {
+  "pmid": "38141672",
+  "autor": "Ji W",
+  "ano": 2023,
+  "revista": "Chemosphere",
+  "doi": "10.1016/j.chemosphere.2023.140993",
+  "titulo": "Exposure to ambient air pollution and chronic bronchitis: Findings from over 6.6 million adults in northwestern China.",
+  "dec": "excluir",
+  "motivo": "Estudo com mais de 6,6 milhões de adultos sobre bronquite crônica; efeito mais forte em menores de 50 anos, não em idosos; exercício é covariável de subgrupo."
+ },
+ {
+  "pmid": "38341067",
+  "autor": "Li A",
+  "ano": 2024,
+  "revista": "Environmental pollution (Barking, Essex : 1987)",
+  "doi": "10.1016/j.envpol.2024.123540",
+  "titulo": "Long-term exposure to ambient air pollution and incident gout: A prospective cohort study in the UK Biobank.",
+  "dec": "manter",
+  "motivo": "UK Biobank (38–70 anos): poluição do ar associada a maior risco de gota, efeito mais pronunciado entre idosos e entre quem pratica menos atividade física — ambos os modificadores testados."
+ },
+ {
+  "pmid": "38377450",
+  "autor": "Elavsky S",
+  "ano": 2024,
+  "revista": "Menopause (New York, N.Y.)",
+  "doi": "10.1097/GME.0000000000002319",
+  "titulo": "Physical activity and menopausal symptoms: evaluating the contribution of obesity, fitness, and ambient air pollution status.",
+  "dec": "excluir",
+  "motivo": "Estudo sobre sintomas de menopausa em mulheres de 40 a 60 anos (idade média 47,8 anos) — população não caracterizada como idosa."
+ },
+ {
+  "pmid": "38382733",
+  "autor": "Zijlema W",
+  "ano": 2024,
+  "revista": "Environmental pollution (Barking, Essex : 1987)",
+  "doi": "10.1016/j.envpol.2024.123559",
+  "titulo": "Cities and mental health: The role of the built environment, and environmental and lifestyle factors in Barcelona.",
+  "dec": "incerto",
+  "motivo": "Estudo em Barcelona com população de 15 a 97 anos: papel mediador real da caminhada/atividade física entre ambiente construído, poluição do ar e saúde mental, mas sem foco específico em idosos."
+ },
+ {
+  "pmid": "38439026",
+  "autor": "Hu X",
+  "ano": 2024,
+  "revista": "BMC medicine",
+  "doi": "10.1186/s12916-024-03316-z",
+  "titulo": "The role of lifestyle in the association between long-term ambient air pollution exposure and cardiovascular disease: a national cohort study in China.",
+  "dec": "manter",
+  "motivo": "Coorte nacional chinesa: estilo de vida (incluindo atividade física) medeia parcialmente a associação entre poluição do ar e doença cardiovascular, com proteção mais forte em pessoas de meia-idade e idosas."
+ },
+ {
+  "pmid": "38492399",
+  "autor": "Shi W",
+  "ano": 2024,
+  "revista": "Journal of hazardous materials",
+  "doi": "10.1016/j.jhazmat.2024.134009",
+  "titulo": "Association between exposure to chemical mixtures and epigenetic ageing biomarkers: Modifying effects of thyroid hormones and physical activity.",
+  "dec": "incerto",
+  "motivo": "Idosos chineses de 60 a 69 anos: atividade física mais alta atenua o envelhecimento epigenético acelerado por misturas químicas — mas a exposição principal é uma mistura de metais e compostos químicos diversos, não especificamente poluição do ar atmosférica."
+ },
+ {
+  "pmid": "38575976",
+  "autor": "Wood D",
+  "ano": 2024,
+  "revista": "Environmental health : a global access science source",
+  "doi": "10.1186/s12940-024-01075-1",
+  "titulo": "Exposure to ambient air pollution and cognitive function: an analysis of the English Longitudinal Study of Ageing cohort.",
+  "dec": "incerto",
+  "motivo": "Coorte ELSA (idosos ingleses, 50 anos ou mais): poluição do ar associada a declínio cognitivo, mas atividade física entra só como covariável de ajuste no modelo, sem ser testada como moduladora."
+ },
+ {
+  "pmid": "38636274",
+  "autor": "Ma X",
+  "ano": 2024,
+  "revista": "Environment international",
+  "doi": "10.1016/j.envint.2024.108637",
+  "titulo": "Long-term exposure to ambient fine particulate matter and risk of liver cancer in the NIH-AARP Diet and Health Study.",
+  "dec": "manter",
+  "motivo": "Coorte NIH-AARP (EUA): PM2,5 associado a maior risco de câncer de fígado, risco maior entre não praticantes de exercício e entre os com 70 anos ou mais — ambos os modificadores testados e significativos."
+ },
+ {
+  "pmid": "38657755",
+  "autor": "Noguchi I",
+  "ano": 2024,
+  "revista": "Free radical biology & medicine",
+  "doi": "10.1016/j.freeradbiomed.2024.04.231",
+  "titulo": "Carbon monoxide-loaded cell therapy as an exercise mimetic for sarcopenia treatment.",
+  "dec": "excluir",
+  "motivo": "Estudo experimental em células e camundongos (modelo animal/celular de sarcopenia), não um estudo populacional em idosos humanos; monóxido de carbono usado como terapia, não como poluente ambiental."
+ },
+ {
+  "pmid": "38678703",
+  "autor": "Guan X",
+  "ano": 2024,
+  "revista": "Journal of hazardous materials",
+  "doi": "10.1016/j.jhazmat.2024.134315",
+  "titulo": "Particulate matter pollution, polygenic risk score and mosaic loss of chromosome Y in middle-aged and older men from the Dongfeng-Tongji cohort study.",
+  "dec": "excluir",
+  "motivo": "Desfecho é perda de cromossomo Y (biomarcador genético) em homens de meia-idade/idosos; atividade física é só covariável de ajuste, sem relação com o desfecho estudado."
+ },
+ {
+  "pmid": "38822317",
+  "autor": "Liu X",
+  "ano": 2024,
+  "revista": "BMC public health",
+  "doi": "10.1186/s12889-024-18834-x",
+  "titulo": "Household air pollution and urinary incontinence symptoms among older adults in LASI: a large-scale population-based study.",
+  "dec": "manter",
+  "motivo": "LASI (Índia, 45 anos ou mais): poluição do ar doméstica associada a incontinência urinária, com interação significativa envolvendo atividade física entre os fatores testados."
+ },
+ {
+  "pmid": "38971352",
+  "autor": "Zhao Q",
+  "ano": 2024,
+  "revista": "Environmental research",
+  "doi": "10.1016/j.envres.2024.119538",
+  "titulo": "Association of solid fuel use with cognitive function and the modifying role of lifestyle: A nationwide cohort study in China.",
+  "dec": "incerto",
+  "motivo": "Coorte chinesa CFPS com população de 16 a 92 anos: uso de combustível sólido associado a pior função cognitiva, atenuado por estilo de vida favorável (incluindo atividade física) — mas a população não é focada em idosos."
+ },
+ {
+  "pmid": "38972114",
+  "autor": "Zhang Y",
+  "ano": 2024,
+  "revista": "Environment international",
+  "doi": "10.1016/j.envint.2024.108870",
+  "titulo": "Associations of ambient air pollution exposure and lifestyle factors with incident dementia in the elderly: A prospective study in the UK Biobank.",
+  "dec": "manter",
+  "motivo": "UK Biobank (60 anos ou mais): poluição do ar associada a maior risco de demência, com atividade física moderada a alta atenuando esse risco de forma significativa."
+ },
+ {
+  "pmid": "39111273",
+  "autor": "Sethi Y",
+  "ano": 2024,
+  "revista": "Archives of medical research",
+  "doi": "10.1016/j.arcmed.2024.103063",
+  "titulo": "Impact of Air Pollution on Neurological and Psychiatric Health.",
+  "dec": "excluir",
+  "motivo": "Artigo de revisão narrativa sobre poluição do ar e saúde neuropsiquiátrica, sem desenho de estudo primário nem menção a atividade física — foge ao critério de desenho (S)."
+ },
+ {
+  "pmid": "39368154",
+  "autor": "Chen C",
+  "ano": 2024,
+  "revista": "Ecotoxicology and environmental safety",
+  "doi": "10.1016/j.ecoenv.2024.117140",
+  "titulo": "Short- and medium-term cumulative effects of traffic-related air pollution on resting heart rate in the elderly: A wearable device study.",
+  "dec": "manter",
+  "motivo": "Idosos de Taipei (mais de 65 anos) com monitor vestível: poluição do ar relacionada ao trânsito associada a maior frequência cardíaca de repouso, efeito mais forte entre os com menor atividade física."
+ },
+ {
+  "pmid": "39638595",
+  "autor": "Lee J",
+  "ano": 2024,
+  "revista": "BMJ open",
+  "doi": "10.1136/bmjopen-2024-092448",
+  "titulo": "Association of sarcopenia, ambient air pollution and cognitive function in a community-dwelling middle-aged and elderly Korean population: a community-based cohort study.",
+  "dec": "incerto",
+  "motivo": "Coorte coreana KoGES (idade média de 70 anos): sarcopenia e poluição do ar avaliadas junto à função cognitiva, mas o estudo não encontrou associação entre a exposição a poluentes e sarcopenia, e atividade física aparece como covariável, não como moduladora testada da poluição."
+ },
+ {
+  "pmid": "39643329",
+  "autor": "Xia X",
+  "ano": 2024,
+  "revista": "The Lancet. Public health",
+  "doi": "10.1016/S2468-2667(24)00264-0",
+  "titulo": "Associations of long-term nitrogen dioxide exposure with a wide spectrum of diseases: a prospective cohort study of 0·5 million Chinese adults.",
+  "dec": "excluir",
+  "motivo": "Coorte chinesa com meio milhão de adultos de 30 a 79 anos sobre múltiplas doenças e NO2; atividade física é só covariável de ajuste, população não focada em idosos."
+ },
+ {
+  "pmid": "36328258",
+  "autor": "Herder C",
+  "ano": 2022,
+  "revista": "The Science of the total environment",
+  "doi": "10.1016/j.scitotenv.2022.159878",
+  "titulo": "Environmental risk factors of incident distal sensorimotor polyneuropathy: Results from the prospective population-based KORA F4/FF4 study.",
+  "dec": "incerto",
+  "motivo": "Estudo alemão KORA (62–81 anos) sobre múltiplos fatores ambientais (ruído, temperatura, verde urbano, poluição) e neuropatia; poluição do ar é um entre vários componentes de exposição, e atividade física é covariável de ajuste."
+ },
+ {
+  "pmid": "36525948",
+  "autor": "Song J",
+  "ano": 2022,
+  "revista": "Ecotoxicology and environmental safety",
+  "doi": "10.1016/j.ecoenv.2022.114423",
+  "titulo": "Acute effects of ambient nitrogen dioxide exposure on serum biomarkers of nervous system damage in healthy older adults.",
+  "dec": "manter",
+  "motivo": "Idosos saudáveis e aposentados na China: exposição aguda ao dióxido de nitrogênio associada a biomarcadores de dano neural, com intensidade de atividade física testada como possível modificador em análise estratificada."
+ },
+ {
+  "pmid": "36716875",
+  "autor": "Zhang T",
+  "ano": 2023,
+  "revista": "The Science of the total environment",
+  "doi": "10.1016/j.scitotenv.2023.161778",
+  "titulo": "Street-view and traditional greenness metrics with adults' sitting time in high-density living in Hong Kong: Comparing associations, air pollution and noise roles, and population heterogeneity.",
+  "dec": "excluir",
+  "motivo": "Estudo sobre verde urbano e tempo sentado em Hong Kong; população não é idosa, e a poluição do ar entra como moderadora secundária de uma relação centrada em urbanismo, não em idosos."
+ },
+ {
+  "pmid": "36774967",
+  "autor": "Veronese N",
+  "ano": 2023,
+  "revista": "Journal of the American Medical Directors Association",
+  "doi": "10.1016/j.jamda.2022.12.027",
+  "titulo": "Association Between Pollution and Frailty in Older People: A Cross-Sectional Analysis of the UK Biobank.",
+  "dec": "incerto",
+  "motivo": "UK Biobank (60 anos ou mais): poluição do ar e ruído associados a fragilidade, mas baixa atividade física é um componente do próprio índice de fragilidade (desfecho), não uma variável moduladora independente."
+ },
+ {
+  "pmid": "36805161",
+  "autor": "Xu T",
+  "ano": 2023,
+  "revista": "Environment international",
+  "doi": "10.1016/j.envint.2023.107803",
+  "titulo": "Association between solid cooking fuel and cognitive decline: Three nationwide cohort studies in middle-aged and older population.",
+  "dec": "manter",
+  "motivo": "Três coortes nacionais (CFPS, CHARLS, MHAS — adultos com mais de 50 anos): uso de combustível sólido de cozinha associado a declínio cognitivo, com atividade física identificada como um dos mediadores reais dessa associação."
+ },
+ {
+  "pmid": "36863583",
+  "autor": "Jiang H",
+  "ano": 2023,
+  "revista": "The Science of the total environment",
+  "doi": "10.1016/j.scitotenv.2023.162501",
+  "titulo": "Does physical activity attenuate the association between ambient PMand physical function?",
+  "dec": "manter",
+  "motivo": "Coorte CHARLS (45 anos ou mais): pergunta de pesquisa é literalmente se a atividade física atenua a associação entre PM2,5 e função física — resposta confirmada, com efeito de atenuação real e mensurado."
+ },
+ {
+  "pmid": "37019571",
+  "autor": "Sun D",
+  "ano": 2023,
+  "revista": "The Lancet. Planetary health",
+  "doi": "10.1016/S2542-5196(23)00047-5",
+  "titulo": "Long-term exposure to ambient PM, active commuting, and farming activity and cardiovascular disease risk in adults in China: a prospective cohort study.",
+  "dec": "manter",
+  "motivo": "China Kadoorie Biobank: benefício cardiovascular do deslocamento ativo e da atividade agrícola é revertido em níveis altos de poluição por PM2,5 — interação central e claramente demonstrada, tema exato do artigo original."
+ },
+ {
+  "pmid": "37572623",
+  "autor": "Cao M",
+  "ano": 2023,
+  "revista": "Ecotoxicology and environmental safety",
+  "doi": "10.1016/j.ecoenv.2023.115345",
+  "titulo": "Air pollution attenuated the benefits of physical activity on blood pressure: Evidence from a nationwide cross-sectional study.",
+  "dec": "incerto",
+  "motivo": "Estudo nacional chinês (mais de 200 mil adultos): poluição do ar atenua o benefício da atividade física sobre a pressão arterial — tema central bem alinhado, mas a população não tem recorte etário idoso, é composta por adultos em geral."
+ },
+ {
+  "pmid": "34973588",
+  "autor": "Zhang Y",
+  "ano": 2021,
+  "revista": "Environment international",
+  "doi": "10.1016/j.envint.2021.107070",
+  "titulo": "Physical activity attenuates negative effects of short-term exposure to ambient air pollution on cognitive function.",
+  "dec": "excluir",
+  "motivo": "Participantes com média de 22 anos — população claramente não idosa."
+ },
+ {
+  "pmid": "35605854",
+  "autor": "Guo Q",
+  "ano": 2022,
+  "revista": "The Science of the total environment",
+  "doi": "10.1016/j.scitotenv.2022.156138",
+  "titulo": "Identifying the threshold of outdoor PM2.5 reversing the beneficial association between physical activity and lung function: A national longitudinal study in China.",
+  "dec": "manter",
+  "motivo": "Estudo longitudinal chinês (45 anos ou mais): identifica o limiar de poluição por PM2,5 acima do qual o benefício da atividade física sobre a função pulmonar se reverte — tema central do artigo original, com população adequada."
+ },
+ {
+  "pmid": "35773998",
+  "autor": "Guo C",
+  "ano": 2022,
+  "revista": "American journal of epidemiology",
+  "doi": "10.1093/aje/kwac113",
+  "titulo": "Habitual Exercise, Air Pollution, and Pneumonia Mortality: A Longitudinal Cohort Study of Approximately 0.4 Million Adults.",
+  "dec": "incerto",
+  "motivo": "Coorte taiwanesa de cerca de 400 mil adultos: exercício habitual e PM2,5 associados a mortalidade por pneumonia, tema bem alinhado, mas população de adultos em geral, sem recorte etário idoso explícito."
+ },
+ {
+  "pmid": "35782316",
+  "autor": "Cortés S",
+  "ano": 2022,
+  "revista": "Environmental health insights",
+  "doi": "10.1177/11786302221107136",
+  "titulo": "Air Pollution and Cardiorespiratory Changes in Older Adults Living in a Polluted Area in Central Chile.",
+  "dec": "incerto",
+  "motivo": "Idosos do Chile, estudo observacional prospectivo: poluição do ar associada a alterações cardiorrespiratórias; atividade física é avaliada nos métodos, mas seu papel exato nos resultados não fica claro no resumo."
+ },
+ {
+  "pmid": "35867296",
+  "autor": "Liu X",
+  "ano": 2022,
+  "revista": "Environmental science and pollution research international",
+  "doi": "10.1007/s11356-022-22076-y",
+  "titulo": "Physical activity attenuated the association of ambient ozone with type 2 diabetes mellitus and fasting blood glucose among rural Chinese population.",
+  "dec": "manter",
+  "motivo": "População rural chinesa, com maiores efeitos observados em idosos: atividade física atenua a associação entre ozônio e diabetes tipo 2, com interação aditiva negativa (antagônica) formalmente testada."
+ },
+ {
+  "pmid": "35981585",
+  "autor": "Chen G",
+  "ano": 2022,
+  "revista": "The Science of the total environment",
+  "doi": "10.1016/j.scitotenv.2022.157979",
+  "titulo": "Associations between conjunctivitis and ambient PM2.5 and physical activity: A nationwide prospective cohort study.",
+  "dec": "incerto",
+  "motivo": "UK Biobank (40–69 anos): PM2,5 e atividade física associados de forma independente à conjuntivite, sem interação estatisticamente significativa entre os dois, e faixa etária não claramente idosa."
+ },
+ {
+  "pmid": "36323064",
+  "autor": "Jin X",
+  "ano": 2022,
+  "revista": "Environment international",
+  "doi": "10.1016/j.envint.2022.107605",
+  "titulo": "Associations between household solid fuel use and activities of daily living trajectories: A nationwide longitudinal study of middle and older adults in China.",
+  "dec": "incerto",
+  "motivo": "Coorte CHARLS: uso de combustível sólido doméstico associado a trajetórias de incapacidade funcional (AVD), mas o desfecho medido é capacidade funcional, não exatamente atividade física/exercício no sentido do artigo original."
+ }
+]

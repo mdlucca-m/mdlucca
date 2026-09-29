@@ -953,7 +953,25 @@ SELECT
   END AS days_submission_to_acceptance,
   CASE WHEN a.accepted_on IS NOT NULL AND a.published_on IS NOT NULL
        THEN CAST(julianday(a.published_on) - julianday(a.accepted_on) AS INTEGER)
-  END AS days_acceptance_to_publication
+  END AS days_acceptance_to_publication,
+  /* Datas de versao do manuscrito (article_milestones). Os codigos
+     ('versao_1'..'versao_4', 'versao_final') sao os mesmos que
+     ingest_excel.MILESTONES grava via _save_milestones -- nao "version"
+     com seq 1..4, que e o que a exportacao de planilha (scripts/lape/
+     planilha.py) checa por engano e por isso tambem nunca traz nada.
+     Sem isto a tela de cadastro nunca via essas datas de volta: elas
+     gravavam certo, mas a view que alimenta a tela nunca as expunha
+     como coluna. */
+  (SELECT occurred_on FROM article_milestones
+    WHERE article_id = a.id AND milestone = 'versao_1') AS version_1,
+  (SELECT occurred_on FROM article_milestones
+    WHERE article_id = a.id AND milestone = 'versao_2') AS version_2,
+  (SELECT occurred_on FROM article_milestones
+    WHERE article_id = a.id AND milestone = 'versao_3') AS version_3,
+  (SELECT occurred_on FROM article_milestones
+    WHERE article_id = a.id AND milestone = 'versao_4') AS version_4,
+  (SELECT occurred_on FROM article_milestones
+    WHERE article_id = a.id AND milestone = 'versao_final') AS version_final
 FROM articles a
 LEFT JOIN research_lines rl ON rl.id = a.research_line_id;
 
