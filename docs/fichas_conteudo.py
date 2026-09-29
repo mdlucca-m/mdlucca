@@ -260,16 +260,16 @@ POTENCIA = {
 FORCA_VOLEI = {
     "arquivo": "ELASE-forca-para-o-voleibol.pdf",
     "meta_titulo": "ELASE - Forca para o voleibol",
-    "meta_assunto": "Sete exercicios de forca, cada um com endereco no jogo",
+    "meta_assunto": "Oito exercicios de forca, cada um com endereco no jogo",
     "titulo": "Força para o voleibol",
-    "titulo_verso": "Por que estes sete",
-    "protocolo": "Sete exercícios &nbsp;&middot;&nbsp; carga submáxima "
+    "titulo_verso": "Por que estes oito",
+    "protocolo": "Oito exercícios &nbsp;&middot;&nbsp; carga submáxima "
                  "&nbsp;&middot;&nbsp; cada um com endereço no jogo",
     "rotulo_carga": "CARGA",
     "abertura":
         "<b>Carga submáxima quer dizer: sobrariam 2 repetições.</b> Se a última "
         "sai arrastando, está pesado demais e o treino virou outra coisa. "
-        "Os quatro primeiros exercícios são os que constroem o salto e o ataque; "
+        "Os cinco primeiros exercícios são os que constroem o salto e o ataque; "
         "os três últimos são os que te mantêm inteiro para usá-los. "
         "<b>Nenhum dos três últimos é acessório opcional</b> — são a parte da "
         "ficha com mais evidência de reduzir lesão, e a primeira que todo mundo "
@@ -292,8 +292,10 @@ FORCA_VOLEI = {
          "3 \u00d7 8 cada", "2 min", "RIR 2"),
         ("Desenvolvimento com barra", "o braço do ataque trabalha acima da cabeça",
          "4 \u00d7 5", "2 min", "80%"),
-        ("Remada unilateral com halter", "o contrapeso do trabalho acima da cabeça",
-         "3 \u00d7 8 cada", "90 s", "RIR 2"),
+        ("Supino reto com barra", "força de empurrar horizontal — base do bloqueio",
+         "4 \u00d7 5", "2 min", "80%"),
+        ("Remada unilateral com halter", "o contrapeso das oito séries de empurrar",
+         "4 \u00d7 8 cada", "90 s", "RIR 2"),
         ("Nórdico de isquiotibiais", "excêntrica de posterior — desce devagar",
          "3 \u00d7 6", "2 min", "corpo"),
         ("Rotadores externos com elástico", "o manguito: o que mais se cobra e menos se treina",
@@ -304,10 +306,11 @@ FORCA_VOLEI = {
         "referência no próximo ciclo — sem ele, o treino da semana que vem repete "
         "o desta.",
     "caixa_duracao":
-        "<b>Duração prevista: 70 a 80 minutos</b> com o aquecimento. Se o tempo "
-        "apertar, <b>corte uma série do agachamento e do desenvolvimento</b> — "
-        "nunca o nórdico e os rotadores. Eles levam 6 minutos somados e são a "
-        "parte da ficha que te mantém jogando.",
+        "<b>Duração prevista: 85 a 95 minutos</b> com o aquecimento — o supino "
+        "acrescentou cerca de 12 minutos. Se o tempo apertar, <b>corte uma série do "
+        "agachamento, do supino e da remada</b> (as duas últimas juntas, para a "
+        "proporção não piorar) — nunca o nórdico e os rotadores. Eles levam 6 "
+        "minutos somados e são a parte da ficha que te mantém jogando.",
     "verso": [
         ("h", "Cada exercício e a pergunta do jogo que ele responde"),
         ("notas", [
@@ -326,10 +329,15 @@ FORCA_VOLEI = {
             ("Desenvolvimento com barra", "O ataque acontece acima da cabeça, e é "
              "ali que a força precisa existir. Em pé, glúteo e abdômen apertados; "
              "se a lombar arqueia para a barra subir, a carga está alta demais."),
+            ("Supino", "Empurrar horizontal é a base do bloqueio e do apoio de "
+             "braço na queda. Escápulas presas no banco e pés firmes no chão; barra "
+             "descendo até o peito com controle — quem quica a barra no peito treina "
+             "outra coisa. Amplitude até onde o ombro não rola para a frente."),
             ("Remada unilateral", "Sem puxada horizontal, quem treina muito acima "
              "da cabeça perde posição de escápula — e escápula fora de posição é "
              "como o ombro do atacante começa a doer. Puxa o cotovelo para trás, "
-             "não o ombro para cima."),
+             "não o ombro para cima. <b>Ela está com 4 séries e não 3</b> por causa "
+             "do supino: ver a caixa abaixo."),
             ("Nórdico de isquiotibiais", "É a dose com melhor evidência para "
              "reduzir lesão de posterior de coxa. Desça o mais devagar que "
              "conseguir e use as mãos só no fim. Vai dar dor muscular nas primeiras "
@@ -340,13 +348,15 @@ FORCA_VOLEI = {
              "qualquer coisa que se faça depois que o ombro já dói."),
         ]),
         ("espaco", 8),
-        ("caixa", "<b>Por que não tem supino.</b> Não é esquecimento. O ataque não "
-                  "é um empurrão horizontal — é um chicote acima da cabeça, e o "
-                  "desenvolvimento chega mais perto disso. Além disso, num atleta "
-                  "que já trabalha muito à frente do corpo, mais volume de peitoral "
-                  "sem puxada equivalente puxa o ombro para a frente e piora a "
-                  "posição de escápula. Se você quiser supino na ficha, ele entra no "
-                  "lugar do desenvolvimento — não somado a ele."),
+        ("caixa", "<b>Por que a remada subiu para 4 séries.</b> Com supino e "
+                  "desenvolvimento juntos, a sessão passou a ter <b>oito séries de "
+                  "empurrar</b>. Num atleta que ataca e bloqueia — trabalho que já é "
+                  "todo à frente do corpo — empurrar muito mais do que se puxa leva "
+                  "o ombro para a frente e tira a escápula de posição, que é como a "
+                  "dor de ombro do atacante começa. Quatro séries de remada contra "
+                  "oito de empurrar ainda não é um empate, mas é o mínimo defensável. "
+                  "Se você precisar encurtar a sessão, a conta muda junto: cortando "
+                  "uma série do supino, corte também uma da remada."),
         ("espaco", 12),
         ("h", "Achar a carga sem saber o seu 1RM"),
         ("passos", [
