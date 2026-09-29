@@ -1352,6 +1352,73 @@ class TestQuemTemOrientadorNoOrganograma(unittest.TestCase):
         self.assertEqual(self._rodar(pessoas, edges), [])
 
 
+class TestBaldesDoOrganogramaSeparamDoutorandoEMestrando(unittest.TestCase):
+    """`BALDES_ORGANOGRAMA`/`baldeDoRole` -- relatado ao vivo (Vilarino,
+    via Mateus): "o organograma está errado ainda, tem que ficar
+    professores, doutorandos, mestrandos e etc." Doutorando e mestrando
+    moravam no mesmo balde ("Pós-graduação"), então a lâmina do mural
+    lia como se os dois grupos fossem um só. Cada um agora tem o
+    próprio balde, sem tocar no balde de coordenação/docentes nem no
+    catch-all, que não foram os que a equipe reclamou."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+
+    def _fonte(self):
+        inicio = self.js.index("const BALDES_ORGANOGRAMA = [")
+        fim = self.js.index("];", inicio) + 2
+        return self.js[inicio:fim] + "\n" + _recorta_3d("baldeDoRole")
+
+    def test_doutorando_e_mestrando_caem_em_baldes_diferentes(self):
+        fonte = self._fonte()
+        indice_doutorando = _no_node(fonte, 'baldeDoRole("doutorando")')
+        indice_mestrando = _no_node(fonte, 'baldeDoRole("mestrando")')
+        self.assertNotEqual(indice_doutorando, indice_mestrando)
+
+    def test_titulos_dos_baldes_nomeiam_cada_grupo_pedido(self):
+        titulos = _no_node(self._fonte(), "BALDES_ORGANOGRAMA.map(b => b.titulo)")
+        self.assertIn("Doutorandos", titulos)
+        self.assertIn("Mestrandos", titulos)
+        # coordenacao/docentes e o catch-all nao foram o que a equipe
+        # reclamou -- continuam agrupados
+        self.assertIn("Coordenação e Docentes", titulos)
+
+    def test_professor_continua_no_balde_de_docentes(self):
+        fonte = self._fonte()
+        indice_professor = _no_node(fonte, 'baldeDoRole("professor")')
+        indice_coordenacao = _no_node(fonte, 'baldeDoRole("coordenacao")')
+        self.assertEqual(indice_professor, indice_coordenacao)
+
+    def test_vinculo_desconhecido_ainda_cai_no_ultimo_balde(self):
+        # nenhum codigo de vinculo novo pode fazer alguem sumir da tela
+        fonte = self._fonte()
+        indice_desconhecido = _no_node(fonte, 'baldeDoRole("algo_que_nao_existe")')
+        total_baldes = _no_node(fonte, "BALDES_ORGANOGRAMA.length")
+        self.assertEqual(indice_desconhecido, total_baldes - 1)
+
+
+class TestVarreduraDoMuralFoiRemovida(unittest.TestCase):
+    """A linha de luz horizontal que descia a parede a cada 7s (`.mural::
+    before`, `@keyframes varrer-mural`) -- relatado ao vivo (Vilarino, via
+    Mateus): "tira aquela linha na horizontal que fica descendo, aquele
+    recurso distrai a pessoa que está vendo a informação". Puramente
+    decorativa (nunca carregou dado), removida por completo."""
+
+    def setUp(self):
+        self.css = (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8")
+
+    def test_a_animacao_de_varredura_sumiu(self):
+        for sumiu in ("varrer-mural", "mural::before", "mural::after"):
+            with self.subTest(sumiu=sumiu):
+                self.assertNotIn(sumiu, self.css)
+
+    def test_a_regra_de_movimento_reduzido_nao_cita_mais_o_mural(self):
+        # a limpeza da regra @media (prefers-reduced-motion) precisa ter
+        # acompanhado a remocao -- senao sobra uma regra morta citando
+        # um seletor que nao existe mais
+        self.assertNotIn(".mural::after, .mural::before", self.css)
+
+
 class TestParetoTemLinhaDeCorteERotulos(unittest.TestCase):
     """`ChartsEnhanced.pareto` -- achado ao vivo: a lâmina "Análise Pareto"
     prometia (no texto ao lado) uma "linha vermelha" marcando o corte de

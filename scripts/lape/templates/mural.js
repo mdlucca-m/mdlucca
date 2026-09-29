@@ -1747,15 +1747,17 @@ const SLIDES = [
     apresenta: "Árvore radial 3D mostrando cada linha de pesquisa com volume de artigos, taxa de publicação e colaborações." },
   { id: "impacto-esforco", titulo: "Impacto x Esforço", icone: "achado", montar: slideImpactoEsforco, tv: true, emRotacao: false,
     apresenta: "Cada linha de pesquisa por impacto (citações por artigo) e esforço (artigos em produção agora) -- onde priorizar energia." },
-  /* Substitui as três telas separadas (Coordenação e Docentes / Pós-
-     graduação / Bolsistas e Demais): mesma árvore, mesma regra de "cada
-     pessoa mora num balde só", agora numa lâmina com três seções. As três
-     telas antigas (`organograma-docentes`, `-pos`, `-bolsistas`) saíram
-     da lista -- `slideOrganograma3D` continua no arquivo, então ainda dá
-     para ver cada balde sozinho manualmente, se precisar. */
+  /* Substitui as telas separadas por balde (Coordenação e Docentes /
+     Doutorandos / Mestrandos / Bolsistas e Demais): mesma árvore, mesma
+     regra de "cada pessoa mora num balde só", agora numa lâmina com uma
+     seção por balde -- doutorando e mestrando eram um balde só
+     ("Pós-graduação"), e a equipe (Vilarino, relatado) leu isso como
+     organograma errado, os dois grupos somem virando um. `slideOrganograma3D`
+     continua no arquivo, então ainda dá para ver cada balde sozinho
+     manualmente, se precisar. */
   { id: "organograma-metodologico", titulo: "Organograma — Metodológico", icone: "pessoas",
     montar: slideOrganogramaMetodologico, tv: true,
-    apresenta: "Hierarquia visual dos três grupos (coordenação e docentes, pós-graduação, bolsistas e demais), com indicador de 'ponto' em tempo real." },
+    apresenta: "Hierarquia visual por grupo (coordenação e docentes, doutorandos, mestrandos, bolsistas e demais), com indicador de 'ponto' em tempo real." },
   { id: "framework", titulo: "Framework de Pesquisa", icone: "processo", montar: slideFrameworkN8n, tv: true,
     apresenta: "Fluxo estilo n8n: em produção → submetido → em revisão → aceito → publicado, com o gargalo real destacado." },
   { id: "kpis-analytics", titulo: "KPIs Analíticos 4K", icone: "painel", montar: slideKPIsAnalyticos, tv: true,
