@@ -102,15 +102,15 @@ ABAS: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = (
                a.wos_citations, a.scopus_citations, a.open_access, a.notes,
                a.internal_review_on,
                (SELECT occurred_on FROM article_milestones
-                 WHERE article_id = a.id AND milestone = 'version' AND seq = 1) AS version_1,
+                 WHERE article_id = a.id AND milestone = 'versao_1') AS version_1,
                (SELECT occurred_on FROM article_milestones
-                 WHERE article_id = a.id AND milestone = 'version' AND seq = 2) AS version_2,
+                 WHERE article_id = a.id AND milestone = 'versao_2') AS version_2,
                (SELECT occurred_on FROM article_milestones
-                 WHERE article_id = a.id AND milestone = 'version' AND seq = 3) AS version_3,
+                 WHERE article_id = a.id AND milestone = 'versao_3') AS version_3,
                (SELECT occurred_on FROM article_milestones
-                 WHERE article_id = a.id AND milestone = 'version' AND seq = 4) AS version_4,
+                 WHERE article_id = a.id AND milestone = 'versao_4') AS version_4,
                (SELECT occurred_on FROM article_milestones
-                 WHERE article_id = a.id AND milestone = 'version_final') AS version_final
+                 WHERE article_id = a.id AND milestone = 'versao_final') AS version_final
           FROM articles a
           LEFT JOIN research_lines rl ON rl.id = a.research_line_id
          ORDER BY COALESCE(a.year_published, 9999) DESC, a.title

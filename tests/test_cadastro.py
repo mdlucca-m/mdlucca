@@ -26,6 +26,7 @@ from lape import (indice_h, ingest_excel, linhas, mapping, metrics,  # noqa: E40
                   vinculo)
 from lape.agents import curator  # noqa: E402
 from lape.db import Database  # noqa: E402
+from lape.util import title_key  # noqa: E402
 
 TEMPLATES = ROOT / "scripts" / "lape" / "templates"
 
@@ -1011,6 +1012,83 @@ class TestORotuloNaTela(unittest.TestCase):
         trecho = self.html[self.html.index("function rotuloDe("):]
         trecho = trecho[:trecho.index("\n}")]
         self.assertIn("mapa[valor] || valor", trecho)
+
+
+# ----------------------------------------------------------------------
+# 5. Datas de versao do manuscrito
+# ----------------------------------------------------------------------
+class TestAsDatasDeVersao(Base):
+    """As cinco datas de versao gravavam certo e nunca voltavam pra tela.
+
+    A gravacao (curator.register -> ingest_articles -> _save_milestones)
+    sempre gravou os marcos certos em article_milestones. O que faltava
+    eram DOIS pontos de leitura: a view v_articles_full nunca expunha
+    version_1..version_final como coluna, e o formulario da tela nao
+    tinha `from` nesses cinco campos -- sem ele, reabrir um artigo para
+    editar sempre mostrava os cinco em branco, porque o form procurava a
+    label ("Data da primeira versão") dentro da linha, e a linha traz a
+    coluna (version_1). Quem preenchia jurava que a tela nao salvava.
+    """
+
+    def test_as_cinco_datas_voltam_pela_view(self):
+        curator.register(self.db, "articles", {
+            "Título": "Artigo com versões", "Autores": "X",
+            "Data da primeira versão": "2026-01-10",
+            "Data segunda versão": "2026-02-05",
+            "Data terceira versão": "2026-03-01",
+            "Data quarta versão": "2026-03-20",
+            "Data versão final": "2026-04-01",
+        })
+        linha = self.db.dicts(
+            "SELECT version_1, version_2, version_3, version_4, version_final"
+            "  FROM v_articles_full WHERE title_key = ?",
+            (title_key("Artigo com versões"),))[0]
+        self.assertEqual(linha["version_1"], "2026-01-10")
+        self.assertEqual(linha["version_2"], "2026-02-05")
+        self.assertEqual(linha["version_3"], "2026-03-01")
+        self.assertEqual(linha["version_4"], "2026-03-20")
+        self.assertEqual(linha["version_final"], "2026-04-01")
+
+    def test_apagar_na_tela_apaga_o_marco(self):
+        """Editar um artigo existente e mandar o campo vazio tem de limpar
+        a data -- e o mesmo comportamento ja garantido para outros campos
+        (ver o comentario grande no `submit` do buildForm, em app.html).
+
+        `registro_id` e o que diz que e uma EDICAO da ficha aberta na tela
+        (app.html manda `{registro_id: row.id}` junto, ver `extra` na
+        definicao do formulario) -- sem ele `_alvo_da_edicao` devolve None
+        e a gravacao segue a regra da planilha, que nunca apaga por
+        omissao. """
+        primeiro = curator.register(self.db, "articles", {
+            "Título": "Muda de ideia", "Autores": "X",
+            "Data da primeira versão": "2026-01-10"})
+        artigo_id = primeiro["records"][0]["id"]
+        curator.register(self.db, "articles", {
+            "registro_id": artigo_id,
+            "Título": "Muda de ideia", "Autores": "X",
+            "Data da primeira versão": ""})
+        linha = self.db.dicts(
+            "SELECT version_1 FROM v_articles_full WHERE title_key = ?",
+            (title_key("Muda de ideia"),))[0]
+        self.assertIsNone(linha["version_1"])
+
+    def test_os_cinco_campos_tem_from_no_formulario(self):
+        """Sem `from`, `buildForm` nunca acha o valor gravado ao reabrir
+        o artigo para editar (ve `const preset = f.from ? ... : ...` em
+        app.html) -- mesmo que a gravacao em si esteja correta."""
+        html = (TEMPLATES / "app.html").read_text(encoding="utf-8")
+        for rotulo, campo in (
+            ("Data da primeira versão", "version_1"),
+            ("Data segunda versão", "version_2"),
+            ("Data terceira versão", "version_3"),
+            ("Data quarta versão", "version_4"),
+            ("Data versão final", "version_final"),
+        ):
+            with self.subTest(campo=campo):
+                self.assertIn(f'field("{rotulo}"', html)
+                trecho = html[html.index(f'field("{rotulo}"'):]
+                trecho = trecho[:trecho.index(")") + 1]
+                self.assertIn(f'from: "{campo}"', trecho)
 
 
 if __name__ == "__main__":
