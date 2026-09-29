@@ -385,10 +385,11 @@
   overflow-y: auto;
 }
 
-/* A lâmina "Organograma — Metodológico" funde os três baldes (Coordenação
-   e Docentes / Pós-graduação / Bolsistas e Demais) numa tela só; cada
-   balde vira uma seção com título, para continuar dando pra separar os
-   grupos de longe mesmo sem a tela própria de cada um. */
+/* A lâmina "Organograma — Metodológico" funde os baldes de
+   BALDES_ORGANOGRAMA (Coordenação e Docentes / Doutorandos / Mestrandos /
+   Bolsistas e Demais) numa tela só; cada balde vira uma seção com título,
+   para continuar dando pra separar os grupos de longe mesmo sem a tela
+   própria de cada um. */
 .organograma-secao + .organograma-secao {
   border-top: 1px solid var(--border);
   padding-top: clamp(10px, 1.5vh, 18px);
@@ -1016,28 +1017,6 @@
   }
 }
 
-/* ==================== VARREDURA (SCANLINE) DO MURAL ==================== */
-/* Linha de varredura horizontal bem sutil, tipo tela de laboratório --
-   só decorativa, por cima de tudo (não intercepta clique, `pointer-
-   events: none`), escopada em `.mural` para nunca vazar pras outras
-   páginas que também carregam este CSS (ao vivo, painel). */
-.mural::after {
-  content: "";
-  position: fixed; inset: 0; z-index: 60; pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom, rgba(255, 255, 255, 0.018) 0px, rgba(255, 255, 255, 0.018) 1px,
-    transparent 2px, transparent 4px);
-  mix-blend-mode: overlay;
-}
-.mural::before {
-  content: "";
-  position: fixed; left: 0; right: 0; height: 140px; top: -140px; z-index: 61;
-  pointer-events: none;
-  background: linear-gradient(to bottom, transparent, var(--accent-wash, rgba(0, 246, 255, .08)), transparent);
-  animation: varrer-mural 7s linear infinite;
-}
-@keyframes varrer-mural { from { top: -140px; } to { top: 100%; } }
-
 /* ==================== CARTÃO HOLOGRÁFICO DE CHEGADA ==================== */
 /* Acende quando alguém bate ponto (ver `verificarChegadas` em mural.js) --
    fixo por cima de qualquer lâmina que estiver em cena, e some sozinho. */
@@ -1124,7 +1103,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mural::after, .mural::before { animation: none; display: none; }
   .card-holo { transition: opacity .3s ease; }
   .card-holo::before { animation: none; }
 }

@@ -559,7 +559,11 @@ const VINCULOS_ICONE = {
    embaixo dela ali. */
 const BALDES_ORGANOGRAMA = [
   { titulo: "Coordenação e Docentes", vinculos: ["coordenacao", "professor", "pos_doutorado"] },
-  { titulo: "Pós-graduação", vinculos: ["doutorando", "mestrando"] },
+  // Doutorando e mestrando eram um só balde ("Pós-graduação"), e a
+  // equipe (Vilarino, relatado) leu isso como organograma errado -- os
+  // dois nomes somem virando o mesmo grupo. Agora cada um tem o seu.
+  { titulo: "Doutorandos", vinculos: ["doutorando"] },
+  { titulo: "Mestrandos", vinculos: ["mestrando"] },
   // ultimo balde: null vira "o que nao coube em nenhum dos de cima" --
   // ninguem some por causa de um codigo de vinculo novo que os baldes
   // acima nao previram.
@@ -767,15 +771,15 @@ function slideOrganograma3D(baldeIndex) {
   return escalonar(container);
 }
 
-/* Os três baldes (Coordenação e Docentes / Pós-graduação / Bolsistas e
-   Demais) numa lâmina só, para o ciclo enxuto da parede -- em vez de três
-   telas separadas. Reaproveita a mesma árvore e o mesmo `mostrados`
-   (compartilhado entre os três baldes NUM SÓ laço, sem precisar
-   "reencenar" quem os baldes anteriores já mostraram): cada pessoa segue
-   morando no balde do primeiro vínculo que bate com ela, ou de um
-   ancestral já mostrado, exatamente como em `slideOrganograma3D`. O
+/* Os baldes de BALDES_ORGANOGRAMA (Coordenação e Docentes / Doutorandos /
+   Mestrandos / Bolsistas e Demais) numa lâmina só, para o ciclo enxuto da
+   parede -- em vez de uma tela por balde. Reaproveita a mesma árvore e o
+   mesmo `mostrados` (compartilhado entre todos os baldes NUM SÓ laço, sem
+   precisar "reencenar" quem os baldes anteriores já mostraram): cada
+   pessoa segue morando no balde do primeiro vínculo que bate com ela, ou
+   de um ancestral já mostrado, exatamente como em `slideOrganograma3D`. O
    `.slide-organograma-3d` já tem `overflow-y: auto` (a única lâmina do
-   mural com essa válvula de escape) -- com os três baldes juntos, uma
+   mural com essa válvula de escape) -- com os baldes todos juntos, uma
    equipe grande rola em vez de cortar nas pontas. */
 function slideOrganogramaMetodologico() {
   const t = tv();
@@ -795,7 +799,7 @@ function slideOrganogramaMetodologico() {
     (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
   });
 
-  /* UM SÓ `mostrados`, atravessando os três baldes em ordem -- é o que
+  /* UM SÓ `mostrados`, atravessando todos os baldes em ordem -- é o que
      substitui o "replay" que cada slide separada fazia sozinha. Marcado
      NA HORA em que o nó é desenhado (não só depois da árvore pronta):
      coorientação bota duas arestas chegando na mesma pessoa, então duas
