@@ -1419,6 +1419,103 @@ class TestVarreduraDoMuralFoiRemovida(unittest.TestCase):
         self.assertNotIn(".mural::after, .mural::before", self.css)
 
 
+class TestCorPorTemaNoOrganograma(unittest.TestCase):
+    """`corPorTema` -- pedido explícito (Mateus): organograma "mais
+    temático". Cor por hierarquia continua sendo o padrão (foi corrigida
+    antes por reclamação real de legibilidade); isto é só a função pura
+    que decide a cor no modo alternativo, por linha de pesquisa."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+
+    def _rodar(self, pessoa, linhas):
+        fonte = _recorta_3d("corPorTema")
+        return _no_node(fonte, f"corPorTema({json.dumps(pessoa)}, {json.dumps(linhas)})")
+
+    def test_pessoas_de_linhas_diferentes_ganham_cores_diferentes(self):
+        linhas = ["Handebol", "Psicologia do esporte"]
+        cor_a = self._rodar({"research_line": "Handebol"}, linhas)
+        cor_b = self._rodar({"research_line": "Psicologia do esporte"}, linhas)
+        self.assertNotEqual(cor_a, cor_b)
+
+    def test_a_mesma_linha_sempre_ganha_a_mesma_cor(self):
+        linhas = ["Handebol", "Psicologia do esporte", "Ginástica"]
+        primeira = self._rodar({"research_line": "Ginástica"}, linhas)
+        segunda = self._rodar({"research_line": "Ginástica"}, linhas)
+        self.assertEqual(primeira, segunda)
+
+    def test_cor_vem_da_mesma_paleta_categorica_do_grafo_de_linhas(self):
+        # mesma receita de slidePesquisasLinhas3D: var(--series-N)
+        cor = self._rodar({"research_line": "Handebol"}, ["Handebol"])
+        self.assertEqual(cor, "var(--series-1)")
+
+    def test_nove_linhas_ainda_nao_repete_cor_igual_a_oitava(self):
+        # o ciclo é de 8 (idx % 8) -- a linha de índice 8 (a 9ª) volta para
+        # --series-1, igual à primeira; isso é esperado, mas a 8ª (índice 7)
+        # não pode
+        linhas = [f"Linha {i}" for i in range(9)]
+        setima = self._rodar({"research_line": "Linha 6"}, linhas)
+        oitava = self._rodar({"research_line": "Linha 7"}, linhas)
+        nona = self._rodar({"research_line": "Linha 8"}, linhas)
+        self.assertNotEqual(setima, oitava)
+        self.assertEqual(nona, self._rodar({"research_line": "Linha 0"}, linhas))  # dá a volta
+
+    def test_sem_linha_declarada_ganha_cor_neutra(self):
+        cor = self._rodar({"research_line": None}, ["Handebol"])
+        self.assertEqual(cor, "var(--ink-muted)")
+
+    def test_linha_que_nao_esta_na_lista_tambem_ganha_cor_neutra(self):
+        # defensivo: nao deveria acontecer (a lista vem do proprio
+        # organograma), mas nao pode gerar --series-NaN ou index negativo
+        cor = self._rodar({"research_line": "Linha Fantasma"}, ["Handebol"])
+        self.assertEqual(cor, "var(--ink-muted)")
+
+
+class TestAlternadorDeCorNoOrganograma(unittest.TestCase):
+    """A lâmina "Organograma — Metodológico" ganha um botão para trocar
+    entre cor por hierarquia (padrão) e cor por linha de pesquisa (novo) --
+    nunca o contrário: quem não clicar continua vendo exatamente o que via
+    antes deste pedido."""
+
+    def setUp(self):
+        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
+        self.css = (TEMPLATES / "slides-avancados-3d.css").read_text(encoding="utf-8")
+
+    def test_o_modo_padrao_e_hierarquia_nao_tema(self):
+        trecho = self.js[self.js.index("botao-modo-cor ativo"):]
+        trecho = trecho[:trecho.index(")")]
+        self.assertIn('"data-modo": "hierarquia"', trecho)
+
+    def test_aplicar_troca_a_propriedade_css_inline_e_nunca_o_data_tom(self):
+        # data-tom continua sendo o que cartaoPessoa grava -- o modo tema
+        # só sobrepõe com --cor inline, que sempre vence por especificidade;
+        # nunca reescreve data-tom, senão voltar para hierarquia perderia
+        # a cor original sem re-renderizar a árvore inteira
+        fonte = self.js[self.js.index("function aplicarModoCorOrganograma"):
+                        self.js.index("function aplicarModoCorOrganograma") + 900]
+        self.assertIn('style.setProperty("--cor"', fonte)
+        self.assertIn('style.removeProperty("--cor")', fonte)
+        self.assertNotIn("data-tom", fonte)
+
+    def test_a_lamina_liga_o_alternador(self):
+        inicio = self.js.index("function slideOrganogramaMetodologico")
+        trecho = self.js[inicio:self.js.index("FRAMEWORK DE PESQUISA", inicio)]
+        self.assertIn("alternador-cor-organograma", trecho)
+        self.assertIn("aplicarModoCorOrganograma(container, porId, modo, linhasOrdenadas)",
+                      trecho)
+
+    def test_a_legenda_de_temas_comeca_escondida(self):
+        # só o botão "por hierarquia" (o padrão) começa marcado; a legenda
+        # de cores por linha não faz sentido nenhum até alguém trocar o modo
+        trecho = self.js[self.js.index("const legendaTemas ="):]
+        trecho = trecho[:trecho.index(")") + 1]
+        self.assertIn('display:none', trecho)
+
+    def test_css_do_botao_existe_para_os_dois_estados(self):
+        self.assertIn(".botao-modo-cor", self.css)
+        self.assertIn(".botao-modo-cor.ativo", self.css)
+
+
 class TestParetoTemLinhaDeCorteERotulos(unittest.TestCase):
     """`ChartsEnhanced.pareto` -- achado ao vivo: a lâmina "Análise Pareto"
     prometia (no texto ao lado) uma "linha vermelha" marcando o corte de

@@ -166,6 +166,52 @@ class TestOQueAnaEntende(BaseDaAna):
         self.assertIn("dia inteiro", r["itens"][0]["valor"])
 
 
+class TestQuemOrienta(BaseDaAna):
+    """`_orientadores` -- pedido explícito: "quem orienta mais gente"."""
+
+    def _com_orientandos(self):
+        self.db.execute(
+            "INSERT INTO members (full_name, name_key, role, active) VALUES"
+            " ('Alexandro Andrade', 'andrade_a', 'coordenacao', 1)")
+        chefe = self.db.scalar("SELECT id FROM members WHERE name_key = 'andrade_a'")
+        for nome, chave in (("Ana Beatriz", "ana_b"), ("Carlos Dias", "carlos_d")):
+            self.db.execute(
+                "INSERT INTO members (full_name, name_key, role, advisor_id, active)"
+                " VALUES (?, ?, 'doutorando', ?, 1)", (nome, chave, chefe))
+        self.db.conn.commit()
+        return chefe
+
+    def test_conta_quantos_orientandos_cada_orientador_tem(self):
+        self._com_orientandos()
+        r = self.perguntar("quem orienta mais gente no laboratório?")
+        self.assertEqual(r["intencao"], "orientadores")
+        self.assertEqual(r["numero"], 1)
+        self.assertEqual(r["itens"][0]["rotulo"], "Alexandro Andrade")
+        self.assertEqual(r["itens"][0]["valor"], 2)
+
+    def test_sem_ninguem_orientando_ela_diz_isso(self):
+        r = self.perguntar("quem são os orientadores?")
+        self.assertEqual(r["intencao"], "orientadores")
+        self.assertEqual(r["numero"], 0)
+        self.assertIn("ninguém", r["resposta"].lower())
+
+    def test_orientando_inativo_nao_conta_para_o_orientador(self):
+        chefe = self._com_orientandos()
+        self.db.execute(
+            "INSERT INTO members (full_name, name_key, role, advisor_id, active)"
+            " VALUES ('Saiu Faz Tempo', 'saiu_ft', 'mestrando', ?, 0)", (chefe,))
+        self.db.conn.commit()
+        r = self.perguntar("quantos orientandos cada orientador tem?")
+        self.assertEqual(r["itens"][0]["valor"], 2)  # não 3
+
+    def test_nao_colide_com_a_pergunta_de_equipe(self):
+        """"orientandos" sozinho (sem "orientador") continua caindo em equipe,
+        como sempre caiu -- a nova intenção não pode roubar essa pergunta."""
+        self._com_orientandos()
+        r = self.perguntar("quantas pessoas tem no laboratório?")
+        self.assertEqual(r["intencao"], "equipe")
+
+
 class TestOQueAnaNaoFaz(BaseDaAna):
     """A parte que importa: ela não inventa, e não vaza."""
 

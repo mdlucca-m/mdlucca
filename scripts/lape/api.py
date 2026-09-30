@@ -2537,6 +2537,42 @@ def route_marca_gravar(ctx: "Context") -> Any:
     return estado
 
 
+def route_member_foto(ctx: "Context") -> Any:
+    """Grava a foto de perfil de um integrante.
+
+    A propria pessoa troca a propria foto; trocar a de outra pessoa exige
+    coordenacao -- mesma regra de `route_create` para a tabela `members`.
+    Mesma receita de `route_marca_gravar`: a imagem chega como data: URI,
+    nunca como caminho de arquivo.
+    """
+    from . import fotos
+
+    user = auth.require(ctx.user, "integrante")
+    corpo = ctx.body or {}
+    if corpo.get("id") is None:
+        raise ApiError(400, "id do integrante é obrigatório")
+    alvo = int(corpo["id"])
+    if alvo != int(user["id"]) and auth.ROLE_RANK[user["user_role"]] < auth.ROLE_RANK["coordenacao"]:
+        raise ApiError(403, "você só pode trocar a própria foto")
+    if not ctx.db.scalar("SELECT 1 FROM members WHERE id = ?", (alvo,)):
+        raise ApiError(404, "esse integrante não existe")
+
+    if corpo.get("remover"):
+        ctx.db.execute("UPDATE members SET photo_url = NULL WHERE id = ?", (alvo,))
+        ctx.db.conn.commit()
+        auth.log(ctx.db, user["id"], user.get("login"), "foto_removida", "members", alvo)
+        return {"photo_url": None}
+
+    try:
+        foto = fotos.gravar(corpo.get("arquivo") or "")
+    except fotos.Recusado as erro:
+        raise ApiError(400, str(erro)) from None
+    ctx.db.execute("UPDATE members SET photo_url = ? WHERE id = ?", (foto, alvo))
+    ctx.db.conn.commit()
+    auth.log(ctx.db, user["id"], user.get("login"), "foto_atualizada", "members", alvo)
+    return {"photo_url": foto}
+
+
 def route_curva(ctx: "Context") -> Any:
     """Derivada, aceleracao, integral e limiar de uma curva do laboratorio.
 
@@ -3024,6 +3060,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/research-lines/padrao/?$", route_linhas_padrao, "coordenacao"),
     ("GET", r"^/api/marca/?$", route_marca, "leitura"),
     ("POST", r"^/api/marca/?$", route_marca_gravar, "coordenacao"),
+    ("POST", r"^/api/members/foto/?$", route_member_foto, "integrante"),
     ("GET", r"^/api/curva/?$", route_curva, "leitura"),
     ("GET", r"^/api/sustentabilidade/?$", route_sustentabilidade, "coordenacao"),
     ("GET", r"^/api/citacoes/?$", route_citacoes, "leitura"),

@@ -128,6 +128,29 @@ button.sair-ponto:hover{border-color:var(--ink-2);background:var(--surface-hover
 /* Segmento que a busca não achou continua na tela, apagado: sumir com ele
    faria a tela afirmar que ninguém estuda o assunto. */
 .chip.vazio{opacity:.5}
+/* ---- conversa com a Ana ---- */
+.ana-caixa{display:flex;flex-direction:column;padding:16px}
+.ana-chat{display:flex;flex-direction:column;gap:10px;max-height:52vh;
+  overflow-y:auto;padding-right:2px}
+.ana-msg{display:flex;max-width:100%}
+.ana-msg.eu{justify-content:flex-end}
+.ana-msg.ana{justify-content:flex-start}
+.ana-bolha{max-width:min(560px,86%);padding:10px 13px;border-radius:14px;
+  background:var(--surface-raised);border:1px solid var(--border)}
+.ana-msg.eu .ana-bolha{background:var(--accent-wash);border-color:transparent;
+  border-bottom-right-radius:4px}
+.ana-msg.ana .ana-bolha{border-bottom-left-radius:4px}
+.ana-bolha.erro{border-color:color-mix(in srgb,var(--critical) 40%,var(--border));
+  color:var(--critical)}
+.ana-bolha table{margin-top:2px}
+/* ---- foto de perfil ---- */
+.foto-linha{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px}
+.foto-linha .hint{margin:0;flex:1 1 220px;min-width:0}
+.foto-previa{width:64px;height:64px;border-radius:50%;flex:none;overflow:hidden;
+  background:var(--accent);display:flex;align-items:center;justify-content:center}
+.foto-previa img{width:100%;height:100%;object-fit:cover;display:block}
+.foto-previa .sem-foto{color:var(--on-accent);font-weight:800;font-size:20px;
+  letter-spacing:-.02em}
 .bib-item{margin-bottom:10px;padding:14px 16px}
 .bib-topo{display:flex;flex-direction:column;gap:3px}
 .bib-autores{margin:6px 0 0;font-size:12px;line-height:1.5}
@@ -614,6 +637,112 @@ const EVENT_OPTS = ["Reunião", "Coleta", "Defesa", "Qualificação", "Congresso
                     "Seminário", "Visita técnica", "Extensão", "Outro"];
 const PROJECT_OPTS = ["Em andamento", "Planejado", "Concluído", "Suspenso"];
 
+/* ---------- foto de perfil ---------- */
+function iniciaisDoNome(nome){
+  const partes = String(nome || "").trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return "?";
+  return (partes[0][0] + (partes.length > 1 ? partes[partes.length - 1][0] : "")).toUpperCase();
+}
+
+/* Foto de perfil deixa o cadastro mais formal -- pedido explícito. Chega
+   pela mesma receita da marca do laboratório (ver `route_member_foto` em
+   api.py e `fotos.py`): escolhe o arquivo, vira imagem embutida, grava.
+   A diferença é o redimensionamento AQUI, no navegador, antes de mandar
+   -- uma foto de celular vem com 4-8 MB, e o servidor só aceita até
+   150 kB; sem isso, a pessoa descobriria o limite tentando de novo com
+   um arquivo menor, um vaivém que o `<canvas>` evita de graça. */
+function cartaoFotoDePerfil(me){
+  const corpo = h("div", {class: "card sec"});
+  corpo.appendChild(h("h3", {text: "Foto de perfil"}));
+
+  const mostra = h("div", {class: "foto-previa"});
+  function desenharPrevia(){
+    mostra.innerHTML = "";
+    mostra.appendChild(me.photo_url
+      ? h("img", {src: me.photo_url, alt: me.full_name || "Foto de perfil"})
+      : h("span", {class: "sem-foto", text: iniciaisDoNome(me.full_name)}));
+  }
+  desenharPrevia();
+
+  const estado = h("p", {class: "hint"});
+  function dizer(texto){ estado.textContent = texto; }
+  dizer(me.photo_url ? "Aparece no seu perfil e no cartão de chegada do mural."
+    : "Sem foto, aparecem as iniciais do seu nome.");
+
+  corpo.appendChild(h("div", {class: "foto-linha"}, [mostra, estado]));
+
+  const escolher = h("input", {type: "file",
+    accept: ".png,.webp,.jpg,.jpeg,image/png,image/webp,image/jpeg",
+    style: "display:none"});
+  const botao = h("button", {class: "botao-destino", style: "margin-top:10px"},
+    [h("span", {text: me.photo_url ? "Trocar a foto" : "Enviar uma foto"})]);
+  botao.onclick = function (){ escolher.click(); };
+
+  async function enviar(dataUri){
+    botao.disabled = true;
+    dizer("Enviando…");
+    try {
+      const r = await api("/api/members/foto", "POST", {id: me.id, arquivo: dataUri});
+      me.photo_url = r.photo_url;
+      desenharPrevia();
+      dizer("Pronto. Já está no seu perfil.");
+      botao.firstChild.textContent = "Trocar a foto";
+      toast("Foto atualizada.");
+    } catch (erro) {
+      dizer("Não deu: " + erro.message);
+    } finally { botao.disabled = false; escolher.value = ""; }
+  }
+
+  escolher.onchange = function (){
+    const arquivo = escolher.files && escolher.files[0];
+    if (!arquivo) return;
+    const leitor = new FileReader();
+    leitor.onerror = function (){ dizer("Não consegui ler o arquivo."); };
+    leitor.onload = function (){
+      const img = new Image();
+      img.onerror = function (){ dizer("Não reconheci essa imagem."); };
+      img.onload = function (){
+        // 320px já é maior do que qualquer lugar mostra a foto hoje
+        // (o avatar do mural tem 58px) -- reduzir além disso só cortaria
+        // nitidez sem motivo.
+        const alvo = 320;
+        const escala = Math.min(1, alvo / Math.max(img.width, img.height));
+        const largura = Math.max(1, Math.round(img.width * escala));
+        const altura = Math.max(1, Math.round(img.height * escala));
+        const tela = document.createElement("canvas");
+        tela.width = largura; tela.height = altura;
+        tela.getContext("2d").drawImage(img, 0, 0, largura, altura);
+        enviar(tela.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = String(leitor.result);
+    };
+    leitor.readAsDataURL(arquivo);
+  };
+  corpo.appendChild(escolher);
+  corpo.appendChild(botao);
+
+  if (me.photo_url){
+    const tirar = h("button", {class: "ghost", style: "margin:10px 0 0 8px", text: "Remover"});
+    tirar.onclick = async function (){
+      tirar.disabled = true;
+      try {
+        await api("/api/members/foto", "POST", {id: me.id, remover: true});
+        me.photo_url = null;
+        desenharPrevia();
+        dizer("Sem foto, aparecem as iniciais do seu nome.");
+        botao.firstChild.textContent = "Enviar uma foto";
+        tirar.remove();
+      } catch (erro) { dizer("Não deu: " + erro.message); }
+      finally { tirar.disabled = false; }
+    };
+    corpo.appendChild(tirar);
+  }
+
+  corpo.appendChild(h("p", {class: "hint", style: "margin-top:10px", text:
+    "PNG, WEBP ou JPG. A imagem é redimensionada no navegador antes de enviar."}));
+  return corpo;
+}
+
 /* ---------- telas ---------- */
 const VIEWS = {};
 
@@ -625,6 +754,7 @@ VIEWS.perfil = {
     VIEW.appendChild(tituloDaTela("perfil", "Meu perfil"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Estes dados alimentam o índice de pesquisadores, a rede de colaboração e as métricas do painel."}));
+    VIEW.appendChild(cartaoFotoDePerfil(me));
     VIEW.appendChild(h("div", {class: "grid g4 sec"}, [
       kpi("Artigos", me.n_articles), kpi("Publicados", me.n_published),
       kpi("Projetos", me.n_projects), kpi("Índice h", me.h_index === null ? "—" : me.h_index),
@@ -1509,61 +1639,81 @@ VIEWS.ana = {
     VIEW.innerHTML = "";
     VIEW.appendChild(tituloDaTela("ana", "Perguntar à Ana"));
     VIEW.appendChild(h("p", {class: "view", text:
-      "Pergunte em português sobre o laboratório. Ana responde com o que está "
+      "Converse em português sobre o laboratório. Ana responde com o que está "
       + "no banco e diz de onde tirou cada número — e quando não sabe, ela diz "
       + "que não sabe, em vez de estimar."}));
 
+    /* Histórico só desta visita -- Ana não guarda conversa no banco (é
+       decisão de projeto: ela nunca inventa, e uma conversa persistida
+       pareceria um assistente de verdade, que ela não é). Recarregar a
+       tela limpa o histórico, e está certo que limpe. */
+    const chat = h("div", {class: "ana-chat", id: "ana-chat"});
+    const sugestoes = h("div", {class: "chips", style: "margin-top:10px"});
     const campo = h("input", {type: "text", id: "ana-pergunta", autocomplete: "off",
       placeholder: "Quantos artigos publicamos este ano?",
       style: "flex:1 1 260px;min-width:0"});
     const botao = h("button", {class: "primary", text: "Perguntar"});
-    const resposta = h("div", {id: "ana-resposta"});
-    const sugestoes = h("div", {class: "chips", style: "margin-top:12px"});
 
-    async function perguntar(texto){
-      if (texto !== undefined) campo.value = texto;
-      const pergunta = campo.value.trim();
-      resposta.innerHTML = "";
-      resposta.appendChild(h("div", {class: "empty", text: "Consultando o banco…"}));
-      let d;
-      try {
-        d = await api("/api/ana?pergunta=" + encodeURIComponent(pergunta));
-      } catch (e){
-        resposta.innerHTML = "";
-        resposta.appendChild(h("div", {class: "card"},
-          h("div", {class: "empty", text: e.message})));
-        return;
-      }
-      desenhar(d);
+    function rolarParaOFim(){
+      chat.scrollTop = chat.scrollHeight;
     }
 
-    function desenhar(d){
-      resposta.innerHTML = "";
-      const cartao = h("div", {class: "card sec"});
-      cartao.appendChild(h("p", {style: "margin:0;font-size:15.5px;line-height:1.5",
-        text: d.resposta}));
+    function balaoDeQuemPergunta(texto){
+      chat.appendChild(h("div", {class: "ana-msg eu"},
+        h("div", {class: "ana-bolha"}, h("p", {style: "margin:0", text: texto}))));
+      rolarParaOFim();
+    }
 
+    function balaoDaAna(d){
+      const bolha = h("div", {class: "ana-bolha"});
+      bolha.appendChild(h("p", {style: "margin:0;font-size:14.5px;line-height:1.5",
+        text: d.resposta}));
       /* A lista é a conferência: o número sozinho pede fé, e a lista
          deixa quem pergunta discordar dele item a item. */
       if (d.itens && d.itens.length){
         /* Os rótulos das colunas vêm da resposta: "Motriz" embaixo de
            "Quanto" faz a coluna mentir sobre o que há nela. */
         const colunas = d.colunas || ["O quê", "Quanto"];
-        cartao.appendChild(table(
+        bolha.appendChild(h("div", {style: "margin-top:8px"}, table(
           [{k: "rotulo", label: colunas[0]}, {k: "valor", label: colunas[1]}],
-          d.itens, "—"));
+          d.itens, "—")));
       }
       if (d.fonte){
-        cartao.appendChild(h("p", {class: "hint", style: "margin:10px 0 0",
+        bolha.appendChild(h("p", {class: "hint", style: "margin:8px 0 0",
           text: "de onde saiu: " + d.fonte}));
       }
-      resposta.appendChild(cartao);
+      chat.appendChild(h("div", {class: "ana-msg ana"}, bolha));
+      rolarParaOFim();
       preencherSugestoes(d.exemplos);
     }
 
+    async function perguntar(texto){
+      const pergunta = (texto !== undefined ? texto : campo.value).trim();
+      if (!pergunta) return;
+      campo.value = "";
+      balaoDeQuemPergunta(pergunta);
+      const espera = h("div", {class: "ana-msg ana"},
+        h("div", {class: "ana-bolha"}, h("p", {class: "hint", style: "margin:0",
+          text: "Consultando o banco…"})));
+      chat.appendChild(espera);
+      rolarParaOFim();
+      let d;
+      try {
+        d = await api("/api/ana?pergunta=" + encodeURIComponent(pergunta));
+      } catch (e){
+        espera.remove();
+        chat.appendChild(h("div", {class: "ana-msg ana"},
+          h("div", {class: "ana-bolha erro"}, h("p", {style: "margin:0", text: e.message}))));
+        rolarParaOFim();
+        return;
+      }
+      espera.remove();
+      balaoDaAna(d);
+    }
+
     function preencherSugestoes(lista){
-      if (!lista || !lista.length) return;
       sugestoes.innerHTML = "";
+      if (!lista || !lista.length) return;
       sugestoes.appendChild(h("span", {class: "hint",
         style: "width:100%;margin:0 0 2px", text: "O que Ana sabe responder:"}));
       lista.forEach(function (x){
@@ -1577,14 +1727,18 @@ VIEWS.ana = {
       if (e.key === "Enter") perguntar();
     });
 
-    VIEW.appendChild(h("div", {class: "card"}, [
-      h("div", {style: "display:flex;gap:8px;flex-wrap:wrap"}, [campo, botao]),
+    VIEW.appendChild(h("div", {class: "card ana-caixa"}, [
+      chat,
       sugestoes,
+      h("div", {style: "display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"}, [campo, botao]),
     ]));
-    VIEW.appendChild(resposta);
-    /* A pergunta vazia devolve a lista de exemplos: a tela abre já
-       dizendo o que dá para perguntar, em vez de um campo em branco. */
+
+    /* A primeira mensagem, como se Ana tivesse puxado assunto -- em vez
+       de uma tela vazia esperando a pessoa adivinhar o que perguntar. */
     const inicial = await api("/api/ana?pergunta=").catch(function (){ return {}; });
+    chat.appendChild(h("div", {class: "ana-msg ana"},
+      h("div", {class: "ana-bolha"}, h("p", {style: "margin:0", text:
+        inicial.resposta || "Pergunte alguma coisa sobre o laboratório."}))));
     preencherSugestoes(inicial.exemplos);
     campo.focus();
   },

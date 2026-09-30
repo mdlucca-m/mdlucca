@@ -313,6 +313,24 @@ def _equipe(db: Database, ctx: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _orientadores(db: Database, ctx: dict[str, Any]) -> dict[str, Any]:
+    linhas = db.dicts(
+        "SELECT m.full_name, COUNT(*) AS n"
+        "  FROM members o JOIN members m ON m.id = o.advisor_id"
+        " WHERE COALESCE(o.active, 1) <> 0 AND o.left_on IS NULL"
+        " GROUP BY o.advisor_id ORDER BY n DESC, m.full_name")
+    total = sum(int(l["n"]) for l in linhas)
+    return {
+        "resposta": (f"{len(linhas)} orientador(es), com {total} orientando(s) no total."
+                     if linhas else "Ninguém está declarado como orientador ainda."),
+        "numero": len(linhas),
+        "itens": [{"rotulo": l["full_name"], "valor": int(l["n"])} for l in linhas],
+        "colunas": ("Orientador(a)", "Orientandos"),
+        "fonte": ("cadastro de integrantes, contando quem tem cada pessoa ativa"
+                  " como orientador(a)"),
+    }
+
+
 def _linhas_de_pesquisa(db: Database, ctx: dict[str, Any]) -> dict[str, Any]:
     linhas = db.dicts(
         "SELECT rl.name, rl.code,"
@@ -457,6 +475,13 @@ PERGUNTAS: tuple[dict[str, Any], ...] = (
         "minimo": "leitura",
         "grupos": (("linha", "linhas"),),
         "responder": _linhas_de_pesquisa,
+    },
+    {
+        "code": "orientadores",
+        "exemplo": "quem orienta mais gente no laboratório?",
+        "minimo": "leitura",
+        "grupos": (("orientador", "orientadora", "orientadores", "orienta", "orientam"),),
+        "responder": _orientadores,
     },
     {
         "code": "equipe",

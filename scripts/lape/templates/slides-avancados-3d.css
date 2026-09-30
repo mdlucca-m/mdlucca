@@ -385,6 +385,41 @@
   overflow-y: auto;
 }
 
+/* Alternador entre cor por hierarquia (padrão, corrigido antes por
+   reclamação real de legibilidade) e cor por linha de pesquisa -- pedido
+   explícito de um organograma "mais temático". Fica como escolha, nunca
+   substitui o padrão: quem não tocar no botão nunca percebe que existe. */
+.alternador-cor-organograma {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.botao-modo-cor {
+  font: inherit;
+  font-size: clamp(10.5px, 0.85vw, 12.5px);
+  font-weight: 650;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: var(--ink-2);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  transition: background .12s, border-color .12s, color .12s;
+}
+.botao-modo-cor:hover {
+  border-color: var(--ink-muted);
+  color: var(--ink);
+}
+.botao-modo-cor.ativo {
+  color: var(--on-accent);
+  background: var(--accent-solid);
+  border-color: transparent;
+}
+.legenda-temas {
+  row-gap: 6px;
+}
+
 /* A lâmina "Organograma — Metodológico" funde os baldes de
    BALDES_ORGANOGRAMA (Coordenação e Docentes / Doutorandos / Mestrandos /
    Bolsistas e Demais) numa tela só; cada balde vira uma seção com título,
