@@ -385,6 +385,40 @@ def _prazos(db: Database, ctx: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _corrigir_ponto(db: Database, ctx: dict[str, Any]) -> dict[str, Any]:
+    """Nao e uma consulta ao banco -- e a instrucao de como usar o que ja
+    existe na tela "Meu ponto". Ana so responde isto porque e texto fixo,
+    nunca um numero que ela precisaria calcular: nao ha como chutar uma
+    instrucao, so descreve-la errado, e por isso ela vem de um lugar so
+    (este texto), igual a um numero vem de uma consulta so.
+
+    Pedido do Mateus: "pede pra Ana liberar lá o pessoal arrumar o ponto
+    qnd der algum erro" -- depois de PRs que deram a cada integrante o
+    Editar/Excluir de uma sessão e o "Lançar sessão" para quando o
+    sistema cai, faltava Ana saber contar isso pra quem perguntasse.
+    """
+    itens = [
+        {"rotulo": "Horário errado numa sessão já fechada",
+         "valor": "Em \"Minhas sessões\", clique em \"Editar\" na linha e corrija."},
+        {"rotulo": "Sessão duplicada ou claramente errada",
+         "valor": "Em \"Minhas sessões\", clique em \"Excluir\" na linha -- não se desfaz."},
+        {"rotulo": "Esqueceu de bater saída (sem nenhum sinal)",
+         "valor": ("Aparece o aviso \"Você esqueceu de bater saída\" -- escreva até"
+                    " que horas ficou.")},
+        {"rotulo": "O sistema caiu e a sessão nem chegou a abrir",
+         "valor": ("Clique em \"+ Lançar sessão que faltou registrar\" e preencha dia,"
+                    " entrada e saída.")},
+    ]
+    return {
+        "resposta": ("Dá para corrigir sozinho(a), direto na tela \"Meu ponto\", em"
+                     " \"Minhas sessões\" -- sem precisar da coordenação."),
+        "numero": None,
+        "itens": itens,
+        "colunas": ("Situação", "Como corrigir"),
+        "fonte": "instruções da própria tela -- não é uma consulta ao banco",
+    }
+
+
 # ----------------------------------------------------------------------
 # O que Ana sabe responder. Fora desta tabela, ela diz que nao sabe.
 # ----------------------------------------------------------------------
@@ -490,6 +524,17 @@ PERGUNTAS: tuple[dict[str, Any], ...] = (
         "grupos": (("pessoa", "pessoas", "integrante", "integrantes", "equipe",
                     "gente", "alunos", "orientandos", "membros"),),
         "responder": _equipe,
+    },
+    {
+        "code": "corrigir_ponto",
+        "exemplo": "como eu corrijo o ponto quando dá erro?",
+        "minimo": "integrante",
+        "grupos": (("ponto",),
+                   ("corrigir", "corrigi", "corrija", "arrumar", "arruma", "arrumo",
+                    "arrumei", "errado", "errada", "erro", "erros", "caiu", "cair",
+                    "caindo", "excluir", "apagar", "editar", "alterar", "lancar",
+                    "lancamento", "esqueci", "esqueceu")),
+        "responder": _corrigir_ponto,
     },
 )
 
