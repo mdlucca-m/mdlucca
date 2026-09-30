@@ -42,12 +42,13 @@ class BasePonto(unittest.TestCase):
 
     def sessao(self, dia, hora_ini, hora_fim, member_id=None, atividade="trabalho",
                project_id=None, article_id=None):
-        self.db.execute(
+        cursor = self.db.execute(
             "INSERT INTO ponto (member_id, entrada, saida, atividade, project_id, article_id)"
             " VALUES (?, ?, ?, ?, ?, ?)",
             (member_id or self.eu, f"{dia} {hora_ini}:00", f"{dia} {hora_fim}:00", atividade,
              project_id, article_id))
         self.db.conn.commit()
+        return cursor.lastrowid
 
     def esquecida(self, dia, hora_ini, hora_fim, member_id=None):
         """Sessao que o sistema fechou sozinho, com datas escolhidas.
@@ -400,6 +401,100 @@ class TestInformarSaidaDaSessaoSemSinal(BasePonto):
         ponto_id = self.db.scalar("SELECT id FROM ponto")
         resultado = ponto.informar_saida(self.db, self.eu, ponto_id, f"{hoje} 23:59:59")
         self.assertFalse(resultado["informou"])
+
+
+class TestEditarSessao(BasePonto):
+    """Pedido de quem usa "Minhas sessões" no WhatsApp: "acho que seria mais
+    fácil ajeitar logo aqui" -- corrigir o horário de uma sessão errada
+    direto na própria tabela, sem precisar da coordenação."""
+
+    def test_corrige_o_horario_de_uma_sessao_fechada(self):
+        hoje = date.today().isoformat()
+        ponto_id = self.sessao(hoje, "13:00", "13:05")
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=f"{hoje} 16:00:00")
+        self.assertTrue(resultado["editou"])
+        self.assertEqual(resultado["horas"], 3.0)
+        linha = ponto.historico(self.db, self.eu)[0]
+        self.assertEqual(str(linha["saida"]), f"{hoje} 16:00:00")
+        self.assertTrue(linha["conta"])
+
+    def test_corrige_tambem_a_atividade(self):
+        hoje = date.today().isoformat()
+        ponto_id = self.sessao(hoje, "13:00", "16:00", atividade="rascunho")
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, atividade="artigo revisado")
+        self.assertTrue(resultado["editou"])
+        linha = ponto.historico(self.db, self.eu)[0]
+        self.assertEqual(linha["atividade"], "artigo revisado")
+
+    def test_nao_deixa_editar_sessao_de_outra_pessoa(self):
+        hoje = date.today().isoformat()
+        ponto_id = self.sessao(hoje, "13:00", "16:00", member_id=self.outra)
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=f"{hoje} 18:00:00")
+        self.assertFalse(resultado["editou"])
+
+    def test_nao_deixa_editar_sessao_em_aberto(self):
+        self.aberta(f"{date.today().isoformat()} 09:00:00")
+        ponto_id = self.db.scalar("SELECT id FROM ponto")
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=_agora_str())
+        self.assertFalse(resultado["editou"])
+        self.assertIn("aberto", resultado["porque"])
+
+    def test_recusa_saida_antes_da_entrada(self):
+        hoje = date.today().isoformat()
+        ponto_id = self.sessao(hoje, "13:00", "16:00")
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=f"{hoje} 10:00:00")
+        self.assertFalse(resultado["editou"])
+
+    def test_recusa_horario_no_futuro(self):
+        hoje = date.today().isoformat()
+        ponto_id = self.sessao(hoje, "13:00", "16:00")
+        futuro = (datetime.now() + timedelta(days=1)).strftime(ponto.FORMATO)
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=futuro)
+        self.assertFalse(resultado["editou"])
+
+    def test_recusa_sessao_absurdamente_longa(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        ponto_id = self.sessao(ontem, "08:00", "09:00")
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=f"{ontem} 23:59:59")
+        self.assertFalse(resultado["editou"])
+
+    def test_sessao_inexistente_nao_edita(self):
+        resultado = ponto.editar_sessao(self.db, self.eu, 999999, saida=_agora_str())
+        self.assertFalse(resultado["editou"])
+
+
+class TestExcluirSessao(BasePonto):
+    """A outra metade do mesmo pedido: apagar a sessão "poucos segundos"
+    duplicada em vez de só corrigir o horário dela."""
+
+    def test_apaga_a_sessao_fechada(self):
+        hoje = date.today().isoformat()
+        ponto_id = self.sessao(hoje, "13:34", "13:34")
+        resultado = ponto.excluir_sessao(self.db, self.eu, ponto_id)
+        self.assertTrue(resultado["excluiu"])
+        self.assertEqual(ponto.historico(self.db, self.eu), [])
+
+    def test_nao_deixa_excluir_sessao_de_outra_pessoa(self):
+        hoje = date.today().isoformat()
+        ponto_id = self.sessao(hoje, "13:00", "16:00", member_id=self.outra)
+        resultado = ponto.excluir_sessao(self.db, self.eu, ponto_id)
+        self.assertFalse(resultado["excluiu"])
+        self.assertEqual(len(ponto.historico(self.db, self.outra)), 1)
+
+    def test_nao_deixa_excluir_sessao_em_aberto(self):
+        self.aberta(f"{date.today().isoformat()} 09:00:00")
+        ponto_id = self.db.scalar("SELECT id FROM ponto")
+        resultado = ponto.excluir_sessao(self.db, self.eu, ponto_id)
+        self.assertFalse(resultado["excluiu"])
+        self.assertIsNotNone(ponto.aberto(self.db, self.eu))
+
+    def test_sessao_inexistente_nao_exclui(self):
+        resultado = ponto.excluir_sessao(self.db, self.eu, 999999)
+        self.assertFalse(resultado["excluiu"])
+
+
+def _agora_str():
+    return datetime.now().strftime(ponto.FORMATO)
 
 
 class TestReinicioRapidoDaAtualizacao(BasePonto):
@@ -1020,6 +1115,36 @@ class TestRotasDoPonto(unittest.TestCase):
 
         _, depois = self.chamar("/api/ponto", self.bento)
         self.assertEqual(depois["pendentes_sem_sinal"], [])
+
+    def test_a_rota_edita_e_a_rota_exclui_a_propria_sessao(self):
+        db = Database(self.db_path)
+        member_id = db.scalar("SELECT id FROM members WHERE full_name = 'Bento Lima'")
+        hoje = date.today().isoformat()
+        db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida, atividade)"
+            " VALUES (?, ?, ?, 'rascunho')", (member_id, f"{hoje} 13:34:00", f"{hoje} 13:34:00"))
+        db.conn.commit()
+        ponto_id = db.scalar("SELECT id FROM ponto WHERE member_id = ?", (member_id,))
+        db.close()
+
+        status, editado = self.chamar(
+            "/api/ponto/editar", self.bento, "POST",
+            {"ponto_id": ponto_id, "saida": f"{hoje} 16:00:00", "atividade": "artigo revisado"})
+        self.assertEqual(status, 200)
+        self.assertTrue(editado["editou"])
+        self.assertEqual(editado["horas"], 2.43)
+
+        _, dados = self.chamar("/api/ponto", self.bento)
+        linha = next(x for x in dados["historico"] if x["id"] == ponto_id)
+        self.assertEqual(linha["atividade"], "artigo revisado")
+
+        status, excluido = self.chamar(
+            "/api/ponto/excluir", self.bento, "POST", {"ponto_id": ponto_id})
+        self.assertEqual(status, 200)
+        self.assertTrue(excluido["excluiu"])
+
+        _, depois = self.chamar("/api/ponto", self.bento)
+        self.assertNotIn(ponto_id, [x["id"] for x in depois["historico"]])
 
     def test_banco_de_horas_so_aparece_para_quem_tem_carga_obrigatoria(self):
         db = Database(self.db_path)

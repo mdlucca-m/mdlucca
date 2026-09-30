@@ -353,6 +353,66 @@ def anotar(db: Database, member_id: int, atividade: Any) -> dict[str, Any]:
     return {"anotou": True}
 
 
+def _sessao_da_pessoa(db: Database, member_id: int, ponto_id: int) -> dict[str, Any] | None:
+    linhas = db.dicts("SELECT id, entrada, saida, member_id FROM ponto WHERE id = ?", (ponto_id,))
+    if not linhas or linhas[0]["member_id"] != member_id:
+        return None
+    return linhas[0]
+
+
+def editar_sessao(db: Database, member_id: int, ponto_id: int,
+                  entrada: Any = None, saida: Any = None,
+                  atividade: Any = None) -> dict[str, Any]:
+    """A propria pessoa corrige o horario de uma sessao ja fechada.
+
+    So sessao FECHADA se deixa corrigir por aqui: a que esta aberta e o
+    que a tela de bater ponto esta olhando agora (sair/informar_saida
+    cuidam dela), e reescrever por baixo colidiria com esse fluxo ao vivo.
+    """
+    linha = _sessao_da_pessoa(db, member_id, ponto_id)
+    if linha is None:
+        return {"editou": False, "porque": "sessão não encontrada"}
+    if linha["saida"] is None:
+        return {"editou": False,
+                 "porque": "sessão em aberto não se corrige por aqui — encerre-a primeiro"}
+    entrada_txt = str(entrada)[:19] if entrada is not None else str(linha["entrada"])[:19]
+    saida_txt = str(saida)[:19] if saida is not None else str(linha["saida"])[:19]
+    horas = duracao_horas(entrada_txt, saida_txt)
+    if horas is None:
+        return {"editou": False, "porque": "a saída precisa vir depois da entrada"}
+    agora_dt = datetime.now()
+    if _ler(entrada_txt) is None or _ler(saida_txt) is None:
+        return {"editou": False, "porque": "horário inválido"}
+    if _ler(entrada_txt) > agora_dt or _ler(saida_txt) > agora_dt:
+        return {"editou": False, "porque": "esse horário ainda não aconteceu"}
+    if horas > LIMITE_HORAS:
+        return {"editou": False,
+                 "porque": f"mais de {LIMITE_HORAS}h numa sessão só -- confira o horário"}
+    db.execute(
+        "UPDATE ponto SET entrada = ?, saida = ?,"
+        " atividade = COALESCE(?, atividade) WHERE id = ?",
+        (entrada_txt, saida_txt,
+         clean_text(atividade) if atividade is not None else None, ponto_id))
+    db.conn.commit()
+    return {"editou": True, "horas": round(horas, 2)}
+
+
+def excluir_sessao(db: Database, member_id: int, ponto_id: int) -> dict[str, Any]:
+    """A propria pessoa apaga uma sessao duplicada ou claramente errada.
+
+    Mesma trava de `editar_sessao`: so sessao FECHADA se apaga por aqui --
+    a aberta e a que o fluxo de bater ponto esta usando agora.
+    """
+    linha = _sessao_da_pessoa(db, member_id, ponto_id)
+    if linha is None:
+        return {"excluiu": False, "porque": "sessão não encontrada"}
+    if linha["saida"] is None:
+        return {"excluiu": False, "porque": "sessão em aberto não se apaga por aqui"}
+    db.execute("DELETE FROM ponto WHERE id = ?", (ponto_id,))
+    db.conn.commit()
+    return {"excluiu": True}
+
+
 # ----------------------------------------------------------------------
 # O que esta acontecendo agora
 # ----------------------------------------------------------------------

@@ -2314,6 +2314,28 @@ def route_ponto_anotar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_ponto_editar(ctx: "Context") -> Any:
+    """A própria pessoa corrige o horário de uma sessão já fechada, direto
+    em "Minhas sessões" — ver `ponto.editar_sessao`."""
+    corpo = ctx.body or {}
+    ponto_id = to_int(corpo.get("ponto_id"))
+    if not ponto_id:
+        raise ApiError(400, "ponto_id é obrigatório")
+    return ponto.editar_sessao(ctx.db, _eu(ctx), ponto_id,
+                               entrada=corpo.get("entrada"), saida=corpo.get("saida"),
+                               atividade=corpo.get("atividade"))
+
+
+def route_ponto_excluir(ctx: "Context") -> Any:
+    """A própria pessoa apaga uma sessão duplicada ou errada — ver
+    `ponto.excluir_sessao`."""
+    corpo = ctx.body or {}
+    ponto_id = to_int(corpo.get("ponto_id"))
+    if not ponto_id:
+        raise ApiError(400, "ponto_id é obrigatório")
+    return ponto.excluir_sessao(ctx.db, _eu(ctx), ponto_id)
+
+
 def _avisar_ponto(ctx: "Context", evento: str, detalhe: Any) -> None:
     """O quadro do que esta acontecendo se redesenha sozinho nas outras telas."""
     from . import hooks
@@ -3002,6 +3024,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/ponto/presente/?$", route_ponto_presente, "integrante"),
     ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
     ("POST", r"^/api/ponto/informar-saida/?$", route_ponto_informar_saida, "integrante"),
+    ("POST", r"^/api/ponto/editar/?$", route_ponto_editar, "integrante"),
+    ("POST", r"^/api/ponto/excluir/?$", route_ponto_excluir, "integrante"),
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
     ("GET", r"^/api/painel/pessoas/?$", route_painel_pessoas, "coordenacao"),
     ("GET", r"^/api/ponto/analytics/?$", route_ponto_analytics, "coordenacao"),

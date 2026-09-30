@@ -4305,38 +4305,113 @@ VIEWS.ponto = {
     /* ---- as sessões, para conferir e corrigir ---- */
     const tabela = h("table", {});
     tabela.appendChild(h("thead", {}, h("tr", {}, ["Dia", "Entrada", "Saída", "Duração",
-      "O que fez"].map(function (t){ return h("th", {text: t}); }))));
+      "O que fez", "Ações"].map(function (t){ return h("th", {text: t}); }))));
     const tbody = h("tbody");
-    d.historico.forEach(function (x){
-      tbody.appendChild(h("tr", {}, [
-        h("td", {text: String(x.entrada).slice(0, 10)}),
-        h("td", {text: String(x.entrada).slice(11, 16)}),
-        h("td", {text: x.saida ? String(x.saida).slice(11, 16) : "em aberto"}),
+
+    /* Linha de sessão fechada: "Editar" troca entrada/saída/atividade por
+       campos, sem sair da tabela -- a pessoa está justamente olhando as
+       outras sessões ao lado para saber qual horário é o certo. Só o
+       horário do dia se edita (a data continua a mesma), o bastante para
+       os erros reais: hora errada, ou uma "estimada" curta demais.
+       Sessão em aberto (saída "em aberto") não ganha ações -- é a que a
+       tela de bater ponto está usando agora. */
+    function linhaSessao(x){
+      const dia = String(x.entrada).slice(0, 10);
+      if (!x.saida){
+        return h("tr", {}, [
+          h("td", {text: dia}), h("td", {text: String(x.entrada).slice(11, 16)}),
+          h("td", {text: "em aberto"}), h("td", {text: "—"}),
+          h("td", {text: x.atividade || "—"}), h("td", {text: "—"}),
+        ]);
+      }
+      const tr = h("tr", {});
+      function modoLeitura(){
+        while (tr.firstChild) tr.removeChild(tr.firstChild);
+        tr.appendChild(h("td", {text: dia}));
+        tr.appendChild(h("td", {text: String(x.entrada).slice(11, 16)}));
+        tr.appendChild(h("td", {text: String(x.saida).slice(11, 16)}));
         /* Sessão que o sistema fechou sozinho mostra a hora COM a marca de
            estimativa. Antes dizia só "não medida" e valia zero -- uma tarde
            inteira de trabalho cortada por falta de luz desaparecia da conta
            sem que nada na tela dissesse que ela existiu. */
-        h("td", {}, x.estimado
+        tr.appendChild(h("td", {}, x.estimado
           ? [h("span", {text: horasTexto(x.horas)}),
              h("small", {class: "hint", style: "margin-left:6px", text: "estimada"})]
           : [h("span", {text: x.horas ? horasTexto(x.horas)
-              : (x.fechado_sozinho ? "sem sinal" : "—")})]),
-        h("td", {text: x.atividade || "—"}),
-      ]));
-    });
+              : (x.fechado_sozinho ? "sem sinal" : "—")})]));
+        tr.appendChild(h("td", {text: x.atividade || "—"}));
+        const editar = h("button", {class: "ghost", text: "Editar"});
+        const excluir = h("button", {class: "ghost", style: "margin-left:6px", text: "Excluir"});
+        editar.onclick = modoEdicao;
+        excluir.onclick = async function (){
+          if (!confirm("Excluir a sessão de " + dia + " ("
+              + String(x.entrada).slice(11, 16) + " às "
+              + String(x.saida).slice(11, 16) + ")?\n\nIsto não se desfaz.")) return;
+          excluir.disabled = true;
+          try {
+            const r = await api("/api/ponto/excluir", "POST", {ponto_id: x.id});
+            if (r.excluiu) { toast("Sessão excluída."); await show("ponto"); }
+            else { toast(r.porque, "erro"); excluir.disabled = false; }
+          } catch (e){ toast(e.message, "erro"); excluir.disabled = false; }
+        };
+        tr.appendChild(h("td", {style: "white-space:nowrap"}, [editar, excluir]));
+      }
+      function modoEdicao(){
+        while (tr.firstChild) tr.removeChild(tr.firstChild);
+        const entradaInput = h("input", {type: "text", value: String(x.entrada).slice(11, 16),
+          placeholder: "HH:MM", style: "width:70px"});
+        const saidaInput = h("input", {type: "text", value: String(x.saida).slice(11, 16),
+          placeholder: "HH:MM", style: "width:70px"});
+        const atividadeInput = h("input", {type: "text", value: x.atividade || "",
+          placeholder: "o que fez", style: "width:100%"});
+        tr.appendChild(h("td", {text: dia}));
+        tr.appendChild(h("td", {}, entradaInput));
+        tr.appendChild(h("td", {}, saidaInput));
+        tr.appendChild(h("td", {text: "—"}));
+        tr.appendChild(h("td", {}, atividadeInput));
+        const salvar = h("button", {class: "ghost", text: "Salvar"});
+        const cancelar = h("button", {class: "ghost", style: "margin-left:6px", text: "Cancelar"});
+        cancelar.onclick = modoLeitura;
+        salvar.onclick = async function (){
+          const hhmm = /^\d{1,2}:\d{2}$/;
+          if (!hhmm.test(entradaInput.value.trim()) || !hhmm.test(saidaInput.value.trim())){
+            toast("Escreve a hora como HH:MM", "erro"); return;
+          }
+          const [eh, em] = entradaInput.value.trim().split(":");
+          const [sh, sm] = saidaInput.value.trim().split(":");
+          salvar.disabled = true;
+          try {
+            const r = await api("/api/ponto/editar", "POST", {
+              ponto_id: x.id,
+              entrada: dia + " " + eh.padStart(2, "0") + ":" + em.padStart(2, "0") + ":00",
+              saida: dia + " " + sh.padStart(2, "0") + ":" + sm.padStart(2, "0") + ":00",
+              atividade: atividadeInput.value,
+            });
+            if (r.editou) { toast("Sessão corrigida: " + horasTexto(r.horas) + "."); await show("ponto"); }
+            else { toast(r.porque, "erro"); salvar.disabled = false; }
+          } catch (e){ toast(e.message, "erro"); salvar.disabled = false; }
+        };
+        tr.appendChild(h("td", {style: "white-space:nowrap"}, [salvar, cancelar]));
+      }
+      modoLeitura();
+      return tr;
+    }
+    d.historico.forEach(function (x){ tbody.appendChild(linhaSessao(x)); });
     tabela.appendChild(tbody);
     const temEstimada = d.historico.some(function (x){ return x.estimado; });
     VIEW.appendChild(h("div", {class: "card sec"}, [
       h("h3", {}, [Icons.get("dados", 16), h("span", {text: "Minhas sessões"})]),
       h("div", {class: "tw"}, tabela),
-      h("p", {class: "hint", text: temEstimada
+      h("p", {class: "hint", text: (temEstimada
         ? "\"Estimada\" é sessão que você não encerrou e o sistema fechou no último "
           + "minuto em que soube que você ainda estava aqui — foi assim que a tarde "
           + "interrompida pela falta de luz não virou zero. Conta nas somas, e dá "
-          + "para corrigir à mão se o horário não estiver certo."
+          + "para corrigir com \"Editar\" se o horário não estiver certo."
         : "Sessão que você não encerrar é fechada pelo sistema no último minuto em "
           + "que ele soube que você ainda estava aqui, e aparece marcada como "
-          + "estimada."}),
+          + "estimada.")
+        + " \"Excluir\" apaga uma sessão duplicada ou claramente errada -- só "
+          + "vale para sessão já fechada, e não se desfaz."}),
     ]));
   },
 };
