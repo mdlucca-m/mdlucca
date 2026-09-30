@@ -353,6 +353,48 @@ def anotar(db: Database, member_id: int, atividade: Any) -> dict[str, Any]:
     return {"anotou": True}
 
 
+def lancar_sessao(db: Database, member_id: int, dia: Any,
+                  entrada_hhmm: Any, saida_hhmm: Any,
+                  atividade: Any = None) -> dict[str, Any]:
+    """A propria pessoa registra uma sessao que o sistema nunca chegou a
+    abrir -- o caso da internet caindo antes de dar tempo de bater
+    entrada, e so voltando depois que a pessoa ja foi embora. Sem isto,
+    um dia inteiro de trabalho ficava sem NENHUMA linha no ponto, porque
+    `entrar`/`sair` precisam do sistema no ar para existir.
+
+    Mesma logica de `editar_sessao`: so sessao de quem esta lançando, e
+    as mesmas travas de horario (saida depois da entrada, nada no
+    futuro, nada acima de LIMITE_HORAS, nada abaixo de MINIMO_MINUTOS --
+    um lançamento de poucos segundos é erro de digitação, não sessão).
+    """
+    dia_txt = str(dia or "")[:10]
+    if _ler(f"{dia_txt} 00:00:00") is None:
+        return {"lancou": False, "porque": "data inválida"}
+    entrada_txt = f"{dia_txt} {str(entrada_hhmm or '')[:5]}:00"
+    saida_txt = f"{dia_txt} {str(saida_hhmm or '')[:5]}:00"
+    horas = duracao_horas(entrada_txt, saida_txt)
+    if _ler(entrada_txt) is None or _ler(saida_txt) is None:
+        return {"lancou": False, "porque": "horário inválido"}
+    if horas is None:
+        return {"lancou": False, "porque": "a saída precisa vir depois da entrada"}
+    agora_dt = datetime.now()
+    if _ler(entrada_txt) > agora_dt or _ler(saida_txt) > agora_dt:
+        return {"lancou": False, "porque": "esse horário ainda não aconteceu"}
+    if horas * 60 < MINIMO_MINUTOS:
+        return {"lancou": False,
+                 "porque": f"menos de {MINIMO_MINUTOS} minutos não é sessão -- confira o horário"}
+    if horas > LIMITE_HORAS:
+        return {"lancou": False,
+                 "porque": f"mais de {LIMITE_HORAS}h numa sessão só -- confira o horário"}
+    nota = f"sessão lançada manualmente pela própria pessoa em {_agora()} (sistema fora do ar)"
+    ponto_id = db.execute(
+        "INSERT INTO ponto (member_id, entrada, saida, atividade, observacao)"
+        " VALUES (?, ?, ?, ?, ?)",
+        (member_id, entrada_txt, saida_txt, clean_text(atividade), nota)).lastrowid
+    db.conn.commit()
+    return {"lancou": True, "id": ponto_id, "horas": round(horas, 2)}
+
+
 def _sessao_da_pessoa(db: Database, member_id: int, ponto_id: int) -> dict[str, Any] | None:
     linhas = db.dicts("SELECT id, entrada, saida, member_id FROM ponto WHERE id = ?", (ponto_id,))
     if not linhas or linhas[0]["member_id"] != member_id:

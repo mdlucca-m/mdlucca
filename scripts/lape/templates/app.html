@@ -4413,6 +4413,67 @@ VIEWS.ponto = {
         + " \"Excluir\" apaga uma sessão duplicada ou claramente errada -- só "
           + "vale para sessão já fechada, e não se desfaz."}),
     ]));
+
+    /* ---- o sistema caiu e uma sessão inteira nunca chegou a abrir ---- */
+    /* `entrar`/`sair` precisam do sistema no ar para existir -- se a
+       internet caiu antes de dar tempo de bater entrada e só voltou
+       depois que a pessoa já tinha ido embora, aquele dia fica sem
+       NENHUMA linha no ponto. "Editar" não serve aqui: não há o que
+       editar, é preciso lançar a sessão do zero. */
+    const cartaoLancar = h("div", {class: "card sec"});
+    const abrirLancar = h("button", {class: "ghost", text: "+ Lançar sessão que faltou registrar"});
+    cartaoLancar.appendChild(h("h3", {}, [Icons.get("relogio", 16),
+      h("span", {text: "O sistema caiu e uma sessão não chegou a ser registrada?"})]));
+    cartaoLancar.appendChild(h("p", {class: "hint", text:
+      "Pra quando a internet ou o sistema caiu e você nem chegou a bater entrada -- "
+      + "\"das 12 às 18\", por exemplo. É a sua palavra, então entra exatamente como "
+      + "você escrever, e conta nas horas como qualquer outra sessão."}));
+    cartaoLancar.appendChild(abrirLancar);
+    const formLancar = h("div", {class: "acao-ponto", style: "display:none;margin-top:10px"});
+    /* Data local, não UTC -- a mesma regra de `_agora()` no servidor: quem
+       lança uma sessão perto da meia-noite quer ver o próprio dia, não o
+       de Greenwich. */
+    const hojeLocalFn = function (){
+      const agr = new Date();
+      return agr.getFullYear() + "-" + String(agr.getMonth() + 1).padStart(2, "0")
+        + "-" + String(agr.getDate()).padStart(2, "0");
+    };
+    const diaInput = h("input", {type: "date", value: hojeLocalFn(), max: hojeLocalFn()});
+    const entradaLancarInput = h("input", {type: "text", placeholder: "entrada HH:MM", style: "width:110px"});
+    const saidaLancarInput = h("input", {type: "text", placeholder: "saída HH:MM", style: "width:110px"});
+    const atividadeLancarInput = h("input", {type: "text", placeholder: "o que fez (opcional)"});
+    const registrar = h("button", {class: "ghost", text: "Registrar"});
+    const cancelarLancar = h("button", {class: "ghost", text: "Cancelar"});
+    abrirLancar.onclick = function (){
+      formLancar.style.display = "flex"; abrirLancar.style.display = "none";
+    };
+    cancelarLancar.onclick = function (){
+      formLancar.style.display = "none"; abrirLancar.style.display = "";
+    };
+    registrar.onclick = async function (){
+      const hhmm = /^\d{1,2}:\d{2}$/;
+      if (!diaInput.value){ toast("Escolhe o dia", "erro"); return; }
+      if (!hhmm.test(entradaLancarInput.value.trim()) || !hhmm.test(saidaLancarInput.value.trim())){
+        toast("Escreve a hora como HH:MM", "erro"); return;
+      }
+      registrar.disabled = true;
+      try {
+        const r = await api("/api/ponto/lancar", "POST", {
+          dia: diaInput.value, entrada: entradaLancarInput.value.trim(),
+          saida: saidaLancarInput.value.trim(), atividade: atividadeLancarInput.value,
+        });
+        if (r.lancou) { toast("Sessão registrada: " + horasTexto(r.horas) + "."); await show("ponto"); }
+        else { toast(r.porque, "erro"); registrar.disabled = false; }
+      } catch (e){ toast(e.message, "erro"); registrar.disabled = false; }
+    };
+    formLancar.appendChild(diaInput);
+    formLancar.appendChild(entradaLancarInput);
+    formLancar.appendChild(saidaLancarInput);
+    formLancar.appendChild(atividadeLancarInput);
+    formLancar.appendChild(registrar);
+    formLancar.appendChild(cancelarLancar);
+    cartaoLancar.appendChild(formLancar);
+    VIEW.appendChild(cartaoLancar);
   },
 };
 

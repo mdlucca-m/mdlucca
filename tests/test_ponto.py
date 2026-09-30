@@ -493,6 +493,60 @@ class TestExcluirSessao(BasePonto):
         self.assertFalse(resultado["excluiu"])
 
 
+class TestLancarSessao(BasePonto):
+    """Pedido do Mateus: "criar a opção que o usuário possa corrigir o
+    ponto quando o sistema cai... ex: caiu a internet, fiquei das 12 às
+    18... corrigir manual e somar as horas". Diferente de editar_sessao
+    (que corrige uma linha que já existe), aqui não existe linha nenhuma
+    -- o sistema nunca chegou a estar no ar para `entrar` gravar algo."""
+
+    def test_registra_uma_sessao_do_zero(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        resultado = ponto.lancar_sessao(self.db, self.eu, ontem, "12:00", "18:00",
+                                        atividade="internet caiu")
+        self.assertTrue(resultado["lancou"])
+        self.assertEqual(resultado["horas"], 6.0)
+        linha = ponto.historico(self.db, self.eu)[0]
+        self.assertEqual(linha["atividade"], "internet caiu")
+        self.assertTrue(linha["conta"])
+        self.assertFalse(linha["estimado"])  # é a palavra da pessoa, não um chute do sistema
+        self.assertIn("lançada manualmente", linha["observacao"])
+
+    def test_a_atividade_e_opcional(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        resultado = ponto.lancar_sessao(self.db, self.eu, ontem, "12:00", "18:00")
+        self.assertTrue(resultado["lancou"])
+
+    def test_recusa_saida_antes_ou_igual_a_entrada(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        resultado = ponto.lancar_sessao(self.db, self.eu, ontem, "18:00", "12:00")
+        self.assertFalse(resultado["lancou"])
+
+    def test_recusa_data_invalida(self):
+        resultado = ponto.lancar_sessao(self.db, self.eu, "32/13", "12:00", "18:00")
+        self.assertFalse(resultado["lancou"])
+
+    def test_recusa_horario_no_futuro(self):
+        amanha = (date.today() + timedelta(days=1)).isoformat()
+        resultado = ponto.lancar_sessao(self.db, self.eu, amanha, "12:00", "18:00")
+        self.assertFalse(resultado["lancou"])
+
+    def test_recusa_sessao_absurdamente_longa(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        resultado = ponto.lancar_sessao(self.db, self.eu, ontem, "00:00", "23:59")
+        self.assertFalse(resultado["lancou"])
+
+    def test_recusa_sessao_de_poucos_segundos(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        resultado = ponto.lancar_sessao(self.db, self.eu, ontem, "12:00", "12:01")
+        self.assertFalse(resultado["lancou"])
+
+    def test_nao_mistura_com_a_sessao_de_outra_pessoa(self):
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        ponto.lancar_sessao(self.db, self.eu, ontem, "12:00", "18:00")
+        self.assertEqual(ponto.historico(self.db, self.outra), [])
+
+
 def _agora_str():
     return datetime.now().strftime(ponto.FORMATO)
 
@@ -1145,6 +1199,29 @@ class TestRotasDoPonto(unittest.TestCase):
 
         _, depois = self.chamar("/api/ponto", self.bento)
         self.assertNotIn(ponto_id, [x["id"] for x in depois["historico"]])
+
+    def test_a_rota_lanca_uma_sessao_que_o_sistema_nao_chegou_a_abrir(self):
+        # a classe compartilha o banco entre todos os testes (setUpClass,
+        # não setUp) -- por isso a sessão lançada aqui é apagada no fim,
+        # para não vazar hora nenhuma para os testes vizinhos que também
+        # olham o histórico ou o por_atividade de bento
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        status, lancado = self.chamar(
+            "/api/ponto/lancar", self.bento, "POST",
+            {"dia": ontem, "entrada": "12:00", "saida": "18:00", "atividade": "internet caiu"})
+        self.assertEqual(status, 200)
+        self.assertTrue(lancado["lancou"])
+        self.assertEqual(lancado["horas"], 6.0)
+
+        _, dados = self.chamar("/api/ponto", self.bento)
+        linha = next(x for x in dados["historico"] if x["id"] == lancado["id"])
+        self.assertEqual(linha["atividade"], "internet caiu")
+        self.assertTrue(linha["conta"])
+
+        status, excluido = self.chamar(
+            "/api/ponto/excluir", self.bento, "POST", {"ponto_id": lancado["id"]})
+        self.assertEqual(status, 200)
+        self.assertTrue(excluido["excluiu"])
 
     def test_banco_de_horas_so_aparece_para_quem_tem_carga_obrigatoria(self):
         db = Database(self.db_path)

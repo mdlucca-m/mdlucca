@@ -2314,6 +2314,16 @@ def route_ponto_anotar(ctx: "Context") -> Any:
     return resultado
 
 
+def route_ponto_lancar(ctx: "Context") -> Any:
+    """A própria pessoa registra uma sessão que o sistema nunca chegou a
+    abrir — sistema fora do ar na hora de bater entrada — ver
+    `ponto.lancar_sessao`."""
+    corpo = ctx.body or {}
+    return ponto.lancar_sessao(ctx.db, _eu(ctx), corpo.get("dia"),
+                               corpo.get("entrada"), corpo.get("saida"),
+                               atividade=corpo.get("atividade"))
+
+
 def route_ponto_editar(ctx: "Context") -> Any:
     """A própria pessoa corrige o horário de uma sessão já fechada, direto
     em "Minhas sessões" — ver `ponto.editar_sessao`."""
@@ -3024,6 +3034,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/ponto/presente/?$", route_ponto_presente, "integrante"),
     ("POST", r"^/api/ponto/anotar/?$", route_ponto_anotar, "integrante"),
     ("POST", r"^/api/ponto/informar-saida/?$", route_ponto_informar_saida, "integrante"),
+    ("POST", r"^/api/ponto/lancar/?$", route_ponto_lancar, "integrante"),
     ("POST", r"^/api/ponto/editar/?$", route_ponto_editar, "integrante"),
     ("POST", r"^/api/ponto/excluir/?$", route_ponto_excluir, "integrante"),
     ("GET", r"^/api/ponto/equipe/?$", route_ponto_equipe, "coordenacao"),
