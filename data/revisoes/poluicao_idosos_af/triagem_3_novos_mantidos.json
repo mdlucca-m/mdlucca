@@ -1,0 +1,38 @@
+[
+  {
+    "pmid": "41092758",
+    "autor": "Doubleday A. (2025)",
+    "ano": 2025,
+    "revista": "Environment International",
+    "populacao": "5.305 idosos (coorte Adult Changes in Thought, Puget Sound, EUA, 1994-2020)",
+    "poluentes": "poluentes de tráfego: black carbon, NO2, partículas ultrafinas (UFP)",
+    "tipoAf": "desempenho físico objetivo (Short Physical Performance Battery: marcha, preensão manual, levantar da cadeira)",
+    "achado": "Negative",
+    "achadoTexto": "Maior exposição de longo prazo a black carbon e NO2 de origem veicular associou-se a declínio mais rápido no desempenho físico ao longo do tempo, equivalente a até 2,6 meses de envelhecimento funcional adicional em 5 anos; exposição a partículas ultrafinas não mostrou associação.",
+    "doi": "10.1016/j.envint.2025.109850"
+  },
+  {
+    "pmid": "38237751",
+    "autor": "Josa-Culleré A. (2024)",
+    "ano": 2024,
+    "revista": "Environmental Research",
+    "populacao": "408 pacientes com DPOC, idade média 68±9 anos (Catalunha, Espanha)",
+    "poluentes": "NO2, PM10, black carbon (absorbância de PM10)",
+    "tipoAf": "passos diários, tempo em atividade moderada a vigorosa (MVPA), intensidade de locomoção, tempo sedentário (monitor Dynaport MoveMonitor)",
+    "achado": "Negative",
+    "achadoTexto": "Níveis mais altos de NO2, PM10 e black carbon no dia anterior associaram-se a menos passos, menos tempo em MVPA e mais tempo sedentário nos dias seguintes em pacientes com DPOC; temperatura mais alta, ao contrário, associou-se a mais atividade física no mesmo dia.",
+    "doi": "10.1016/j.envres.2024.118195"
+  },
+  {
+    "pmid": "39425159",
+    "autor": "Park H. (2024)",
+    "ano": 2024,
+    "revista": "Environmental Health",
+    "populacao": "1.856 idosos, idade média 70,9 anos (Coreia do Sul)",
+    "poluentes": "PM10, PM2.5, NO2",
+    "tipoAf": "nível de atividade física (METs), manutenção de atividade moderada a vigorosa entre avaliações",
+    "achado": "Ambiguous",
+    "achadoTexto": "Exposição a PM10, PM2.5 e NO2 associou-se a piora de indicadores glicêmicos (glicose de jejum, HbA1c, insulina, HOMA-IR); manter atividade física moderada a vigorosa atenuou esse efeito adverso, mas o benefício desapareceu acima de um limiar de aumento de METs (>12.000-13.500 MET-min/semana).",
+    "doi": "10.1186/s12940-024-01125-8"
+  }
+]
