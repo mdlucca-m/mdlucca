@@ -212,6 +212,41 @@ class TestQuemOrienta(BaseDaAna):
         self.assertEqual(r["intencao"], "equipe")
 
 
+class TestComoCorrigirOPonto(BaseDaAna):
+    """`_corrigir_ponto` -- pedido explícito do Mateus: "pede pra Ana
+    liberar lá o pessoal arrumar o ponto qnd der algum erro". Não é uma
+    consulta ao banco (não há número para chutar nem para acertar), é a
+    instrução de como usar o Editar/Excluir/Lançar que já existem na
+    tela "Meu ponto"."""
+
+    def test_explica_como_corrigir(self):
+        r = self.perguntar("como eu corrijo o ponto quando dá erro?", perfil="integrante")
+        self.assertEqual(r["intencao"], "corrigir_ponto")
+        self.assertIn("Minhas sessões", r["resposta"])
+        self.assertEqual(len(r["itens"]), 4)
+        self.assertIsNone(r["numero"])  # instrução, não é uma contagem
+
+    def test_varias_frases_do_pedido_disparam_a_mesma_intencao(self):
+        for frase in ("a internet caiu, perdi meu ponto, como arrumo isso?",
+                      "esqueci de bater ponto, como corrijo?",
+                      "meu ponto está errado, dá pra editar?"):
+            with self.subTest(frase=frase):
+                r = self.perguntar(frase, perfil="integrante")
+                self.assertEqual(r["intencao"], "corrigir_ponto")
+
+    def test_quem_so_tem_leitura_e_recusado_nao_respondido_pela_metade(self):
+        r = self.perguntar("como eu corrijo o ponto quando dá erro?", perfil="leitura")
+        self.assertTrue(r["entendi"])
+        self.assertTrue(r.get("negado"))
+        self.assertEqual(r["itens"], [])
+
+    def test_nao_colide_com_a_pergunta_de_artigos_parados(self):
+        """A palavra "ponto" não pode roubar uma pergunta sobre artigos
+        parados só porque ela também fala em "atrasado"/"travado"."""
+        r = self.perguntar("quais artigos estão parados?", perfil="integrante")
+        self.assertEqual(r["intencao"], "parados")
+
+
 class TestOQueAnaNaoFaz(BaseDaAna):
     """A parte que importa: ela não inventa, e não vaza."""
 
