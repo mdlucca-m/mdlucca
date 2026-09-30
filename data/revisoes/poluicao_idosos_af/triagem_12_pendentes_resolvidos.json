@@ -1,0 +1,122 @@
+[
+  {
+    "pmid": "41092758",
+    "doi": "10.1016/j.envint.2025.109850",
+    "titulo": "Traffic-related air pollutant exposure and physical performance in the Adult Changes in Thought cohort.",
+    "autor": "Doubleday A.",
+    "ano": 2025,
+    "revista": "Environment International",
+    "dec": "manter",
+    "motivo": "Coorte ACT de idosos (Puget Sound, EUA), poluentes de tráfego (black carbon, NO2, partículas ultrafinas) como exposição central, desempenho físico (SPPB: marcha, preensão, levantar da cadeira) como desfecho central - atende PECOS diretamente."
+  },
+  {
+    "pmid": "40662517",
+    "doi": "10.1093/eurjpc/zwaf423",
+    "titulo": "Associations of residential green space and natural environment with heart failure: the mediating effect of air pollution and physical activity.",
+    "autor": "Tang X.L.",
+    "ano": 2025,
+    "revista": "European Journal of Preventive Cardiology",
+    "dec": "excluir",
+    "motivo": "Exposição central é espaço verde residencial, não poluição do ar; PM2.5 e atividade física entram só como mediadores parciais de uma associação cujo foco é ambiente natural, sem interação AF x poluição como pergunta central."
+  },
+  {
+    "pmid": "40634465",
+    "doi": "10.1038/s41598-025-09341-z",
+    "titulo": "Physical activity in the relationship between multiple air pollutants exposure and risk of hypertension: a prospective cohort study in China.",
+    "autor": "Chen Y.",
+    "ano": 2025,
+    "revista": "Scientific Reports",
+    "dec": "incerto",
+    "motivo": "Atividade física como modificador de efeito central e múltiplos poluentes como exposição central, desfecho de hipertensão - atende exposição/desfecho, mas o resumo não informa faixa etária nem confirma população predominantemente idosa (\"adultos chineses\" genérico)."
+  },
+  {
+    "pmid": "40847357",
+    "doi": "10.1186/s12916-025-04338-x",
+    "titulo": "Physical activity, air pollution, and incident long-term conditions: a prospective cohort study.",
+    "autor": "Huang M.",
+    "ano": 2025,
+    "revista": "BMC Medicine",
+    "dec": "incerto",
+    "motivo": "UK Biobank, interação AF x poluição do ar testada diretamente sobre mortalidade e doenças crônicas incidentes - atende exposição/desfecho, mas a coorte é de adultos em geral (recrutados dos 40 aos 69 anos), sem recorte ou subanalise exclusiva de idosos no resumo."
+  },
+  {
+    "pmid": "38237751",
+    "doi": "10.1016/j.envres.2024.118195",
+    "titulo": "Short-term effects of air pollution and weather on physical activity in patients with chronic obstructive pulmonary disease (COPD).",
+    "autor": "Josa-Culleré A.",
+    "ano": 2024,
+    "revista": "Environmental Research",
+    "dec": "manter",
+    "motivo": "Pacientes DPOC com idade média 68±9 anos (Catalunha, Espanha) - população efetivamente idosa; poluição do ar (NO2, PM10, black carbon) e clima como exposição central; passos diários, tempo em MVPA e sedentarismo como desfecho central - atende PECOS diretamente."
+  },
+  {
+    "pmid": "39425159",
+    "doi": "10.1186/s12940-024-01125-8",
+    "titulo": "Impact of physical activity levels on the association between air pollution exposures and glycemic indicators in older individuals.",
+    "autor": "Park H.",
+    "ano": 2024,
+    "revista": "Environmental Health",
+    "dec": "manter",
+    "motivo": "\"Older individuals\" explícito no título e no resumo, idade média 70,9 anos (Coreia do Sul); poluentes do ar (PM10, PM2.5, NO2) como exposição central; atividade física (METs) como modificador de efeito sobre indicadores glicêmicos - atende PECOS diretamente."
+  },
+  {
+    "pmid": "37598596",
+    "doi": "10.1016/j.envint.2023.108143",
+    "titulo": "Leisure-time physical activity mitigated the cognitive effect of PM2.5 and PM2.5 components exposure: Evidence from a nationwide longitudinal study.",
+    "autor": "Liu J.",
+    "ano": 2023,
+    "revista": "Environment International",
+    "dec": "incerto",
+    "motivo": "Atividade física de lazer e PM2.5 (e seus componentes) como variáveis centrais, desfecho cognitivo - atende exposição/desfecho, mas a amostra vem do China Family Panel Study, um painel domiciliar de adultos em geral, sem recorte etário para idosos no resumo."
+  },
+  {
+    "pmid": "37236481",
+    "doi": "10.1016/j.scitotenv.2023.164315",
+    "titulo": "Impacts of physical activity and particulate air pollution on the onset, progression and mortality for the comorbidity of type 2 diabetes and mood disorders.",
+    "autor": "Luo H.",
+    "ano": 2023,
+    "revista": "Science of the Total Environment",
+    "dec": "incerto",
+    "motivo": "UK Biobank, atividade física e PM2.5 como variáveis centrais sobre incidência/progressão/mortalidade de diabetes tipo 2 e transtornos de humor - atende exposição/desfecho, mas a coorte (336.545 participantes) é de adultos em geral, sem recorte etário para idosos no resumo."
+  },
+  {
+    "pmid": "36976544",
+    "doi": "10.15326/jcopdf.2022.0385",
+    "titulo": "Physical Activity, Air Pollution Exposure, and Lung Function Interactions Among Adults with COPD.",
+    "autor": "Chen K.",
+    "ano": 2023,
+    "revista": "Chronic Obstructive Pulmonary Diseases",
+    "dec": "incerto",
+    "motivo": "Atividade física (contagem diária de passos) como moderador central e poluentes do ar (PM2.5, NO2, O3) como exposição central sobre função pulmonar - atende exposição/desfecho, mas o resumo não informa idade dos 30 pacientes DPOC estudados (perfil tipicamente mais velho, mas não confirmado)."
+  },
+  {
+    "pmid": "",
+    "doi": "10.1186/s12982-025-00578-7",
+    "titulo": "Combined association of particulate matter and changes in physical activity on metabolic syndrome and profiles.",
+    "autor": "Jeong Y.",
+    "ano": 2025,
+    "revista": "Discover Public Health",
+    "dec": "incerto",
+    "motivo": "Mudança em atividade física e material particulado como variáveis centrais sobre síndrome metabólica - atende exposição/desfecho, mas a coorte (35.220 participantes) inclui adultos a partir de 40 anos, sem recorte exclusivo para idosos."
+  },
+  {
+    "pmid": "40697836",
+    "doi": "10.3389/fpubh.2025.1622767",
+    "titulo": "Joint exposure to PM2.5, warm-season heat, and sedentary behavior accelerates incident lung cancer in ageing Chinese adults: evidence from CHARLS.",
+    "autor": "Wang Y.-Z.",
+    "ano": 2025,
+    "revista": "Frontiers in Public Health",
+    "dec": "excluir",
+    "motivo": "A variável central de interesse é comportamento sedentário (tempo sentado), não atividade física medida como exposição/moderador; população CHARLS de 10.532 adultos a partir de 45 anos, sem recorte exclusivo de idosos nem medida positiva de atividade física."
+  },
+  {
+    "pmid": "",
+    "doi": "10.1007/s11869-021-01083-x",
+    "titulo": "Indoor aerobic exercise reduces exposure to pollution, improves cognitive function, and enhances BDNF levels in the elderly.",
+    "autor": "Cassilhas, Ricardo Cardoso",
+    "ano": 2022,
+    "revista": "Air Quality, Atmosphere & Health",
+    "dec": "excluir",
+    "motivo": "Duplicata do estudo já incluído no artigo original publicado (Cassilhas et al., 2022 - linha 41 da Tabela 4/5/6 de Andrade et al., 2023). A base de dados (Scopus/WoS) devolveu este registro na busca da atualização, mas ele já faz parte do corpus original, não é um achado novo pós-corte."
+  }
+]
