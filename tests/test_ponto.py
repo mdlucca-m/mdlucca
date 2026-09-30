@@ -531,6 +531,64 @@ class TestAPortaDoSinalDeVida(unittest.TestCase):
         self.assertIn("clearInterval(PULSO_PONTO)", corpo)
 
 
+class TestGraficoDeHorasNaTela(unittest.TestCase):
+    """"Consistência" (fileira de quadrados) e "Últimos 30 dias" (curva de
+    linha) -- dois widgets que mostravam a mesma série (`d.serie`) de dois
+    jeitos -- viraram um widget só: barras por dia, cabeçalho editorial
+    com o total do período e o dia de pico em destaque. Pedido explícito
+    (Mateus): "mais intelectual" -- cor mais forte, número grande, título
+    maior, alguma profundidade na barra."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.html = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        cls.trecho = cls.html[cls.html.index("horas trabalhadas: barras por dia"):]
+        cls.trecho = cls.trecho[:cls.trecho.index("})();")]
+
+    def test_os_dois_widgets_antigos_sairam(self):
+        for sumiu in ("consistencia-fileira", "class: \"consistencia-dia",
+                      'text: "Consistência"', 'text: "Últimos 30 dias"'):
+            with self.subTest(sumiu=sumiu):
+                self.assertNotIn(sumiu, self.html)
+
+    def test_o_css_morto_da_consistencia_tambem_saiu(self):
+        # css sem uso nenhum no JS e css que ninguem vai lembrar de apagar
+        # depois -- teve de sair junto, não só o widget
+        self.assertNotIn(".consistencia-fileira{", self.html)
+        self.assertNotIn(".consistencia-dia{", self.html)
+
+    def test_o_widget_novo_funde_total_e_barras(self):
+        self.assertIn("Horas trabalhadas", self.trecho)
+        self.assertIn("kpi hero horas-total", self.trecho)
+        self.assertIn("horas-fileira", self.trecho)
+        # a frase de regularidade que a fileira de quadrados dizia entrou
+        # junto, e não desapareceu com os quadrados
+        self.assertIn('"Trabalhou em " + comRegistro', self.trecho)
+
+    def test_o_dia_de_pico_ganha_destaque(self):
+        self.assertIn("ehPico", self.trecho)
+        self.assertIn("horas-rotulo-pico", self.trecho)
+        self.assertIn(' pico"', self.trecho)
+
+    def test_dia_sem_registro_nenhum_nao_divide_por_zero(self):
+        # maiorDia pode ser 0 (ninguém bateu ponto ainda) -- sem a guarda,
+        # `100 * x.horas / maiorDia` vira NaN, e todas as barras "somem"
+        self.assertIn("maiorDia > 0 ?", self.trecho)
+
+    def test_barra_tem_gradiente_e_sombra_mas_nao_perspectiva(self):
+        # "profundidade" foi pedido explicitamente, mas sem inclinar a
+        # barra: a altura continua sendo só a altura (ver comentário no
+        # CSS, mesma razão de .mark.cresce no resto do sistema)
+        css = self.html[self.html.index(".horas-barra{"):]
+        css = css[:css.index("}") + 1]
+        self.assertIn("linear-gradient(180deg", css)
+        self.assertIn("box-shadow", css)
+        self.assertNotIn("perspective", css)
+        self.assertNotIn("rotateX", css)
+        self.assertNotIn("skew", css)
+
+
 class TestComparacaoDePeriodos(BasePonto):
     def test_a_semana_e_comparada_ate_o_mesmo_ponto(self):
         # comparar uma semana de três dias com uma de sete acusa queda toda

@@ -83,14 +83,6 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .quem-agora b{font-size:13.5px}
 .quem-agora small{display:block;color:var(--ink-2);font-size:12px}
 .hint.aviso{color:var(--warning)}
-/* Consistência: uma fileira de 30 quadrados, um por dia -- a leitura é
-   "regular ou espalhado", não o valor exato de cada dia (que já está na
-   curva de linha logo abaixo). Sem overflow: numa tela estreita a
-   fileira quebra em linhas, nunca sai raspando a lateral. */
-.consistencia-fileira{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
-.consistencia-dia{width:16px;height:16px;border-radius:4px;
-  background:var(--surface-raised);border:1px solid var(--border)}
-.consistencia-dia.vazio{background:var(--surface-raised)}
 /* Banco de horas: saldo em destaque, e uma fileira de colunas divergentes
    (crédito sobe, déficit desce) alinhadas numa linha de base central --
    a mesma ideia do acelerômetro, só que semana a semana em vez de um
@@ -105,6 +97,38 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
   transform:translateX(-50%);z-index:1}
 .banco-barra.credito{bottom:50%;background:var(--good)}
 .banco-barra.deficit{top:50%;background:var(--critical)}
+/* ---- horas trabalhadas: cabeçalho grande + barras com profundidade ----
+   Pedido explícito: mais "intelectual" -- cores mais fortes, número
+   grande em destaque, título editorial, alguma profundidade na barra.
+   O degradê e a sombra dão a profundidade sem inclinar a barra em
+   perspectiva: a ALTURA continua sendo só a altura, nunca distorcida por
+   um ângulo 3D -- é a mesma razão pela qual `.mark.cresce` (o resto do
+   sistema) também nunca usa perspectiva, só contorno e sombra. */
+.horas-cabecalho{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.horas-titulo{display:flex;align-items:center;gap:8px;margin:0;
+  font-size:19px;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+.horas-total{margin:0;min-width:168px}
+.horas-fileira{display:flex;align-items:flex-end;gap:3px;height:150px;
+  padding-top:22px}
+.horas-coluna{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;
+  justify-content:flex-end;align-items:center}
+.horas-barra{width:100%;max-width:16px;border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--series-1) 65%,white) 0%,
+    var(--series-1) 48%,color-mix(in srgb,var(--series-1) 78%,black) 100%);
+  box-shadow:0 4px 9px -2px color-mix(in srgb,var(--series-1) 65%,transparent);
+  border-top:1px solid color-mix(in srgb,white 55%,transparent);
+  transition:filter .12s}
+.horas-coluna:hover .horas-barra{filter:brightness(1.1)}
+.horas-barra.vazia{background:var(--grid);box-shadow:none;border-top:none}
+.horas-barra.pico{background:linear-gradient(180deg,color-mix(in srgb,var(--good) 65%,white) 0%,
+    var(--good) 48%,color-mix(in srgb,var(--good) 72%,black) 100%);
+  box-shadow:0 5px 13px -2px color-mix(in srgb,var(--good) 65%,transparent)}
+.horas-rotulo-pico{font-size:12px;font-weight:800;color:var(--good);
+  white-space:nowrap;font-variant-numeric:tabular-nums;margin-bottom:3px}
+.horas-dia{font-size:9.5px;color:var(--ink-muted);margin-top:6px;
+  font-variant-numeric:tabular-nums}
+.horas-dia.oculto{visibility:hidden}
 /* Sair não é erro: o botão se distingue pela borda, não pela cor de alerta.
    Vermelho aqui ensinaria a associar "fim do expediente" a problema. */
 button.sair-ponto{border-color:var(--ink-muted);font-weight:700}
@@ -4063,30 +4087,45 @@ VIEWS.ponto = {
         return cartao;
       })));
 
-    /* ---- consistência: os últimos 30 dias, um quadrado por dia ---- */
-    /* Hora total já está na curva de baixo; o que essa fileira acrescenta
-       é a REGULARIDADE -- 20h espalhadas em 4 dias bons lê muito diferente
-       de 20h em 15 dias curtos, e a curva de linha (feita para o valor)
-       não mostra essa diferença tão rápido quanto uma fileira de blocos. */
+    /* ---- horas trabalhadas: barras por dia, cabeçalho editorial ----
+       Funde em um widget só o que antes eram dois: a REGULARIDADE (que a
+       fileira de quadrados mostrava) e o VALOR (que a curva de linha
+       mostrava) -- a altura de cada barra já carrega os dois, e o dia de
+       pico ganha destaque em vez de se perder nos outros 29. */
     (function (){
       const dias = d.serie;
       const comRegistro = dias.filter(function (x){ return x.horas > 0; }).length;
-      const cartao = h("div", {class: "card sec"}, [
-        h("h3", {}, [Icons.get("linhas", 16), h("span", {text: "Consistência"})]),
-        h("p", {class: "hint", text:
-          "Trabalhou em " + comRegistro + " dos últimos " + dias.length + " dias."}),
-      ]);
-      const maiorDia = Math.max(1, ...dias.map(function (x){ return x.horas; }));
-      const fileira = h("div", {class: "consistencia-fileira"});
-      dias.forEach(function (x){
-        const intensidade = x.horas / maiorDia;
-        const quad = h("div", {class: "consistencia-dia" + (x.horas > 0 ? "" : " vazio"),
-          title: x.dia + " — " + horasTexto(x.horas)});
-        if (x.horas > 0) {
-          quad.style.background = token("--good");
-          quad.style.opacity = (0.35 + 0.65 * intensidade).toFixed(2);
-        }
-        fileira.appendChild(quad);
+      const total = dias.reduce(function (s, x){ return s + x.horas; }, 0);
+      const maiorDia = Math.max(0, ...dias.map(function (x){ return x.horas; }));
+
+      const cartao = h("div", {class: "card sec"});
+      cartao.appendChild(h("div", {class: "horas-cabecalho"}, [
+        h("div", {}, [
+          h("h3", {class: "horas-titulo"}, [Icons.get("linhas", 18), h("span", {text: "Horas trabalhadas"})]),
+          h("p", {class: "hint", style: "margin-top:3px", text:
+            "Trabalhou em " + comRegistro + " dos últimos " + dias.length + " dias."}),
+        ]),
+        h("div", {class: "kpi hero horas-total"}, [
+          h("div", {class: "label", text: "Nos últimos " + dias.length + " dias"}),
+          h("div", {class: "value", text: horasTexto(total)}),
+        ]),
+      ]));
+
+      const fileira = h("div", {class: "horas-fileira"});
+      dias.forEach(function (x, i){
+        const ehPico = maiorDia > 0 && x.horas === maiorDia;
+        const alturaPct = maiorDia > 0 ? Math.max(x.horas > 0 ? 6 : 2, 100 * x.horas / maiorDia) : 2;
+        const coluna = h("div", {class: "horas-coluna", title: x.dia + " — " + horasTexto(x.horas)});
+        if (ehPico) coluna.appendChild(h("div", {class: "horas-rotulo-pico", text: horasTexto(x.horas)}));
+        const barra = h("div", {class: "horas-barra" + (x.horas > 0 ? "" : " vazia") + (ehPico ? " pico" : "")});
+        barra.style.height = alturaPct + "%";
+        coluna.appendChild(barra);
+        // rótulo da data só a cada ~5 dias (30 datas juntas viram tarja
+        // preta) -- primeiro e último ficam sempre, dizem o intervalo.
+        const mostraRotulo = i === 0 || i === dias.length - 1 || i % 5 === 0;
+        coluna.appendChild(h("div", {class: "horas-dia" + (mostraRotulo ? "" : " oculto"),
+          text: x.dia.slice(5)}));
+        fileira.appendChild(coluna);
       });
       cartao.appendChild(fileira);
       VIEW.appendChild(cartao);
@@ -4185,17 +4224,6 @@ VIEWS.ponto = {
       });
       VIEW.appendChild(cartaoPendentes);
     }
-
-    /* ---- a curva dos dias ---- */
-    VIEW.appendChild(h("div", {class: "card sec"}, [
-      h("h3", {}, [Icons.get("linhas", 16), h("span", {text: "Últimos 30 dias"})]),
-      C.lines({
-        labels: d.serie.map(function (x){ return x.dia.slice(5); }),
-        series: [{name: "Horas registradas",
-                  values: d.serie.map(function (x){ return x.horas; })}],
-        height: 220, unit: "h",
-      }),
-    ]));
 
     /* ---- o que saiu de trabalho, ao lado das horas ---- */
     const prod = d.producao;
