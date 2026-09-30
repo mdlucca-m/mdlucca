@@ -2244,6 +2244,7 @@ def route_ponto(ctx: "Context") -> Any:
         "sou_eu": alvo == eu,
         "resumo": ponto.resumo(ctx.db, alvo),
         "serie": ponto.serie(ctx.db, alvo, dias=dias),
+        "por_atividade": ponto.por_atividade(ctx.db, alvo),
         "historico": ponto.historico(ctx.db, alvo),
         "producao": ponto.producao_no_periodo(ctx.db, alvo, dias=dias),
         "agora": ponto.agora(ctx.db),

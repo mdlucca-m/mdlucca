@@ -40,10 +40,13 @@ class BasePonto(unittest.TestCase):
         self.db.close()
         self.tmp.cleanup()
 
-    def sessao(self, dia, hora_ini, hora_fim, member_id=None, atividade="trabalho"):
+    def sessao(self, dia, hora_ini, hora_fim, member_id=None, atividade="trabalho",
+               project_id=None, article_id=None):
         self.db.execute(
-            "INSERT INTO ponto (member_id, entrada, saida, atividade) VALUES (?, ?, ?, ?)",
-            (member_id or self.eu, f"{dia} {hora_ini}:00", f"{dia} {hora_fim}:00", atividade))
+            "INSERT INTO ponto (member_id, entrada, saida, atividade, project_id, article_id)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            (member_id or self.eu, f"{dia} {hora_ini}:00", f"{dia} {hora_fim}:00", atividade,
+             project_id, article_id))
         self.db.conn.commit()
 
     def esquecida(self, dia, hora_ini, hora_fim, member_id=None):
@@ -531,6 +534,123 @@ class TestAPortaDoSinalDeVida(unittest.TestCase):
         self.assertIn("clearInterval(PULSO_PONTO)", corpo)
 
 
+class TestPorAtividade(BasePonto):
+    """`ponto.por_atividade` -- pedido explícito (Mateus): "mais segmentado",
+    em que projeto/artigo foram as horas do mês. Prioridade do rótulo:
+    projeto > artigo > texto livre > "Sem atividade anotada"."""
+
+    def _projeto(self, nome, code="P1"):
+        self.db.execute("INSERT INTO projects (code, name) VALUES (?, ?)", (code, nome))
+        self.db.conn.commit()
+        return self.db.scalar("SELECT id FROM projects WHERE code = ?", (code,))
+
+    def _artigo(self, titulo, key="a1"):
+        self.db.execute("INSERT INTO articles (title, title_key) VALUES (?, ?)", (titulo, key))
+        self.db.conn.commit()
+        return self.db.scalar("SELECT id FROM articles WHERE title_key = ?", (key,))
+
+    def test_agrupa_por_projeto(self):
+        hoje = date(2026, 9, 15)
+        pid = self._projeto("Handebol e cognição")
+        self.sessao(hoje.isoformat(), "09:00", "13:00", project_id=pid)
+        self.sessao(hoje.isoformat(), "14:00", "16:00", project_id=pid)
+        itens = ponto.por_atividade(self.db, self.eu, hoje=hoje)
+        self.assertEqual(itens, [{"rotulo": "Handebol e cognição", "horas": 6.0}])
+
+    def test_projeto_ganha_de_texto_livre_quando_os_dois_existem(self):
+        hoje = date(2026, 9, 15)
+        pid = self._projeto("Projeto guarda-chuva")
+        self.sessao(hoje.isoformat(), "09:00", "10:00", project_id=pid, atividade="redigindo")
+        itens = ponto.por_atividade(self.db, self.eu, hoje=hoje)
+        self.assertEqual(itens, [{"rotulo": "Projeto guarda-chuva", "horas": 1.0}])
+
+    def test_sem_projeto_artigo_ou_texto_vira_sem_atividade_anotada(self):
+        hoje = date(2026, 9, 15)
+        self.sessao(hoje.isoformat(), "09:00", "10:00", atividade=None)
+        itens = ponto.por_atividade(self.db, self.eu, hoje=hoje)
+        self.assertEqual(itens, [{"rotulo": "Sem atividade anotada", "horas": 1.0}])
+
+    def test_so_o_mes_corrente_entra(self):
+        hoje = date(2026, 9, 15)
+        pid = self._projeto("Este mês")
+        self.sessao("2026-08-31", "09:00", "10:00", project_id=pid)  # mês passado
+        self.sessao(hoje.isoformat(), "09:00", "11:00", project_id=pid)
+        itens = ponto.por_atividade(self.db, self.eu, hoje=hoje)
+        self.assertEqual(itens, [{"rotulo": "Este mês", "horas": 2.0}])
+
+    def test_so_a_propria_pessoa_conta(self):
+        hoje = date(2026, 9, 15)
+        pid = self._projeto("Compartilhado")
+        self.sessao(hoje.isoformat(), "09:00", "10:00", project_id=pid, member_id=self.eu)
+        self.sessao(hoje.isoformat(), "09:00", "15:00", project_id=pid, member_id=self.outra)
+        itens = ponto.por_atividade(self.db, self.eu, hoje=hoje)
+        self.assertEqual(itens, [{"rotulo": "Compartilhado", "horas": 1.0}])
+
+    def test_os_menores_viram_outros_alem_do_limite(self):
+        hoje = date(2026, 9, 15)
+        for i in range(5):
+            pid = self._projeto(f"Projeto {i}", code=f"P{i}")
+            # projeto 0 é o maior, para a ordenação ser previsível
+            self.sessao(hoje.isoformat(), "09:00", f"{9 + (5 - i)}:00", project_id=pid)
+        itens = ponto.por_atividade(self.db, self.eu, hoje=hoje, limite=3)
+        self.assertEqual(len(itens), 3)  # 2 nomeados + "Outros"
+        self.assertEqual(itens[-1]["rotulo"], "Outros")
+        # nada se perde: a soma de tudo bate com a soma dos itens devolvidos
+        total_devolvido = sum(i["horas"] for i in itens)
+        total_real = sum((5 - i) for i in range(5))
+        self.assertEqual(total_devolvido, total_real)
+
+    def test_sessao_esquecida_nao_entra(self):
+        hoje = date(2026, 9, 15)
+        pid = self._projeto("Com esquecida")
+        self.esquecida(hoje.isoformat(), "09:00", "18:00")
+        self.sessao(hoje.isoformat(), "09:00", "10:00", project_id=pid)
+        itens = ponto.por_atividade(self.db, self.eu, hoje=hoje)
+        # a esquecida (sem projeto) não pode aparecer nem como "sem atividade"
+        self.assertEqual(itens, [{"rotulo": "Com esquecida", "horas": 1.0}])
+
+
+class TestMaisSegmentadoNaTela(unittest.TestCase):
+    """Pedido explícito (Mateus): "mais informações e mais segmentado, com
+    gráficos mais variados" para os cartões Hoje/Semana/Mês. Três coisas
+    novas: os três períodos lado a lado (% da meta, comparável), uma rosca
+    por atividade (`por_atividade`) e um padrão por dia da semana -- todas
+    reaproveitando a biblioteca `Charts` existente (colunas, rosca), sem
+    reinventar desenho novo, diferente do gráfico de barras bespoke que a
+    tela já tinha (esse continua sendo o único com tratamento especial)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.html = (ROOT / "scripts" / "lape" / "templates" / "app.html").read_text(
+            encoding="utf-8")
+        inicio = cls.html.index("ritmo lado a lado: hoje, semana e mês")
+        fim = cls.html.index("horas trabalhadas: barras por dia")
+        cls.trecho = cls.html[inicio:fim]
+
+    def test_o_ritmo_compara_pela_porcentagem_da_meta_nao_pela_hora_crua(self):
+        self.assertIn("100 * (r[par[0]].horas || 0) / meta", self.trecho)
+        self.assertIn("C.columns(", self.trecho)
+
+    def test_a_rosca_usa_por_atividade_do_backend(self):
+        self.assertIn("d.por_atividade", self.trecho)
+        self.assertIn("C.donut(", self.trecho)
+
+    def test_a_rosca_tem_estado_vazio_quando_nao_ha_atividade(self):
+        # sem isso, um mes sem nenhum ponto bateria um C.donut({items: []})
+        # que já se vira sozinho (figure -> empty()), mas sem explicar o
+        # porquê -- "nenhuma hora registrada" é mais direto que um card mudo
+        self.assertIn("Nenhuma hora registrada este mês ainda", self.trecho)
+
+    def test_o_padrao_por_dia_reaproveita_a_serie_ja_carregada(self):
+        # não pode pedir dado novo ao servidor pra isso -- d.serie já tem
+        # os mesmos 30 dias, só precisa ser reagrupado por dia da semana
+        self.assertIn("d.serie.forEach", self.trecho)
+        self.assertNotIn('api("/api/ponto', self.trecho)
+
+    def test_a_semana_comeca_na_segunda(self):
+        self.assertIn("[1, 2, 3, 4, 5, 6, 0]", self.trecho)
+
+
 class TestGraficoDeHorasNaTela(unittest.TestCase):
     """"Consistência" (fileira de quadrados) e "Últimos 30 dias" (curva de
     linha) -- dois widgets que mostravam a mesma série (`d.serie`) de dois
@@ -868,6 +988,14 @@ class TestRotasDoPonto(unittest.TestCase):
         self.assertEqual(dados["resumo"]["aberto"]["atividade"], "leitura")
         self.assertTrue(dados["sou_eu"])
         self.assertEqual(self.chamar("/api/ponto/sair", self.bento, "POST")[0], 200)
+
+    def test_a_rota_traz_o_por_atividade(self):
+        # sessão sem duração real (bater entrada e saída no mesmo instante)
+        # é descartada por `ponto.sair` -- o que importa aqui é só que a
+        # rota traga a chave, no formato certo, mesmo sem nada dentro
+        _, dados = self.chamar("/api/ponto", self.bento)
+        self.assertIn("por_atividade", dados)
+        self.assertEqual(dados["por_atividade"], [])
 
     def test_pendentes_sem_sinal_aparecem_e_somem_apos_informar(self):
         db = Database(self.db_path)
