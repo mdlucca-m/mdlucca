@@ -160,6 +160,21 @@ class TestCandidatoNaoTocaOBancoReal(unittest.TestCase):
         self.assertIn("-wal", trecho)
         self.assertIn("-shm", trecho)
 
+    def test_a_copia_do_wal_e_do_shm_nao_derruba_a_atualizacao(self):
+        # No Windows, o servico ATUAL mantem o -shm travado por memoria
+        # compartilhada o tempo todo que estiver no ar -- e Copy-Item sem
+        # tratamento aborta o script inteiro com "outro processo bloqueou
+        # parte do arquivo" ANTES de sequer tentar o candidato. Aconteceu
+        # de verdade. A copia desses dois arquivos tem de ser best-effort:
+        # o candidato ainda abre o .sqlite principal e passa no teste de
+        # saude sem eles.
+        trecho = self.trecho()
+        bloco = trecho[trecho.index('foreach ($sufixo in @("-wal", "-shm"))'):]
+        bloco = bloco[:bloco.index("$candidato = Start-Process")]
+        self.assertIn("try {", bloco)
+        self.assertIn("catch {", bloco)
+        self.assertIn("Copy-Item $origem", bloco)
+
     def test_a_copia_e_apagada_depois_do_teste(self):
         trecho = self.trecho()
         self.assertIn("Remove-Item $bancoCandidato", trecho)
