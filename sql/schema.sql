@@ -1442,3 +1442,40 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_resposta_unica
 
 CREATE INDEX IF NOT EXISTS idx_resposta_item ON respostas_itens(item_id, momento_id);
 CREATE INDEX IF NOT EXISTS idx_item_instrumento ON itens_instrumento(instrumento_id, ordem);
+
+/* ==========================================================================
+   Ginastica ritmica -- aba PRIVADA, pedido explicito do Mateus: "so nos
+   temos acesso" (ele, Maria Helena e o Vilarino). Nao reaproveita a tabela
+   `articles`: ela e lida por qualquer integrante em "Artigos", e dar
+   privacidade por linha ali teria que mexer numa tela grande e muito
+   usada so para esconder tres registros dela. Uma tabela dedicada, pequena
+   e isolada resolve sem esse risco.
+
+   O acesso e uma LISTA, nao tres nomes fixos no codigo: quem concede e
+   quem revoga e a propria coordenacao, escolhendo entre os integrantes
+   ja cadastrados -- assim ninguem aqui precisa adivinhar a grafia exata
+   do nome de uma pessoa. `user_role = 'admin'` sempre ve (ver
+   ginastica_ritmica.py) -- essa tabela so entra para os convites alem
+   disso.
+   ========================================================================== */
+CREATE TABLE IF NOT EXISTS ginastica_ritmica_acesso (
+  member_id     INTEGER PRIMARY KEY REFERENCES members(id) ON DELETE CASCADE,
+  concedido_por INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  concedido_em  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS ginastica_ritmica_estudos (
+  id             INTEGER PRIMARY KEY,
+  titulo         TEXT NOT NULL,
+  autores        TEXT,
+  ano_publicacao INTEGER,
+  study_type     TEXT,
+  qualis         TEXT,
+  fator_impacto  REAL,
+  observacoes    TEXT,
+  criado_por     INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  criado_em      TEXT NOT NULL DEFAULT (datetime('now')),
+  atualizado_em  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_ginastica_ritmica_estudos_ano
+  ON ginastica_ritmica_estudos(ano_publicacao);

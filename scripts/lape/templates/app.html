@@ -1610,6 +1610,142 @@ VIEWS.linhas = crudView({
   ],
 });
 
+/* ==================================================================== */
+/* Ginástica rítmica — aba PRIVADA.                                     */
+/*                                                                      */
+/* Pedido explícito do Mateus: "crie uma aba que sómente a Maria        */
+/* Helena, eu e o Vilarino temos acesso". A aba só entra no menu quando */
+/* `ME.acesso_ginastica_ritmica` vem true de /api/auth/me (ver boot()   */
+/* no fim do arquivo) -- mas quem tentar o hash #ritmica na unha também */
+/* esbarra no servidor: toda rota de /api/ginastica-ritmica devolve 404 */
+/* para quem não foi convidado, então não há nada aqui para "vazar" além */
+/* do formulário vazio. Não usa crudView() de propósito: lá o acesso a  */
+/* quem PODE EDITAR é por papel (can("coordenacao")), e aqui é pela     */
+/* lista de convidados -- os dois são perguntas diferentes. */
+VIEWS.ritmica = {
+  label: "Ginástica Rítmica", group: "Laboratório",
+  async render(){
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("ritmica", "Ginástica Rítmica"));
+    VIEW.appendChild(h("p", {class: "view", text:
+      "Aba privada: só quem tem acesso concedido vê e cadastra aqui. Estudos sobre "
+      + "variáveis psicológicas na ginástica rítmica."}));
+
+    /* ---- quem tem acesso ---- */
+    const acesso = await api("/api/ginastica-ritmica/acesso");
+    const casaAcesso = h("div", {class: "card sec"});
+    casaAcesso.appendChild(h("h3", {style: "margin-bottom:8px", text: "Quem tem acesso"}));
+    const listaAcesso = h("div", {style: "display:flex;flex-direction:column;gap:6px;margin-bottom:12px"});
+    function repintarAcesso(itens){
+      listaAcesso.innerHTML = "";
+      if (!itens.length){
+        listaAcesso.appendChild(h("p", {class: "hint",
+          text: "Ninguém foi convidado ainda — além de quem é admin, que sempre vê."}));
+        return;
+      }
+      itens.forEach(function (p){
+        const remover = h("button", {class: "ghost", text: "Remover"});
+        remover.onclick = async function (){
+          if (!confirm("Tirar o acesso de “" + p.full_name + "”?")) return;
+          remover.disabled = true;
+          try {
+            const r = await api("/api/ginastica-ritmica/acesso/" + p.id, "DELETE");
+            toast("Acesso removido.");
+            await VIEWS.ritmica.render();
+          } catch (e){ toast(e.message, "erro"); remover.disabled = false; }
+        };
+        listaAcesso.appendChild(h("div", {class: "acao-ponto"}, [
+          h("span", {text: p.full_name}), remover,
+        ]));
+      });
+    }
+    repintarAcesso(acesso.items);
+    casaAcesso.appendChild(listaAcesso);
+
+    const equipe = await api("/api/equipe");
+    const jaTem = new Set(acesso.items.map(function (p){ return p.id; }));
+    const disponiveis = equipe.items.filter(function (p){ return !jaTem.has(p.id); });
+    if (disponiveis.length){
+      const select = h("select", {}, disponiveis.map(function (p){
+        return h("option", {value: String(p.id), text: p.full_name}); }));
+      const conceder = h("button", {class: "ghost", text: "Conceder acesso"});
+      conceder.onclick = async function (){
+        conceder.disabled = true;
+        try {
+          await api("/api/ginastica-ritmica/acesso", "POST", {member_id: select.value});
+          toast("Acesso concedido.");
+          await VIEWS.ritmica.render();
+        } catch (e){ toast(e.message, "erro"); conceder.disabled = false; }
+      };
+      casaAcesso.appendChild(h("div", {class: "acao-ponto"}, [select, conceder]));
+    }
+    VIEW.appendChild(casaAcesso);
+
+    /* ---- cadastro ---- */
+    const formHost = h("div", {class: "card sec"});
+    const tituloForm = h("h3", {style: "margin-bottom:12px", text: "Novo estudo / atualizar existente"});
+    formHost.appendChild(tituloForm);
+    const camposEstudo = [
+      field("titulo", "Título", "text", {required: true, span: "full", from: "titulo"}),
+      field("autores", "Autores", "text", {span: "full", from: "autores"}),
+      field("ano_publicacao", "Ano de publicação", "number", {from: "ano_publicacao"}),
+      field("study_type", "Tipo de estudo", "select", {options: DESENHO_OPTS, from: "study_type"}),
+      field("qualis", "Qualis", "text", {from: "qualis"}),
+      field("fator_impacto", "Fator de impacto", "number", {step: "0.001", from: "fator_impacto"}),
+      field("observacoes", "Observações", "textarea", {span: "full", from: "observacoes"}),
+    ];
+    const specEstudo = {fields: camposEstudo, submitLabel: "Cadastrar"};
+    const gravar = async function (payload){
+      await api("/api/ginastica-ritmica", "POST", payload);
+      toast("Estudo gravado.");
+      await VIEWS.ritmica.render();
+    };
+    let formulario = buildForm(specEstudo, {}, gravar);
+    formHost.appendChild(formulario);
+    function carregar(row){
+      const novo = buildForm(Object.assign({}, specEstudo, row ? {
+        submitLabel: "Salvar alterações",
+        extra: function (){ return {registro_id: row.id}; },
+        onCancel: function (){ carregar(null); },
+      } : {}), row || {}, gravar);
+      tituloForm.textContent = row ? ("Editando: " + row.titulo) : "Novo estudo / atualizar existente";
+      formHost.replaceChild(novo, formulario);
+      formulario = novo;
+      if (row) formHost.scrollIntoView({behavior: "smooth", block: "start"});
+    }
+    VIEW.appendChild(formHost);
+
+    /* ---- lista ---- */
+    const dados = await api("/api/ginastica-ritmica?limit=400");
+    const colunas = [
+      {k: "titulo", label: "Título"},
+      {k: "autores", label: "Autores"},
+      {k: "ano_publicacao", label: "Ano", num: true},
+      {k: "study_type", label: "Tipo de estudo"},
+      {k: "qualis", label: "Qualis"},
+      {k: "__acao", label: "", render: function (row){
+        const editar = h("button", {type: "button", class: "ghost", text: "Editar",
+          onclick: function (){ carregar(row); }});
+        const excluir = h("button", {type: "button", class: "ghost", style: "margin-left:6px",
+          text: "Excluir", onclick: async function (){
+            if (!confirm("Excluir “" + row.titulo + "”? Isto não se desfaz.")) return;
+            excluir.disabled = true;
+            try {
+              await api("/api/ginastica-ritmica/" + row.id, "DELETE");
+              toast("Excluído.");
+              await VIEWS.ritmica.render();
+            } catch (e){ toast(e.message, "erro"); excluir.disabled = false; }
+          }});
+        return h("div", {style: "display:flex;gap:6px;justify-content:flex-end"}, [editar, excluir]);
+      }},
+    ];
+    VIEW.appendChild(h("div", {class: "sec"}, [
+      h("h3", {style: "margin-bottom:8px", text: "Estudos cadastrados (" + dados.count + ")"}),
+      table(colunas, dados.items, "Nenhum estudo cadastrado ainda."),
+    ]));
+  },
+};
+
 VIEWS.eventos = crudView({
   id: "eventos", entity: "events", label: "Atividades e reuniões", group: "Laboratório",
   lead: "Reuniões, coletas, defesas, congressos e cursos. Alimentam o calendário e o mapa do painel.",
@@ -2915,7 +3051,7 @@ const ICONE = {
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
   caminho: "processo",
   linhas: "linhas", biblioteca: "livro", eventos: "calendario", ana: "explorar",
-  senha: "qualidade", admin: "dados",
+  senha: "qualidade", admin: "dados", ritmica: "ginastica",
 };
 
 /* ==================================================================== */
@@ -4540,6 +4676,9 @@ document.getElementById("sair").addEventListener("click", async function (){
   const who = document.getElementById("who");
   who.appendChild(h("b", {text: ME.full_name}));
   who.appendChild(h("span", {class: "badge", text: ME.user_role || "integrante"}));
+  /* A aba só entra no menu de quem tem acesso concedido -- ver o
+     comentário em VIEWS.ritmica. Quem não tem nem vê que ela existe. */
+  if (ME.acesso_ginastica_ritmica) ORDER.splice(ORDER.indexOf("admin"), 0, "ritmica");
   await loadLookups();
   buildMenu();
   await show(location.hash.replace("#", "") || (ME.must_change_password ? "senha" : "perfil"));

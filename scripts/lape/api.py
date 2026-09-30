@@ -256,7 +256,10 @@ def route_logout(ctx: "Context") -> Any:
 def route_me(ctx: "Context") -> Any:
     if ctx.user is None:
         raise ApiError(401, "nao autenticado")
-    return ctx.user
+    from . import ginastica_ritmica
+
+    return {**ctx.user, "acesso_ginastica_ritmica": ginastica_ritmica.tem_acesso(
+        ctx.db, ctx.user.get("id"), ctx.user.get("user_role"))}
 
 
 def route_change_password(ctx: "Context") -> Any:
@@ -2987,6 +2990,90 @@ def route_panorama_marcar(ctx: "Context") -> Any:
 
 
 # ----------------------------------------------------------------------
+# Ginastica ritmica -- aba PRIVADA (ver ginastica_ritmica.py)
+# ----------------------------------------------------------------------
+def _acesso_ginastica_ritmica(ctx: "Context") -> dict[str, Any]:
+    """Confere o acesso e devolve quem pediu.
+
+    404, e nao 403: uma aba de verdade privada nao confirma nem que
+    existe para quem nao foi convidado.
+    """
+    from . import ginastica_ritmica
+
+    user = auth.require(ctx.user, "integrante")
+    if not ginastica_ritmica.tem_acesso(ctx.db, user.get("id"), user.get("user_role")):
+        raise ApiError(404, "não encontrado")
+    return user
+
+
+def route_ginastica_ritmica(ctx: "Context") -> Any:
+    from . import ginastica_ritmica
+
+    _acesso_ginastica_ritmica(ctx)
+    limite = min(to_int((ctx.query.get("limit") or ["400"])[0]) or 400, 1000)
+    itens = ginastica_ritmica.listar_estudos(ctx.db, limite)
+    return {"items": itens, "count": len(itens)}
+
+
+def route_ginastica_ritmica_gravar(ctx: "Context") -> Any:
+    from . import ginastica_ritmica
+
+    user = _acesso_ginastica_ritmica(ctx)
+    corpo = ctx.body or {}
+    try:
+        estudo_id = ginastica_ritmica.gravar_estudo(
+            ctx.db, criado_por=user.get("id"), registro_id=corpo.get("registro_id"),
+            titulo=corpo.get("titulo"), autores=corpo.get("autores"),
+            ano_publicacao=corpo.get("ano_publicacao"), study_type=corpo.get("study_type"),
+            qualis=corpo.get("qualis"), fator_impacto=corpo.get("fator_impacto"),
+            observacoes=corpo.get("observacoes"))
+    except ValueError as erro:
+        raise ApiError(400, str(erro)) from None
+    return {"id": estudo_id, "written": 1}
+
+
+def route_ginastica_ritmica_excluir(ctx: "Context", estudo_id: str) -> Any:
+    from . import ginastica_ritmica
+
+    _acesso_ginastica_ritmica(ctx)
+    if not ginastica_ritmica.excluir_estudo(ctx.db, to_int(estudo_id) or -1):
+        raise ApiError(404, "estudo não encontrado")
+    return {"excluido": True}
+
+
+def route_ginastica_ritmica_acesso(ctx: "Context") -> Any:
+    from . import ginastica_ritmica
+
+    _acesso_ginastica_ritmica(ctx)
+    return {"items": ginastica_ritmica.quem_tem_acesso(ctx.db)}
+
+
+def route_ginastica_ritmica_conceder(ctx: "Context") -> Any:
+    from . import ginastica_ritmica
+
+    user = _acesso_ginastica_ritmica(ctx)
+    alvo = to_int((ctx.body or {}).get("member_id"))
+    if not alvo:
+        raise ApiError(400, "member_id é obrigatório")
+    if not ctx.db.scalar("SELECT 1 FROM members WHERE id = ?", (alvo,)):
+        raise ApiError(404, "esse integrante não existe")
+    ginastica_ritmica.conceder(ctx.db, alvo, user.get("id"))
+    auth.log(ctx.db, user["id"], user.get("login"), "ginastica_ritmica_conceder",
+             "members", alvo)
+    return {"items": ginastica_ritmica.quem_tem_acesso(ctx.db)}
+
+
+def route_ginastica_ritmica_revogar(ctx: "Context", alvo_id: str) -> Any:
+    from . import ginastica_ritmica
+
+    user = _acesso_ginastica_ritmica(ctx)
+    ginastica_ritmica.revogar(ctx.db, to_int(alvo_id) or -1)
+    auth.log(ctx.db, user["id"], user.get("login"), "ginastica_ritmica_revogar",
+             "members", to_int(alvo_id))
+    return {"items": ginastica_ritmica.quem_tem_acesso(ctx.db)}
+
+
+# ----------------------------------------------------------------------
 # Tabela de rotas: (metodo, padrao, funcao, perfil minimo | None = publico)
 # ----------------------------------------------------------------------
 ROUTES: list[tuple[str, str, Callable, str | None]] = [
@@ -3110,6 +3197,15 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/rotina/?$", route_rotina, "leitura"),
     ("POST", r"^/api/rotina/rodar/?$", route_rotina_rodar, "coordenacao"),
     ("POST", r"^/api/panorama/marcar/?$", route_panorama_marcar, "coordenacao"),
+    ("GET", r"^/api/ginastica-ritmica/?$", route_ginastica_ritmica, "integrante"),
+    ("POST", r"^/api/ginastica-ritmica/?$", route_ginastica_ritmica_gravar, "integrante"),
+    ("DELETE", r"^/api/ginastica-ritmica/(?P<estudo_id>\d+)/?$",
+     route_ginastica_ritmica_excluir, "integrante"),
+    ("GET", r"^/api/ginastica-ritmica/acesso/?$", route_ginastica_ritmica_acesso, "integrante"),
+    ("POST", r"^/api/ginastica-ritmica/acesso/?$",
+     route_ginastica_ritmica_conceder, "integrante"),
+    ("DELETE", r"^/api/ginastica-ritmica/acesso/(?P<alvo_id>\d+)/?$",
+     route_ginastica_ritmica_revogar, "integrante"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
     ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/?$", route_review_detail, "leitura"),
