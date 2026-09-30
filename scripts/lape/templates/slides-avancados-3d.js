@@ -612,6 +612,42 @@ function temOrientadorVisivel(pessoas, edges) {
    do cartão passou a vir da profundidade. */
 const NIVEL_COR = ["violeta", "laranja", "bom", "azul"];
 
+/* Segundo modo de cor do organograma -- pedido explícito (Mateus): "mais
+   temático". A cor por NÍVEL (acima) fica como padrão -- foi corrigida
+   antes por reclamação real de legibilidade ("não dá para ver nada
+   direito"), então este modo entra como ALTERNATIVA, nunca substituindo
+   o padrão, ligado por um botão em `slideOrganogramaMetodologico`.
+
+   A cor por linha de pesquisa usa a MESMA receita categórica de
+   `slidePesquisasLinhas3D` (`var(--series-${(idx % 8) + 1})`), para o
+   organograma e o grafo de linhas lerem como o mesmo sistema visual. A
+   ordem vem de dentro do próprio organograma (nomes distintos das linhas
+   presentes, em ordem alfabética) -- não do grafo de linhas, que filtra
+   quem não tem produção e por isso não cobriria todo mundo que aparece
+   aqui. */
+function corPorTema(pessoa, linhasOrdenadas) {
+  const linha = pessoa && pessoa.research_line;
+  if (!linha) return "var(--ink-muted)";
+  const idx = linhasOrdenadas.indexOf(linha);
+  return idx < 0 ? "var(--ink-muted)" : `var(--series-${(idx % 8) + 1})`;
+}
+
+/* Troca a cor dos cartões JÁ DESENHADOS, sem reconstruir a árvore -- o
+   `--cor` inline vence a regra `[data-tom]` do CSS (é assim que
+   `.cartao-pessoa` lê a cor, ver slides-avancados-3d.css), e remover a
+   propriedade inline devolve o cartão ao modo por nível, que nunca deixa
+   de existir por baixo. */
+function aplicarModoCorOrganograma(container, porId, modo, linhasOrdenadas) {
+  container.querySelectorAll(".cartao-pessoa[data-id]").forEach(function (cartao) {
+    if (modo === "tema") {
+      const pessoa = porId[cartao.dataset.id];
+      cartao.style.setProperty("--cor", corPorTema(pessoa, linhasOrdenadas));
+    } else {
+      cartao.style.removeProperty("--cor");
+    }
+  });
+}
+
 /* O cartão de uma pessoa na árvore -- compartilhado pelas duas lâminas
    (`slideOrganograma3D` e `slideOrganogramaMetodologico`) que antes
    reescreviam a mesma função lado a lado. Achado ao vivo: o desenho
@@ -834,7 +870,50 @@ function slideOrganogramaMetodologico() {
   if (!secoes.length) {
     return escalonar(el("div", { class: "slide" }, vazio("Ninguém no organograma ainda.")));
   }
+
+  /* Ordem alfabética, de dentro do PRÓPRIO organograma -- não do grafo de
+     "Linhas de Pesquisa 3D", que filtra quem não tem produção e por isso
+     deixaria de fora uma linha com gente mas sem artigo ainda. */
+  const linhasOrdenadas = Array.from(new Set(
+    (org.people || []).map(function (p) { return p.research_line; }).filter(Boolean)
+  )).sort();
+
+  const legendaTemas = el("div", { class: "legenda-ponto legenda-temas", style: "display:none" });
+  function desenharLegendaTemas() {
+    legendaTemas.innerHTML = "";
+    linhasOrdenadas.forEach(function (nome, idx) {
+      legendaTemas.appendChild(el("div", { class: "item-legenda" }, [
+        el("div", { class: "bolinha", style: `background:var(--series-${(idx % 8) + 1})` }),
+        el("span", { text: nome }),
+      ]));
+    });
+    if ((org.people || []).some(function (p) { return !p.research_line; })) {
+      legendaTemas.appendChild(el("div", { class: "item-legenda" }, [
+        el("div", { class: "bolinha", style: "background:var(--ink-muted)" }),
+        el("span", { text: "Sem linha declarada" }),
+      ]));
+    }
+  }
+  desenharLegendaTemas();
+
+  const alternador = el("div", { class: "alternador-cor-organograma" }, [
+    el("button", { class: "botao-modo-cor ativo", "data-modo": "hierarquia" }, [el("span", { text: "Por hierarquia" })]),
+    el("button", { class: "botao-modo-cor", "data-modo": "tema" }, [el("span", { text: "Por linha de pesquisa" })]),
+  ]);
+  Array.prototype.forEach.call(alternador.querySelectorAll("button"), function (botao) {
+    botao.onclick = function () {
+      const modo = botao.dataset.modo;
+      Array.prototype.forEach.call(alternador.querySelectorAll("button"), function (b) {
+        b.classList.toggle("ativo", b === botao);
+      });
+      aplicarModoCorOrganograma(container, porId, modo, linhasOrdenadas);
+      legendaTemas.style.display = modo === "tema" ? "" : "none";
+    };
+  });
+  container.appendChild(alternador);
+
   secoes.forEach(function (secao) { container.appendChild(secao); });
+  container.appendChild(legendaTemas);
 
   container.appendChild(el("div", { class: "legenda-ponto" }, [
     el("div", { class: "item-legenda" }, [el("div", { class: "bolinha verde" }), el("span", { text: "Presente agora" })]),
