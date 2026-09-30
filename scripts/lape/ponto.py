@@ -398,6 +398,56 @@ def _somar(db: Database, member_id: int | None, de: str, ate: str) -> dict[str, 
             "esquecidas": esquecidas}
 
 
+def por_atividade(db: Database, member_id: int | None, hoje: date | None = None,
+                   limite: int = 8) -> list[dict[str, Any]]:
+    """Horas do mês corrente agrupadas por projeto, artigo ou atividade anotada.
+
+    A janela é a mesma de `resumo()["mes"]` -- recebe `hoje` e recalcula a
+    própria janela em vez de receber `de`/`ate` prontos, para não correr o
+    risco de alguém passar as datas já truncadas que `resumo()` devolve
+    pra tela (que perderam o horário) e a comparação de fronteira sair
+    errada em silêncio.
+
+    Prioridade do rótulo: projeto > artigo > texto livre da "Anotar" > "Sem
+    atividade anotada" -- a mesma ordem em que `entrar()` recebe os três,
+    e a única que faz sentido quando mais de um está preenchido (o projeto
+    é o guarda-chuva; o artigo é mais específico que um texto livre solto).
+
+    Os `limite - 1` maiores ficam nomeados; o resto vira "Outros" -- uma
+    pessoa com vinte atividades diferentes não cabe numa rosca legível, e
+    as menores juntas ainda dizem "havia mais coisa", que sumir com elas
+    silenciosamente não diria.
+    """
+    hoje = hoje or date.today()
+    de_dia, ate_dia, _de0, _ate0 = _janelas(hoje)["mes"]
+    onde = "p.entrada >= ? AND p.entrada < ?"
+    params: list[Any] = [_dia_txt(de_dia), _dia_txt(ate_dia)]
+    if member_id is not None:
+        onde += " AND p.member_id = ?"
+        params.append(member_id)
+    linhas = db.dicts(
+        f"SELECT p.entrada, p.saida, p.fechado_sozinho, p.visto_em, p.atividade,"
+        f"       pr.name AS projeto, a.title AS artigo"
+        f"  FROM ponto p"
+        f"  LEFT JOIN projects pr ON pr.id = p.project_id"
+        f"  LEFT JOIN articles a ON a.id = p.article_id"
+        f" WHERE {onde}", params)
+    por_rotulo: dict[str, float] = {}
+    for linha in linhas:
+        pronta = _linha(dict(linha))
+        if not pronta["conta"]:
+            continue
+        rotulo = (linha["projeto"] or linha["artigo"]
+                  or clean_text(linha["atividade"]) or "Sem atividade anotada")
+        por_rotulo[rotulo] = por_rotulo.get(rotulo, 0) + (pronta["horas"] or 0)
+    ordenado = sorted(por_rotulo.items(), key=lambda x: -x[1])
+    principais = [{"rotulo": r, "horas": round(h, 2)} for r, h in ordenado[:limite - 1]]
+    resto = ordenado[limite - 1:]
+    if resto:
+        principais.append({"rotulo": "Outros", "horas": round(sum(h for _, h in resto), 2)})
+    return principais
+
+
 def _janelas(hoje: date) -> dict[str, tuple[date, date, date, date]]:
     """Inicio e fim de cada periodo, e do periodo anterior comparavel.
 

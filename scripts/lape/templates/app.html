@@ -4042,6 +4042,29 @@ VIEWS.ponto = {
        fixa, porque o mesmo número de horas pode estar dentro ou fora do
        esperado dependendo de quanto falta do período. */
     const metas = {dia: 8, semana: 40, mes: 160};
+
+    /* ---- ritmo lado a lado: hoje, semana e mês na mesma escala ----
+       Horas cruas dos três períodos juntas num gráfico só enganariam --
+       "hoje" (meta 8h) sempre pareceria minúsculo ao lado de "mês" (meta
+       160h), mesmo nos dias em que a pessoa está em dia. Comparável é
+       o % da própria meta de cada um, não a hora bruta. */
+    (function (){
+      const rotulos = [["dia", "Hoje"], ["semana", "Esta semana"], ["mes", "Este mês"]];
+      const pcts = rotulos.map(function (par){
+        const meta = metas[par[0]];
+        return meta ? Math.round(100 * (r[par[0]].horas || 0) / meta) : 0;
+      });
+      VIEW.appendChild(h("div", {class: "card sec"}, [
+        h("h3", {}, [Icons.get("relogio", 16), h("span", {text: "Ritmo: hoje, semana e mês"})]),
+        h("p", {class: "hint", text: "Cada barra é o % já cumprido da própria meta do período — "
+          + "por isso dá para comparar hoje com o mês inteiro na mesma régua."}),
+        C.columns({
+          labels: rotulos.map(function (par){ return par[1]; }),
+          values: pcts, unit: "%", height: 170, reference: 100, referenceLabel: "meta",
+        }),
+      ]));
+    })();
+
     VIEW.appendChild(h("div", {class: "grid g3 sec"},
       [["dia", "Hoje"], ["semana", "Esta semana"], ["mes", "Este mês"]].map(function (par){
         const bloco = r[par[0]];
@@ -4086,6 +4109,51 @@ VIEWS.ponto = {
             + "não entraram na conta."}));
         return cartao;
       })));
+
+    /* ---- em que foram as horas, e em que dia da semana ----
+       Pedido explícito: "mais segmentado". A rosca usa `por_atividade`
+       (projeto > artigo > texto livre > "sem atividade anotada", já
+       resolvido no backend -- ver `ponto.por_atividade`); o padrão por
+       dia da semana reaproveita a MESMA série de 30 dias que alimenta o
+       gráfico de barras logo abaixo, só agrupada de outro jeito. */
+    (function (){
+      const nomesDia = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+      const ordemSemana = [1, 2, 3, 4, 5, 6, 0]; // segunda a domingo
+      const somaPorDia = [0, 0, 0, 0, 0, 0, 0];
+      const contPorDia = [0, 0, 0, 0, 0, 0, 0];
+      d.serie.forEach(function (x){
+        const dow = new Date(x.dia + "T00:00:00").getDay();
+        somaPorDia[dow] += x.horas;
+        contPorDia[dow] += 1;
+      });
+      const mediaPorDia = ordemSemana.map(function (i){
+        return contPorDia[i] ? Math.round((somaPorDia[i] / contPorDia[i]) * 10) / 10 : 0;
+      });
+      const rotulosDia = ordemSemana.map(function (i){ return nomesDia[i]; });
+
+      const linha = h("div", {class: "grid g2 sec"});
+
+      const cartaoAtividade = h("div", {class: "card"}, [
+        h("h3", {}, [Icons.get("dados", 16), h("span", {text: "Em que foram as horas (este mês)"})]),
+      ]);
+      if (d.por_atividade && d.por_atividade.length) {
+        cartaoAtividade.appendChild(C.donut({
+          items: d.por_atividade.map(function (x){ return {label: x.rotulo, value: x.horas}; }),
+          unit: "h no mês",
+        }));
+      } else {
+        cartaoAtividade.appendChild(h("p", {class: "hint", text: "Nenhuma hora registrada este mês ainda."}));
+      }
+      linha.appendChild(cartaoAtividade);
+
+      linha.appendChild(h("div", {class: "card"}, [
+        h("h3", {}, [Icons.get("linhas", 16), h("span", {text: "Padrão por dia da semana"})]),
+        h("p", {class: "hint", text: "Média de horas de cada dia, nos últimos " + d.serie.length + " dias."}),
+        C.columns({labels: rotulosDia, values: mediaPorDia, unit: "h", height: 170}),
+      ]));
+
+      VIEW.appendChild(linha);
+    })();
 
     /* ---- horas trabalhadas: barras por dia, cabeçalho editorial ----
        Funde em um widget só o que antes eram dois: a REGULARIDADE (que a
