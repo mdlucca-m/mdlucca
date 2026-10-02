@@ -401,6 +401,42 @@ def cmd_linhas(args: argparse.Namespace) -> int:
         db.close()
 
 
+def cmd_ritmica(args: argparse.Namespace) -> int:
+    """A aba privada de ginástica rítmica: listar os estudos, ou semear a
+    lista pesquisada (ver ginastica_ritmica.ESTUDOS_SEMEADOS).
+
+        python3 scripts/lape_agent.py ritmica
+        python3 scripts/lape_agent.py ritmica --semear
+    """
+    from lape import ginastica_ritmica
+
+    db = Database(args.db)
+    db.migrate()
+    try:
+        if args.semear:
+            criado_por = db.scalar(
+                "SELECT id FROM members WHERE user_role = 'admin' ORDER BY id LIMIT 1")
+            saida = ginastica_ritmica.semear_estudos_iniciais(db, criado_por=criado_por)
+            print(f"{len(saida['novos'])} estudo(s) novo(s) cadastrado(s).")
+            for titulo in saida["novos"]:
+                print(f"  + {titulo}")
+            if saida["ja_existiam"]:
+                print(f"{len(saida['ja_existiam'])} já estavam no banco (pulados).")
+            return 0
+        estudos = ginastica_ritmica.listar_estudos(db)
+        if not estudos:
+            print("nenhum estudo cadastrado ainda. Use --semear para cadastrar a lista pesquisada.")
+            return 0
+        for e in estudos:
+            ano = e["ano_publicacao"] or "?"
+            print(f"  [{e['id']}] ({ano}) {e['titulo']}")
+            if e["autores"]:
+                print(f"       {e['autores']}")
+        return 0
+    finally:
+        db.close()
+
+
 def cmd_autoria(args: argparse.Namespace) -> int:
     """Diz se a ordem de autoria esta certa nesta maquina -- e qual e o defeito.
 
@@ -1135,6 +1171,13 @@ def build_parser() -> argparse.ArgumentParser:
     linhas_parser.add_argument("--fundir", help="a linha que sai (id, código ou nome)")
     linhas_parser.add_argument("--em", help="a linha que fica (id, código ou nome)")
     linhas_parser.set_defaults(func=cmd_linhas)
+
+    ritmica_parser = subparsers.add_parser(
+        "ritmica", help="a aba privada de ginástica rítmica: listar, ou semear a busca")
+    ritmica_parser.add_argument(
+        "--semear", action="store_true",
+        help="cadastra a lista pesquisada (pula o que já está no banco pelo título)")
+    ritmica_parser.set_defaults(func=cmd_ritmica)
 
     bib_parser = subparsers.add_parser(
         "biblioteca", help="os acervos de artigos: listar ou rodar as buscas")

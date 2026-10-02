@@ -166,6 +166,32 @@ header.page .meta { margin-top: 8px; }
 .card.clickable { cursor: pointer; transition: border-color .12s, transform .12s; }
 .card.clickable:hover { border-color: var(--accent); transform: translateY(-2px); }
 
+/* "Por linha de pesquisa" -- a mesma ideia de profundidade do gráfico de
+   horas do ponto (Área do integrante), só que em barras horizontais:
+   gradiente nas cores já existentes (nenhuma cor nova entra no sistema),
+   números maiores, e a fileira inteira é clicável para filtrar o painel. */
+.linhas-prod { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+.linhas-prod .fileira { display: grid; grid-template-columns: minmax(120px, 210px) 1fr auto;
+  gap: 14px; align-items: center; padding: 6px 8px; margin: 0 -8px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: background .12s; }
+.linhas-prod .fileira:hover, .linhas-prod .fileira:focus-visible { background: var(--surface-raised); }
+.linhas-prod .nome { font-size: 13.5px; font-weight: 600; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.linhas-prod .trilho { display: flex; height: 20px; border-radius: 6px; overflow: hidden;
+  background: var(--surface-sunken); box-shadow: inset 0 0 0 1px var(--border); }
+.linhas-prod .seg { position: relative; min-width: 3px; }
+.linhas-prod .seg + .seg { margin-left: 2px; }
+.linhas-prod .seg::after { content: ""; position: absolute; inset: 0; border-radius: inherit;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 45%, transparent); }
+.linhas-prod .totais { text-align: right; white-space: nowrap; }
+.linhas-prod .totais b { font-size: 19px; font-weight: 800; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; color: var(--ink); }
+.linhas-prod .totais small { display: block; font-size: 11.5px; color: var(--ink-muted);
+  margin-top: 1px; }
+.linhas-prod .semlinha { cursor: pointer; border-radius: var(--radius-sm); padding: 6px 8px;
+  margin: 2px -8px 0; transition: background .12s; }
+.linhas-prod .semlinha:hover, .linhas-prod .semlinha:focus-visible { background: var(--surface-raised); }
+
 /* abas internas de um cartão */
 .tabs { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
 .tabs button { background: var(--surface-raised); border: 1px solid var(--border);
