@@ -181,16 +181,16 @@
  "triagem_por_resumo": [
   {
    "n": 1,
-   "autores": "Autoria não recuperada",
+   "autores": "De Rose Jr. D., Simões A.C., Vasconcellos E.G.",
    "ano": 1994,
    "titulo": "Situações de jogo causadoras de \"stress\" no handebol de alto nível",
-   "revista": "Sem periódico recuperado (registro LILACS)",
+   "revista": "Revista Paulista de Educação Física, 8(1), 30-37",
    "doi": null,
    "descricao": "Situações de jogo estressoras na seleção brasileira de handebol.",
    "resumo": "19 atletas da seleção brasileira masculina na preparação para os Jogos Olímpicos de 1992; situações de jogo que mais causam estresse.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse competitivo: situações de jogo estressoras na seleção brasileira."
+   "motivo_saude_mental": "Resumo real (Revista Paulista de Educação Física, 1994; autores De Rose Jr., Simões e Vasconcellos): 19 atletas da seleção brasileira masculina antes de Barcelona 1992 apontam as situações de jogo mais estressoras (jogar em más condições físicas, arbitragem, exclusão em momentos decisivos)."
   },
   {
    "n": 2,
@@ -294,7 +294,7 @@
    "resumo": "109 jogadores escolares; orientação de metas, competência percebida e ansiedade pré-competitiva (CSAI-2).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade pré-competitiva medida pelo CSAI-2 (intensidade e direção)."
+   "motivo_saude_mental": "Resumo real (PubMed 17918551): 109 jogadores escolares; CSAI-2 modificado (intensidade e direção da ansiedade cognitiva e somática) predita por metas e competência percebida."
   },
   {
    "n": 13,
@@ -320,7 +320,7 @@
    "resumo": "143 jogadores de 10 equipes de elite; clima motivacional, orientação ao ego e ansiedade de desempenho.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade de desempenho medida em equipes de elite."
+   "motivo_saude_mental": "Resumo real (Crossref): 143 jogadores de 10 equipes de elite; ansiedade de desempenho maior nas mulheres, associada a orientação ao ego e clima de desempenho."
   },
   {
    "n": 15,
@@ -346,7 +346,7 @@
    "resumo": "18 atletas de handebol em 4 sessões de corrida com manipulação da informação sobre a duração; afeto, PSE, FC e cortisol.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Afeto medido durante as sessões de corrida; indicador de humor, embora secundário ao desenho fisiológico."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): afeto, PSE, FC e cortisol em 4 sessões de corrida; o afeto subiu nas sessões \"fragmentada\" e \"superestimada\". Afeto é desfecho secundário de desenho fisiológico."
   },
   {
    "n": 17,
@@ -359,7 +359,7 @@
    "resumo": "POMS e RESTQ-Sport em 14 jogadores ao longo de 40 semanas de temporada.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor (POMS) e recuperação-estresse (RESTQ-Sport) ao longo de 40 semanas."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): POMS e RESTQ-Sport em 14 jogadores ao longo de 40 semanas; sem mudança no distúrbio total de humor, mudanças em escalas do RESTQ."
   },
   {
    "n": 18,
@@ -372,7 +372,7 @@
    "resumo": "CSAI-2 em atletas de handebol antes/depois de 7 semanas de feedback em vídeo aos treinadores; ansiedade diminuiu.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva (CSAI-2) antes e depois da intervenção com os treinadores."
+   "motivo_saude_mental": "Resumo real (Crossref): CSAI-2 em 112 participantes antes e após 7 semanas; atletas do grupo intervenção relataram menos ansiedade; goleiros mais ansiosos."
   },
   {
    "n": 19,
@@ -476,7 +476,7 @@
    "resumo": "18 jogadores de elite; CSAI-2 na pausa da temporada e antes de jogo do campeonato, com marcadores periodontais.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade pré-competitiva (CSAI-2) antes de jogo do campeonato."
+   "motivo_saude_mental": "Resumo real (Crossref): 18 jogadores de elite; CSAI-2 diferiu entre pausa da temporada e véspera de jogo do campeonato, com marcadores periodontais."
   },
   {
    "n": 28,
@@ -488,8 +488,8 @@
    "descricao": "Ansiedade sob pressão em tarefa de arremesso com jogadoras de handebol.",
    "resumo": "120 jogadoras em tarefa de arremesso sob pressão baixa e alta; ansiedade medida.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade medida em tarefa de arremesso sob pressão."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (Crossref): 120 jogadoras; ansiedade medida como checagem da manipulação de pressão (subiu de baixa para alta pressão); o desfecho principal é desempenho sob traços de autofoco."
   },
   {
    "n": 29,
@@ -502,7 +502,7 @@
    "resumo": "Resumo não acessível; o título indica autoeficácia, ansiedade pré-competitiva e flow na seleção da Costa Rica.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade pré-competitiva declarada no título (resumo não acessível)."
+   "motivo_saude_mental": "Resumo real (MHSalud 10(2), 2013): 28 jogadores das seleções da Costa Rica; ansiedade pré-competitiva menor e autoconfiança maior nos homens; autoeficácia e flow."
   },
   {
    "n": 31,
@@ -515,7 +515,7 @@
    "resumo": "133 jogadores adolescentes; otimismo, ansiedade estado competitiva e autoconfiança (CSAI-2).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade estado competitiva (CSAI-2) em jovens jogadores."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 133 adolescentes; LOT-R e CSAI-2; otimistas com menos ansiedade estado cognitiva e somática e mais autoconfiança."
   },
   {
    "n": 32,
@@ -532,16 +532,16 @@
   },
   {
    "n": 33,
-   "autores": "Autoria não recuperada",
+   "autores": "Montes F.A., Gomes S.C.",
    "ano": 2014,
    "titulo": "Correlação entre resistência anaeróbia e estados de humor ao longo de uma temporada na modalidade handebol",
-   "revista": "Sem periódico recuperado (registro LILACS)",
+   "revista": "Journal of Health Sciences (UNOPAR), 16(2)",
    "doi": null,
    "descricao": "Estados de humor pelo POMS ao longo da temporada em equipe portuguesa.",
    "resumo": "14 jogadores da primeira divisão portuguesa; humor (POMS) e aptidão física no repouso, após o mesociclo preparatório e no período competitivo.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estados de humor (POMS) ao longo da temporada."
+   "motivo_saude_mental": "Resumo não localizado nas fontes abertas (Journal of Health Sciences 16(2), 2014; autores Montes e Gomes). Mantido pela descrição original: POMS em 14 jogadores da primeira divisão portuguesa em três momentos da temporada."
   },
   {
    "n": 34,
@@ -593,7 +593,7 @@
    "resumo": "37 jovens; POMS e frequência cardíaca mensais de setembro a maio (temporada).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor (POMS) mensal ao longo da temporada."
+   "motivo_saude_mental": "Resumo real (Europe PMC): POMS mensal em 37 adolescentes de setembro a maio, com FC de repouso e VFC; sensibilidade fraca para prever desempenho."
   },
   {
    "n": 40,
@@ -619,7 +619,7 @@
    "resumo": "61 jogadores; humor após vitória em jogo comparado ao treino, com testes de memória e controle executivo.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor após vitória em jogo, comparado ao treino."
+   "motivo_saude_mental": "Resumo real (Europe PMC): 61 jogadores; humor diferiu entre pós-vitória e treino, com efeitos sobre memória; ativação e motivação iguais."
   },
   {
    "n": 42,
@@ -632,7 +632,7 @@
    "resumo": "Resumo não acessível; o título indica recuperação psicológica após fim de semana de repouso em jogadores profissionais.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Verificado no resumo (Kinesiology, 2015): sintomas de estresse pelo DALDA e VFC antes e depois de 72 h de repouso; respostas \"pior que o normal\" caíram de 6,1 para 3,4."
+   "motivo_saude_mental": "Resumo real (Kinesiology, 2015): sintomas de estresse pelo DALDA e VFC antes e depois de 72 h de repouso; respostas \"pior que o normal\" caíram de 6,1 para 3,4."
   },
   {
    "n": 43,
@@ -658,24 +658,24 @@
    "resumo": "62 atletas de handebol; coesão e ansiedade estado (CSAI-2) ao longo de um torneio.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade estado (CSAI-2) ao longo de um torneio."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 62 atletas; CSAI-2 e Questionário de Ambiente de Grupo ao longo de um torneio; ansiedade somática das mulheres caiu durante a competição."
   },
   {
    "n": 45,
-   "autores": "Autoria não recuperada",
+   "autores": "Silva J.D.A., Padovani R.C., Viana M.B.",
    "ano": 2016,
    "titulo": "O emprego do biofeedback como estratégia de manejo do estresse e da ansiedade em atletas: um ensaio clínico",
-   "revista": "Sem periódico recuperado (registro LILACS)",
+   "revista": "Revista Brasileira de Terapia Comportamental e Cognitiva",
    "doi": null,
    "descricao": "Biofeedback para estresse e ansiedade competitiva em equipe de handebol.",
    "resumo": "Atletas de uma equipe de handebol; treino com biofeedback reduziu estresse e ansiedade competitiva (CSAI-2).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse e ansiedade competitiva (CSAI-2) reduzidos por biofeedback."
+   "motivo_saude_mental": "Resumo real (RBTCC; autores Silva, Padovani e Viana): atletas de uma equipe de handebol; biofeedback de VFC avaliado com WHOQOL-bref, BAI, ISSL de Lipp e CSAI-2; reduziu estresse e ansiedade competitiva."
   },
   {
    "n": 46,
-   "autores": "Baro J.P.M.",
+   "autores": "Morillo Baro J.P., Reigal R.E., Hernández-Mendo A.",
    "ano": 2016,
    "titulo": "The Relationsship between the Sports Psychological Profile and Competitive Anxiety in Beach Handball Players",
    "revista": "Revista de Psicología del Deporte",
@@ -684,7 +684,7 @@
    "resumo": "Resumo não acessível; o título indica perfil psicológico esportivo e ansiedade competitiva no handebol de praia.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva declarada no título (resumo não acessível)."
+   "motivo_saude_mental": "Resumo real (RPD 25(1), 2016; autores Morillo Baro, Reigal e Hernández-Mendo): 112 jogadores de handebol de praia; IPED e CSAI-2 (ansiedade e autoconfiança)."
   },
   {
    "n": 47,
@@ -710,7 +710,7 @@
    "resumo": "458 jovens de centros de treinamento de elite; perfis de burnout predizem o abandono do handebol seis anos depois.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Perfis de burnout e abandono seis anos depois."
+   "motivo_saude_mental": "Resumo real (Crossref): 458 jovens de centros de elite; perfis de burnout no T1 predizem ter parado de jogar 6 anos depois."
   },
   {
    "n": 51,
@@ -736,7 +736,7 @@
    "resumo": "97 atletas adolescentes avaliados 30 minutos antes do primeiro jogo de uma competição estadual; estresse pré-competitivo moderado.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Sintomas de estresse pré-competitivo antes de jogo estadual."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 97 adolescentes; Lista de Sintomas de Estresse Pré-Competitivo 30 min antes do primeiro jogo estadual; estresse moderado."
   },
   {
    "n": 54,
@@ -775,7 +775,7 @@
    "resumo": "6 jovens jogadoras na transição para escola esportiva; estressores competitivos e organizacionais e falta de sono com aumento do treino.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estressores competitivos e organizacionais e falta de sono descritos na transição escolar (qualitativo)."
+   "motivo_saude_mental": "Resumo real (Crossref): 6 jogadoras de 13 a 14 anos; entrevistas e questionários mostram estressores competitivos, organizacionais e pessoais, incluindo falta de sono."
   },
   {
    "n": 57,
@@ -814,7 +814,7 @@
    "resumo": "Resumo não acessível; o título indica recuperação-estresse e cortisol em período competitivo.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Recuperação-estresse percebidos com cortisol em período competitivo."
+   "motivo_saude_mental": "Resumo real (RPD 26(2), 2017): 14 jogadores; RESTQ-Sport em 4 aplicações e cortisol em 6 coletas; estresse geral, estresse emocional, fadiga e qualidade do sono mudaram entre pré e pós-competição."
   },
   {
    "n": 60,
@@ -840,7 +840,7 @@
    "resumo": "12 jogadores; escala de recuperação e estresse agudos (ARSS) após treinos de sprint.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "ARSS inclui estresse geral e equilíbrio emocional, mas o foco é fisiológico (compressão)."
+   "motivo_saude_mental": "Resumo real (Crossref): 12 jogadores; ARSS antes, logo após, 24 h e 48 h de sprints com compressão; desfecho principal é fisiológico (CK, ureia)."
   },
   {
    "n": 62,
@@ -852,8 +852,8 @@
    "descricao": "Transições ao alto nível, motivação e burnout em jovens de seleções de handebol.",
    "resumo": "Entrevistas com 9 jogadores de seleções de base; descrevem exaustão, burnout e perda de motivação.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Exaustão, burnout e perda de motivação descritos nas entrevistas."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (Crossref): entrevistas com 9 jogadores de seleções de base; o modelo de desenvolvimento é vivido como exaustivo. Descrição qualitativa, sem instrumento."
   },
   {
    "n": 63,
@@ -866,7 +866,7 @@
    "resumo": "25 jovens de seleção; POMS antes/depois de 28 dias de treino com suplementação.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estados de humor (POMS) antes e depois de 28 dias de treino."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 25 jovens; POMS antes e depois de 28 dias de treino com néctar de Syzygium cumini ou placebo."
   },
   {
    "n": 64,
@@ -892,7 +892,7 @@
    "resumo": "28 mulheres destreinadas em 12 semanas de treino de handebol (ECR); bem-estar e motivação avaliados.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar avaliado em ensaio controlado com treino de handebol."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): ECR com 28 mulheres destreinadas; bem-estar e motivação avaliados por questionário antes e depois de 12 semanas de treino de handebol."
   },
   {
    "n": 67,
@@ -905,7 +905,7 @@
    "resumo": "Resumo não acessível; o título indica habilidades psicológicas, dureza mental e ansiedade em jogadores de elite.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade declarada no título (resumo não acessível)."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 174 jogadores de seleções; TOPS, SMTQ e SAS-2; homens com menos ansiedade que mulheres."
   },
   {
    "n": 68,
@@ -918,7 +918,7 @@
    "resumo": "128 jogadores juniores; ansiedade competitiva (CSAI-2) durante o jogo, menor com mais experiência de treino.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva (CSAI-2) durante o jogo."
+   "motivo_saude_mental": "Resumo parcial (Quality & Quantity 52(6), 2018): CSAI-2 (ansiedade somática, cognitiva e autoconfiança) em juniores durante a partida, conforme descrição original."
   },
   {
    "n": 69,
@@ -944,7 +944,7 @@
    "resumo": "17 atletas da seleção brasileira de handebol de praia em 18 dias de treino pré-competitivo; humor (POMS) monitorado com marcadores fisiológicos.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor (POMS) em período pré-competitivo."
+   "motivo_saude_mental": "Resumo real (Crossref): 17 atletas da seleção de handebol de praia; POMS em 3 momentos de 18 dias de treino pré-competitivo, com CK, LDH e modulação autonômica."
   },
   {
    "n": 71,
@@ -996,24 +996,24 @@
    "resumo": "179 jogadores do campeonato letão 2015; CSAI-2 (ansiedade e autoconfiança) e coesão.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade e autoconfiança (CSAI-2) com coesão."
+   "motivo_saude_mental": "Resumo real (Transformations in Business & Economics 17(1), 2018): 179 jogadores do campeonato letão de 2015; CSAI-2 (ansiedade e autoconfiança) e GEQ (coesão) relacionados a gols e classificação."
   },
   {
    "n": 75,
    "autores": "Autoria não recuperada",
    "ano": 2019,
    "titulo": "Correlação entre microlesão muscular e estresse em atletas usuários de cadeira de rodas",
-   "revista": "Sem periódico recuperado (registro LILACS)",
+   "revista": "Conexões (Unicamp), 17",
    "doi": null,
    "descricao": "Estresse e recuperação pelo RESTQ-Sport antes do jogo em handebol em cadeira de rodas.",
    "resumo": "10 atletas de handebol em cadeira de rodas; estresse e recuperação (RESTQ-Sport) antes do jogo e creatina quinase.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse e recuperação (RESTQ-Sport) antes do jogo."
+   "motivo_saude_mental": "Resumo real (Conexões, Unicamp, 2019): 10 atletas de handebol em cadeira de rodas; RESTQ-Sport 30 min antes do jogo e CK antes e depois; escores moderados em conflitos/pressão e lesões."
   },
   {
    "n": 76,
-   "autores": "Aldasoro E.R.",
+   "autores": "Romaratezabala E., Castillo D., Rodríguez-Negro J., Yanci J.",
    "ano": 2019,
    "titulo": "Effects of the Psychological Stress, Fatigue, Muscle Damage and Rest Perception in Pre-Match Warm-Up of Amateur Handball Players",
    "revista": "E-balonmano.com: Revista de Ciencias del Deporte",
@@ -1022,7 +1022,7 @@
    "resumo": "12 jogadores sênior; estresse, sono, fadiga e dor (Hooper) antes do aquecimento pré-jogo, relacionados ao desempenho e à PSE.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Questionário de Hooper (estresse, sono, fadiga, dor) antes do aquecimento pré-jogo."
+   "motivo_saude_mental": "Resumo real (E-balonmano.com, 2019; autores Romaratezabala, Castillo, Rodríguez-Negro e Yanci): 12 jogadores sênior; percepção de descanso/sono, estresse, fadiga e dor antes do aquecimento; maior estresse e pior sono associados a pior desempenho."
   },
   {
    "n": 77,
@@ -1048,7 +1048,7 @@
    "resumo": "20 profissionais monitorados na temporada; bem-estar (Hooper), fadiga e dor em semanas normais e congestionadas.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Bem-estar pelo Hooper (inclui estresse e sono) em semanas normais e congestionadas."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 20 profissionais na temporada; Hooper (dor, fadiga, índice total) em semanas normais e congestionadas; foco em carga."
   },
   {
    "n": 79,
@@ -1061,7 +1061,7 @@
    "resumo": "Jogadoras de handebol; burnout emocional maior nas fases menstrual, ovulatória e pré-menstrual, com implicações para treino e competição.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Burnout emocional conforme fase do ciclo menstrual."
+   "motivo_saude_mental": "Resumo real (JPES 19 S4, 2019): burnout emocional maior nas fases menstrual, ovulatória e pré-menstrual em jogadoras."
   },
   {
    "n": 80,
@@ -1126,11 +1126,11 @@
    "resumo": "35 jogadores da seleção júnior; ansiedade competitiva (SCAT) e estratégias de enfrentamento por sexo.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva (SCAT) e enfrentamento por sexo."
+   "motivo_saude_mental": "Resumo real (JPES 19, Art. 180, 2019): 35 adolescentes da seleção júnior; SCAT e Ways of Coping; mulheres com mais ansiedade competitiva."
   },
   {
    "n": 85,
-   "autores": "Korobeynikov G.",
+   "autores": "Korobeynikov G., Potop V., Ion M., Korobeynikova L., Borisova O., Tishchenko V., Yarmak O., Tolkunova I., Mospan M., Smoliar I.",
    "ano": 2019,
    "titulo": "Psychophysiological State of Female Handball Players with Different Game Roles",
    "revista": "Journal of Physical Education and Sport",
@@ -1139,7 +1139,7 @@
    "resumo": "34 jogadoras da seleção júnior; estado emocional e nível de estresse (teste de Lüscher) por posição.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Estado emocional e nível de estresse (teste de Lüscher, projetivo) por posição."
+   "motivo_saude_mental": "Texto completo (JPES 19(3), Art. 248, 2019): 34 jogadoras da seleção júnior; teste de cores de Lüscher, funções neurodinâmicas, Raven e Stroop; \"alto nível de estresse\" nas pivôs. Estresse por teste projetivo."
   },
   {
    "n": 86,
@@ -1152,7 +1152,7 @@
    "resumo": "32 jogadoras de clubes; bem-estar, atividade e humor (SAN) nas fases do ciclo menstrual.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar, atividade e humor (SAN) nas fases do ciclo menstrual."
+   "motivo_saude_mental": "Resumo indireto (citações do estudo, JPES 19 S3, 2019): jogadoras de dois clubes de elite, 19 a 21 anos; maior desconforto emocional, humor negativo e tensão na fase menstrual."
   },
   {
    "n": 87,
@@ -1165,7 +1165,7 @@
    "resumo": "45 jovens atletas avaliados após treinos regulares; sintomas e fontes de estresse (DALDA) e distúrbios musculoesqueléticos.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Sintomas e fontes de estresse (DALDA) após treinos."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 45 atletas após treinos; DALDA (fontes e sintomas de estresse) e questionário nórdico; clima e sono como principais fontes."
   },
   {
    "n": 88,
@@ -1204,7 +1204,7 @@
    "resumo": "479 jovens de alto rendimento; clima motivacional, medo do fracasso e ansiedade pré-competitiva (CSAI-2R).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade pré-competitiva (CSAI-2R) com clima e medo do fracasso."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 479 jovens; CSAI-2R (ansiedade cognitiva, somática e autoconfiança) com clima motivacional e medo do fracasso."
   },
   {
    "n": 93,
@@ -1217,7 +1217,7 @@
    "resumo": "19 jogadoras da seleção nacional; ansiedade competitiva, ansiedade traço/estado, enfrentamento e hardiness.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva, traço e estado, com enfrentamento e hardiness."
+   "motivo_saude_mental": "Resumo real (JPES 20 S1, Art. 51, 2020): jogadoras da seleção nacional, 22 a 35 anos; ansiedade competitiva, ansiedade traço e estado, hardiness e Ways of Coping."
   },
   {
    "n": 94,
@@ -1243,7 +1243,7 @@
    "resumo": "187 jogadores no isolamento da COVID-19; humor, sono, inteligência emocional, resiliência e condições de treino.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor e sono durante o isolamento da COVID-19."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 187 jogadores no isolamento; humor, qualidade e horas de sono, inteligência emocional e resiliência; qualidade do sono caiu."
   },
   {
    "n": 96,
@@ -1282,7 +1282,7 @@
    "resumo": "181 jogadores de handebol de praia; perfil psicológico (IPED), ansiedade competitiva (CSAI-2), humor (POMS) e autoeficácia.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva (CSAI-2) e humor (POMS) com perfil psicológico."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 181 jogadores de handebol de praia; IPED, CSAI-2, POMS e GSES."
   },
   {
    "n": 99,
@@ -1295,7 +1295,7 @@
    "resumo": "Resumo não acessível; o título indica tensão psicológica e antioxidantes em jovens jogadores, sem contexto informado.",
    "triagem_6_familias": "ENTRA (decidido pelo título; limítrofe)",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Tensão psicológica declarada no título, sem contexto informado (resumo não acessível)."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): nível de tensão/estimulação emocional de jovens jogadores relacionado a antioxidantes; instrumento não especificado no resumo."
   },
   {
    "n": 100,
@@ -1307,8 +1307,8 @@
    "descricao": "Afeto positivo, motivação e feedback em jogadoras experientes de handebol.",
    "resumo": "39 jogadoras com experiência internacional; feedback altera afeto positivo, competência, motivação e velocidade de arremesso.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Afeto positivo como desfecho do feedback, junto a competência e motivação."
+   "saude_mental": "ENTRA",
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 39 jogadoras experientes; bem-estar (vitalidade, afeto positivo e negativo) como desfecho do feedback em tarefa de arremesso; afeto positivo diferiu entre grupos."
   },
   {
    "n": 102,
@@ -1360,7 +1360,7 @@
    "resumo": "479 jovens de seleções regionais; comprometimento, medo do fracasso e burnout (IBD-R) em contexto competitivo.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Burnout (IBD-R) com comprometimento e medo do fracasso."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 479 jovens; IBD-R (exaustão emocional, despersonalização), PFAI e SCQE."
   },
   {
    "n": 108,
@@ -1373,7 +1373,7 @@
    "resumo": "12 jogadoras de elite; índice de Hooper e sonolência (Epworth) antes e durante o Ramadã.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Índice de Hooper e sonolência (Epworth) antes e durante o Ramadã."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 12 jogadoras de elite; índice de Hooper e Escala de Sonolência de Epworth antes e durante o Ramadã; sonolência maior na última semana."
   },
   {
    "n": 109,
@@ -1399,7 +1399,7 @@
    "resumo": "479 jovens de alto nível; perfis de motivação, medo do fracasso e ansiedade competitiva (CSAI-2R).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva (CSAI-2R) em perfis de motivação."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 479 jovens; perfis com SMS, PFAI e CSAI-2R; um perfil com os maiores níveis de ansiedade."
   },
   {
    "n": 111,
@@ -1424,8 +1424,8 @@
    "descricao": "Estresse percebido e recuperação após exercício de sprint em jogadores de handebol.",
    "resumo": "29 jogadores; estresse percebido antes/depois de sprints e até 72 h.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse percebido antes e depois de sprints e até 72 h."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 29 jogadores; nível de estresse percebido antes, depois e até 72 h de sprints, junto a dor muscular e CK; estresse como marcador de recuperação."
   },
   {
    "n": 113,
@@ -1438,7 +1438,7 @@
    "resumo": "Resumo não acessível; o título indica burnout emocional e interação interpessoal no handebol profissional.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Burnout emocional declarado no título (resumo não acessível)."
+   "motivo_saude_mental": "Resumo não localizado nas fontes abertas (Teoriya i Praktika Fizicheskoy Kultury, 2021, em russo). Mantido pelo título, que declara burnout emocional em handebol profissional."
   },
   {
    "n": 115,
@@ -1464,7 +1464,7 @@
    "resumo": "11 jogadores universitários; cochilos de 20 e 60 min antes de tarefa específica, com PSQI e sonolência (Karolinska).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Qualidade do sono (PSQI) e sonolência (Karolinska) em protocolo de cochilos."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 11 universitários; PSQI (qualidade habitual do sono) e Escala de Sonolência de Karolinska antes e depois dos cochilos."
   },
   {
    "n": 117,
@@ -1477,7 +1477,7 @@
    "resumo": "59 jogadoras das 4 melhores equipes da liga 2017/18; ansiedade (Beck) e narcisismo comparados por nível de desempenho.",
    "triagem_6_familias": "ENTRA (limítrofe)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade (Beck) por nível de desempenho."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 59 jogadoras de liga; Inventário de Ansiedade de Beck e narcisismo; ansiedade maior no grupo de menor desempenho."
   },
   {
    "n": 118,
@@ -1503,7 +1503,7 @@
    "resumo": "37 atletas do Campeonato Brasileiro de handebol em cadeira de rodas; motivação intrínseca reduz ansiedade competitiva (SAS).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva (SAS) em handebol em cadeira de rodas."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 37 atletas de handebol em cadeira de rodas; SAS (ansiedade competitiva) e IMI; competência percebida explica 15 % da ansiedade somática."
   },
   {
    "n": 120,
@@ -1529,7 +1529,7 @@
    "resumo": "Resumo não acessível; o título indica sono, bem-estar e características psicológicas com a prática de handebol recreativo.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Sono e bem-estar declarados no título (resumo não acessível)."
+   "motivo_saude_mental": "Resumo parcial (Medical Science 25(117), 2021): 24 universitários destreinados; 12 semanas de handebol recreativo melhoraram a qualidade do sono; bem-estar também avaliado."
   },
   {
    "n": 122,
@@ -1567,8 +1567,8 @@
    "descricao": "Qualidade do sono após esforço intenso em jogadores de handebol.",
    "resumo": "20 jogadores amadores; recuperação ativa com natação após esforço intenso melhora lactato e qualidade do sono.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Qualidade do sono após esforço intenso."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 20 amadores; qualidade do sono após esforço intenso com recuperação por natação; instrumento não descrito no resumo."
   },
   {
    "n": 126,
@@ -1581,7 +1581,7 @@
    "resumo": "18 jogadores de elite; POMS e questionário de Hooper antes de testes em 3 horários.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor (POMS) e questionário de Hooper por horário do dia."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 18 jogadores de elite; POMS e Hooper em 3 horários; humor negativo (ansiedade, raiva, confusão, depressão, fadiga) maior de manhã."
   },
   {
    "n": 127,
@@ -1607,7 +1607,7 @@
    "resumo": "73 jogadoras da Liga Iberdrola; feedback altera competência percebida, motivação autônoma e bem-estar.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar com competência percebida e motivação autônoma."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 73 jogadoras da Liga Iberdrola; bem-estar subjetivo, competência percebida e motivação autônoma após feedback comparativo."
   },
   {
    "n": 129,
@@ -1620,7 +1620,7 @@
    "resumo": "14 jogadoras; POMS nas fases do ciclo (ansiedade, raiva, confusão).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor (POMS) nas fases do ciclo menstrual."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 14 jogadoras; POMS nas fases do ciclo; ansiedade, raiva e confusão maiores na fase menstrual."
   },
   {
    "n": 131,
@@ -1724,7 +1724,7 @@
    "resumo": "13 jovens jogadoras; cafeína no Ramadã com PSQI avaliado em todos os períodos de teste.",
    "triagem_6_familias": "ENTRA (sono medido)",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Qualidade do sono (PSQI) em todos os períodos de teste; desfecho secundário."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 13 jogadoras; PSQI avaliado em todos os períodos, mas o desfecho é desempenho com cafeína no Ramadã."
   },
   {
    "n": 140,
@@ -1737,7 +1737,7 @@
    "resumo": "19 jogadoras; horário do Suhoor no Ramadã com PSQI, que piorou durante e após o mês.",
    "triagem_6_familias": "ENTRA (sono medido)",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Qualidade do sono (PSQI), que piorou durante e após o Ramadã; desfecho secundário."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 19 jogadoras; padrões de sono controlados junto a IMC e temperatura; desfecho é desempenho conforme horário do suhoor."
   },
   {
    "n": 141,
@@ -1767,7 +1767,7 @@
   },
   {
    "n": 143,
-   "autores": "Do Nascimento A.M.M.",
+   "autores": "Do Nascimento A.M.M., Gaia J.W.P., Ferreira R.W., Pires D.A.",
    "ano": 2023,
    "titulo": "Cross-Sectional Associations between Competitive Anxiety and Individual Characteristics among Handball Athletes",
    "revista": "Journal of Physical Education and Sport",
@@ -1776,7 +1776,7 @@
    "resumo": "81 atletas de handebol; ansiedade competitiva e autoconfiança (CSAI-2R) por tempo de prática, idade e sexo.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva e autoconfiança (CSAI-2R)."
+   "motivo_saude_mental": "Texto completo (JPES 23(7), Art. 196, 2023): 81 atletas; CSAI-2R; tempo de prática associado à direção e frequência da ansiedade somática."
   },
   {
    "n": 145,
@@ -1789,7 +1789,7 @@
    "resumo": "72 jogadoras U14 e U17; qualidade do sono, sonolência e insônia comparadas com a aptidão física.",
    "triagem_6_familias": "ENTRA (limítrofe)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Qualidade do sono, sonolência e insônia."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 72 jogadoras U14 e U17; PSQI, Epworth e Índice de Gravidade de Insônia com testes físicos."
   },
   {
    "n": 146,
@@ -1828,7 +1828,7 @@
    "resumo": "64 atletas infantis antes e depois do camping técnico da seleção; burnout (ABQ) aumentou.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Burnout (ABQ) antes e depois do camping."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 64 atletas infantis; ABQ antes e depois do camping da seleção; burnout aumentou em todas as dimensões."
   },
   {
    "n": 150,
@@ -1841,7 +1841,7 @@
    "resumo": "18 jogadoras de seleções chilenas no confinamento; atividade física, sono e bem-estar psicológico medidos duas vezes.",
    "triagem_6_familias": "ENTRA (limítrofe)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar psicológico e sono no confinamento."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 18 jogadoras de seleções chilenas; bem-estar psicológico caiu no confinamento; qualidade do sono sem mudança, problemas de sono reduziram."
   },
   {
    "n": 151,
@@ -1880,7 +1880,7 @@
    "resumo": "100 jogadores ao longo da temporada; recuperação percebida (PRSS) e escala curta de recuperação e estresse.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Escala curta de recuperação e estresse (inclui estresse geral e equilíbrio emocional) com recuperação percebida."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 100 jogadores na temporada; questionários subjetivos de fadiga junto ao teste de recuperação de pernas; estresse só como item de escala de recuperação."
   },
   {
    "n": 154,
@@ -1892,8 +1892,8 @@
    "descricao": "Qualidade do sono pelo PSQI em jogadoras durante o Ramadã.",
    "resumo": "23 jogadoras; PSQI (qualidade e duração do sono) ao longo do Ramadã.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Qualidade e duração do sono (PSQI) ao longo do Ramadã."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 23 jogadoras em 6 sessões ao longo do Ramadã; desfecho principal é psicomotor e cognitivo, com PSQI conforme descrição original."
   },
   {
    "n": 155,
@@ -1919,7 +1919,7 @@
    "resumo": "189 jogadores de elite em 45 semanas; estresse percebido semanal ligado à carga de treino e competição e ao cortisol.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse percebido semanal ligado à carga e ao cortisol."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 189 jogadores de elite em 45 semanas; estresse percebido semanal associado a carga (r = 0,19 a 0,46) e cortisol."
   },
   {
    "n": 158,
@@ -1932,7 +1932,7 @@
    "resumo": "65 jogadoras U14 e U17; qualidade do sono, insônia e sonolência antes e durante o Ramadã, com testes físicos.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Qualidade do sono, insônia e sonolência antes e durante o Ramadã."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 65 jogadoras U14 e U17; PSQI, ISI e Epworth pioraram durante o Ramadã."
   },
   {
    "n": 159,
@@ -1958,7 +1958,7 @@
    "resumo": "16 profissionais na pré-temporada; escala curta de recuperação e estresse e creatina quinase ao longo dos microciclos.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Escala curta de recuperação e estresse ao longo dos microciclos."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 16 profissionais na pré-temporada; itens da SRSS (capacidade física, recuperação geral, estresse muscular e estresse geral) e CK."
   },
   {
    "n": 161,
@@ -1984,7 +1984,7 @@
    "resumo": "10 jogadoras da seleção italiana em competição oficial de vários dias; bem-estar (Hooper), fadiga e estresse pioraram ao longo da competição.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar, fadiga e estresse (Hooper) ao longo de competição oficial."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 10 jogadoras da seleção italiana em competição oficial; Hooper com nível de estresse subindo de 4,5 para 5,5 ao longo dos dias; índice de bem-estar deteriorado."
   },
   {
    "n": 163,
@@ -1997,7 +1997,7 @@
    "resumo": "105 atletas de elite; programa de flow baseado em mindfulness melhorou bem-estar mental, flow e tomada de decisão.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar mental como desfecho de programa de flow com mindfulness."
+   "motivo_saude_mental": "Resumo real (Crossref): 105 atletas de elite; programa de flow com mindfulness melhorou bem-estar mental, tomada de decisão e flow disposicional."
   },
   {
    "n": 164,
@@ -2023,7 +2023,7 @@
    "resumo": "220 jogadores das três primeiras divisões iranianas; ansiedade de nova lesão (RIAI) relacionada ao histórico de lesões.",
    "triagem_6_familias": "ENTRA (não é população clínica)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade de nova lesão (RIAI)."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 220 jogadores de elite; Re-Injury Anxiety Inventory e histórico de lesões."
   },
   {
    "n": 166,
@@ -2036,7 +2036,7 @@
    "resumo": "298 jogadores; comportamento controlador do treinador e coesão predizem ansiedade competitiva, mediados pelas metas de realização.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade competitiva com comportamento do treinador e coesão."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 298 jogadores; comportamento controlador do treinador prediz ansiedade estado e somática; coesão prediz negativamente."
   },
   {
    "n": 167,
@@ -2049,7 +2049,7 @@
    "resumo": "189 jogadores em experimento de campo com tiros de 7 m sob pressão; avaliação cognitiva, ansiedade e excitação.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade e excitação sob pressão em experimento de campo."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): experimento de campo com 189 jogadores; avaliações, ansiedade e excitação sob pressão em pênaltis com interdependência de resultado."
   },
   {
    "n": 168,
@@ -2062,7 +2062,7 @@
    "resumo": "Entrevistas com 7 jogadores olímpicos; preparação mental, estressores e enfrentamento antes de Tóquio.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Verificado no texto completo (Front Psychol, 2025): estudo qualitativo que descreve exaustão mental, preocupação e isolamento dos jogadores na preparação olímpica durante a pandemia, sem instrumento padronizado."
+   "motivo_saude_mental": "Texto completo (Front Psychol, 2025): entrevistas retrospectivas descrevem exaustão mental, preocupação e isolamento na preparação olímpica durante a pandemia."
   },
   {
    "n": 169,
@@ -2074,8 +2074,8 @@
    "descricao": "Padrões de humor em handebolistas da liga jordaniana.",
    "resumo": "76 jogadores da liga jordaniana 2022/23; padrões de humor por experiência e posição.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Padrões de humor por experiência e posição."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 76 jogadores da liga jordaniana; \"lista de padrões de humor para atletas\" (flexibilidade pessoal, cessar operações, excitação); instrumento pouco padronizado."
   },
   {
    "n": 170,
@@ -2088,7 +2088,7 @@
    "resumo": "19 jogadoras profissionais acompanhadas por 60 dias na temporada; estresse diário, foco, engajamento esportivo e sono REM.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse diário, engajamento e sono REM na temporada."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 19 profissionais em 60 dias; estresse diário por questionário móvel, foco, engajamento e sono REM por anel Oura."
   },
   {
    "n": 171,
@@ -2140,7 +2140,7 @@
    "resumo": "Seleção portuguesa sub-18; programa de compaixão e ACT reduziu o estresse competitivo e melhorou mindfulness e competências psicológicas.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse competitivo reduzido por programa de compaixão e ACT."
+   "motivo_saude_mental": "Resumo real (Retos, 2025): seleção portuguesa sub-18; estresse na competição, autocompaixão, mindfulness e habilidades psicológicas antes e depois do programa BCOMP.ACT."
   },
   {
    "n": 175,
@@ -2153,7 +2153,7 @@
    "resumo": "189 jogadores de elite em 45 semanas; carga psicossocial (eventos de vida) e cargas de treino e competição como risco de lesão e doença.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Carga psicossocial (eventos de vida) como estresse de risco para lesão e doença."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 189 jogadores em 45 semanas; carga psicossocial pelo LESCA (eventos de vida) como fator de risco de lesão e doença."
   },
   {
    "n": 176,
@@ -2166,7 +2166,7 @@
    "resumo": "13 jogadores de elite em meia temporada; qualidade e quantidade do sono após treinos, jogos e viagens.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Qualidade e quantidade do sono em meia temporada."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 13 jogadores de elite em 14 semanas; duração, latência e eficiência do sono por anel Oura após treinos, jogos em casa e fora e seleções."
   },
   {
    "n": 177,
@@ -2179,7 +2179,7 @@
    "resumo": "14 jogadoras monitoradas em 13 jogos oficiais; PSE do jogo e bem-estar (Hooper) nos dias seguintes, por posição e papel.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Bem-estar pelo Hooper nos dias após partidas oficiais."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 14 jogadoras em 13 jogos; Hooper em MD+1 e MD+2 por posição e papel."
   },
   {
    "n": 179,
@@ -2192,7 +2192,7 @@
    "resumo": "41 jogadores e jogadoras; estado psicoemocional e tensão emocional.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Estado psicoemocional e tensão emocional por sexo."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 24 jogadoras e 17 jogadores; bateria \"Multipsychometer-05\" de estado psicoemocional e funções neurodinâmicas."
   },
   {
    "n": 180,
@@ -2205,7 +2205,7 @@
    "resumo": "10 jogadores profissionais; neurofeedback reduziu ansiedade geral e pré-competitiva.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade geral e pré-competitiva reduzidas por neurofeedback."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 10 profissionais; ansiedade geral e pré-competitiva, tempo de reação e atenção antes e depois de neurofeedback SMR."
   },
   {
    "n": 181,
@@ -2231,7 +2231,7 @@
    "resumo": "64 jogadores universitários; bem-estar pelo índice de Hooper relacionado à carga de treino e à alimentação.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Bem-estar subjetivo pelo índice de Hooper."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 64 universitários; índice de Hooper (sono, dor, estresse, fadiga) associado à alimentação."
   },
   {
    "n": 183,
@@ -2244,7 +2244,7 @@
    "resumo": "36 jogadoras profissionais; treino de imagética reduziu desregulação emocional, ansiedade e estresse.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Desregulação emocional, ansiedade e estresse reduzidos por imagética."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 36 jogadoras profissionais; desregulação emocional, sintomas de ansiedade e estresse percebido reduziram com imagética funcional."
   },
   {
    "n": 184,
@@ -2269,8 +2269,8 @@
    "descricao": "Burnout e sono avaliados em jogadores de handebol, grupo separável.",
    "resumo": "175 jogadores de handebol (dados separáveis dos de esports); dor musculoesquelética e volume de treino, com sono e burnout avaliados.",
    "triagem_6_familias": "ENTRA (limítrofe)",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Burnout e sono avaliados no grupo de handebol."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 175 jogadores de handebol e 76 de esports; padrões de sono e burnout coletados por questionário, mas o desfecho principal é dor musculoesquelética."
   },
   {
    "n": 187,
@@ -2283,7 +2283,7 @@
    "resumo": "93 universitários em 2 temporadas; bem-estar diário (wellness) e fadiga.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Bem-estar diário (wellness) e fadiga em duas temporadas."
+   "motivo_saude_mental": "Resumo real (Crossref): 93 universitários em 2 temporadas; fadiga por avaliações diárias de wellness e CMJ; desfecho é risco de LCA."
   },
   {
    "n": 188,
@@ -2308,8 +2308,8 @@
    "descricao": "Bem estar psicológico e apoio social em estudantes atletas de handebol.",
    "resumo": "287 estudantes-atletas de handebol; apoio de família, pares e treinadores e bem-estar psicológico.",
    "triagem_6_familias": "ENTRA (limítrofe)",
-   "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar psicológico e apoio social."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Resumo real (IJHMSS 13(3), 2025): 287 estudantes-atletas; bem-estar psicológico é um dos desfechos de desenvolvimento social, junto a competência social e identidade."
   },
   {
    "n": 190,
@@ -2322,7 +2322,7 @@
    "resumo": "24 jogadoras de duas equipes em 8 jogos oficiais; hipnose reduziu ansiedade pré-competitiva e aumentou a autoconfiança (CSAI-2).",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade pré-competitiva e estresse (CSAI-2) com hipnose."
+   "motivo_saude_mental": "Resumo real (Crossref): 24 jogadoras de duas equipes em 8 jogos oficiais; questionários de estado psicológico (estresse, ansiedade pré-competitiva) e VFC com hipnose."
   },
   {
    "n": 191,
@@ -2335,7 +2335,7 @@
    "resumo": "87 jovens em competição com bio-banding; ansiedade pré-competitiva e autoconfiança (CSAI-2R) por sexo e maturação.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade pré-competitiva (CSAI-2R) em competição com bio-banding."
+   "motivo_saude_mental": "Resumo real (Science & Sports 40(7), 2025): 87 jovens de 13 a 17 anos; ansiedade cognitiva e somática maiores nas meninas, autoconfiança nos meninos."
   },
   {
    "n": 192,
@@ -2348,7 +2348,7 @@
    "resumo": "16 jogadoras amadoras em testes e 10 jogos oficiais; humor (POMS) e estresse percebido medidos.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Humor (POMS) e estresse percebido em testes e jogos."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 16 jogadoras amadoras; POMS e escala de estresse percebido em testes e em 10 jogos oficiais."
   },
   {
    "n": 193,
@@ -2361,7 +2361,7 @@
    "resumo": "16 jogadoras amadoras (provavelmente a mesma amostra do nº 192) em testes de laboratório e 10 jogos oficiais; estresse percebido e humor.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Estresse percebido e humor em jogos oficiais."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 16 jogadoras amadoras; estresse percebido e estados de humor em testes de laboratório e 10 jogos oficiais."
   },
   {
    "n": 194,
@@ -2387,7 +2387,7 @@
    "resumo": "50 jogadoras adolescentes (mesma amostra do nº 196) em 11 a 12 treinos; necessidades psicológicas, prazer e afeto relacionados à carga física.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Afeto em sessões de treino, com necessidades e prazer."
+   "motivo_saude_mental": "Resumo real (Crossref): 50 adolescentes em 11 a 12 treinos; satisfação de necessidades, prazer e sentimentos de prazer (afeto) antes e depois de cada treino."
   },
   {
    "n": 196,
@@ -2426,7 +2426,7 @@
    "resumo": "522 jovens jogadores; clima motivacional da equipe associado a ansiedade, depressão, estresse (DASS-21) e autoestima.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Ansiedade, depressão e estresse (DASS-21) e autoestima."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 522 jovens; DASS-21 (ansiedade, depressão, estresse) e autoestima de Rosenberg com clima motivacional."
   },
   {
    "n": 200,
@@ -2439,7 +2439,7 @@
    "resumo": "442 jogadores das ligas turcas; bem-estar psicológico, agressividade e dependência de exercício.",
    "triagem_6_familias": "ENTRA (limítrofe)",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Bem-estar psicológico com agressividade e dependência de exercício."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 442 jogadores de ligas turcas; Escala de Bem-Estar Psicológico, agressividade de Buss-Perry e dependência de exercício."
   },
   {
    "n": 201,
@@ -2452,7 +2452,7 @@
    "resumo": "18 jogadores da primeira liga alemã em uma temporada; bem-estar nos dias de jogo relacionado ao desempenho.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Bem-estar nos dias de jogo relacionado ao desempenho."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 18 jogadores da Bundesliga em uma temporada; bem-estar por questionário não validado de 3 itens (condição física, frescor mental, sono e recuperação) nos dias de jogo."
   },
   {
    "n": 203,
@@ -2465,7 +2465,7 @@
    "resumo": "34 jovens; bem-estar percebido antes e até 48 h após jogo simulado.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Bem-estar percebido antes e até 48 h após jogo simulado."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): 34 jovens; wellness percebido antes, 24 h e 48 h após jogo simulado, com testes neuromusculares."
   },
   {
    "n": 204,
@@ -2504,7 +2504,7 @@
    "resumo": "Jogadores surdos em quatro períodos de concentração; qualidade do sono e carga de treino semana a semana.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Qualidade do sono semana a semana em períodos de concentração."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): jogadores surdos em 4 períodos de concentração; qualidade do sono e latência semana a semana com carga de treino."
   },
   {
    "n": 208,
@@ -2530,7 +2530,7 @@
    "resumo": "14 jogadores de elite na temporada; MTDS (estresse, fadiga, humor) em 3 tipos de treino.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA",
-   "motivo_saude_mental": "Escala multicomponente de distresse de treino (estresse, fadiga, humor)."
+   "motivo_saude_mental": "Resumo real (IJPAS, 2026): 14 jogadores de elite; MTDS (escala multicomponente de distresse de treino), CR10 e NASA-TLX em HIIT, jogos reduzidos e jogos completos."
   },
   {
    "n": 210,
@@ -2543,7 +2543,7 @@
    "resumo": "Temporada inteira (159 treinos, 34 jogos); estado mental por questionário de bem-estar.",
    "triagem_6_familias": "ENTRA",
    "saude_mental": "ENTRA (limítrofe)",
-   "motivo_saude_mental": "Estado mental por questionário de bem-estar na temporada inteira."
+   "motivo_saude_mental": "Resumo real (Semantic Scholar): temporada inteira de semiprofissionais; estado mental da atleta avaliado junto a carga, CMJ e desempenho; instrumento não detalhado no resumo."
   },
   {
    "n": 211,

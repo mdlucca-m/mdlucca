@@ -15,6 +15,9 @@ saúde mental e handebol selecionar para a próxima fase").
   protocolo original, tabela dos 28 excluídos, os 16 confirmados e os 183 por
   resumo, cada um com a decisão anterior (seis famílias) e a nova decisão
   (saúde mental) com motivo. A seção 3 do documento lista todas as correções.
+- **`resumos_reais_98.json`** — para cada um dos 98 registros que seguem
+  para o texto completo, o resumo real consultado (ou a fonte, quando só foi
+  possível busca web), a decisão e o motivo.
 - **`triagem_saude_mental.json`** — os mesmos registros em formato estruturado
   (`autores`, `ano`, `titulo`, `revista`, `doi`, `descricao`, `resumo`,
   `triagem_6_familias`, `saude_mental`, `motivo_saude_mental`), para importar
@@ -24,8 +27,8 @@ saúde mental e handebol selecionar para a próxima fase").
 
 | Decisão (saúde mental)  | Lista dos 183 | 16 confirmados |
 |-------------------------|---------------|----------------|
-| ENTRA                   | 76            | 7              |
-| ENTRA (limítrofe)       | 22            | 0              |
+| ENTRA                   | 70            | 7              |
+| ENTRA (limítrofe)       | 28            | 0              |
 | VERIFICAR               | 0             | 0              |
 | NÃO ENTRA (limítrofe)   | 11            | 0              |
 | NÃO ENTRA               | 74            | 9              |
@@ -35,9 +38,10 @@ saúde mental e handebol selecionar para a próxima fase").
 **Isto não é uma decisão de triagem da revisão.** Cada registro foi lido e
 classificado por um agente de IA (Claude) a partir das descrições e resumos já
 presentes no arquivo original, contra o critério de saúde mental escrito na
-seção 2 do documento. Só os 11 registros que tinham ficado em VERIFICAR
-tiveram o resumo ou o texto completo consultados em fontes abertas; os demais
-partem das descrições já presentes no arquivo. O fluxo do
+seção 2 do documento. Os 98 registros que seguem para o texto completo e os
+11 que tinham ficado em VERIFICAR tiveram o resumo real (ou o texto completo)
+consultado em fontes abertas; os NÃO ENTRA partem das descrições já presentes
+no arquivo. O fluxo do
 LAPE tem triagem com dois avaliadores e consolidação de conflito
 (`scripts/lape/revisao.py`, tela `/triagem`). Estes arquivos são sugestão para
 acelerar essa triagem, não substituto dela.
@@ -55,3 +59,6 @@ acelerar essa triagem, não substituto dela.
    escrito. Os 11 casos em que a decisão dependia do texto completo foram
    resolvidos consultando resumo ou texto nas fontes abertas (a fonte está no
    motivo de cada um).
+5. Checagem por resumo real dos 98 que seguem para o texto completo
+   (`resumos_reais_98.json`): 96 confirmados, 2 sem resumo localizado
+   (nºs 33 e 113), 7 rebaixados para limítrofe e 1 promovido a ENTRA.

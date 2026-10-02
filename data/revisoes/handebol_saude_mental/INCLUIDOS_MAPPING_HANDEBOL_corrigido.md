@@ -6,8 +6,8 @@ Base: arquivo INCLUIDOS_MAPPING_HANDEBOL (16 confirmados em texto completo + 183
 
 | Decisão (saúde mental) | Lista dos 183 | 16 confirmados |
 |---|---|---|
-| ENTRA | 76 | 7 |
-| ENTRA (limítrofe) | 22 | 0 |
+| ENTRA | 69 | 7 |
+| ENTRA (limítrofe) | 29 | 0 |
 | VERIFICAR | 0 | 0 |
 | NÃO ENTRA (limítrofe) | 11 | 0 |
 | NÃO ENTRA | 74 | 9 |
@@ -17,8 +17,8 @@ Seguem para a próxima fase (texto completo) os marcados ENTRA e ENTRA (limítro
 
 **Números por decisão (lista dos 183):**
 
-- ENTRA (76): 1, 12, 14, 17, 18, 27, 28, 29, 31, 33, 39, 41, 42, 44, 45, 46, 49, 53, 56, 59, 62, 63, 65, 67, 68, 70, 74, 75, 79, 84, 86, 87, 91, 93, 95, 98, 107, 108, 110, 112, 113, 117, 119, 121, 125, 126, 128, 129, 143, 145, 149, 150, 154, 156, 158, 162, 163, 165, 166, 167, 169, 170, 174, 176, 180, 183, 186, 189, 190, 191, 192, 193, 199, 200, 206, 209
-- ENTRA (limítrofe) (22): 16, 61, 76, 78, 85, 99, 100, 116, 139, 140, 153, 160, 168, 175, 177, 179, 182, 187, 195, 201, 203, 210
+- ENTRA (69): 1, 12, 14, 17, 18, 27, 29, 31, 33, 39, 41, 42, 44, 45, 46, 49, 53, 56, 59, 63, 65, 67, 68, 70, 74, 75, 79, 84, 86, 87, 91, 93, 95, 98, 100, 107, 108, 110, 113, 117, 119, 121, 126, 128, 129, 143, 145, 149, 150, 156, 158, 162, 163, 165, 166, 167, 170, 174, 176, 180, 183, 190, 191, 192, 193, 199, 200, 206, 209
+- ENTRA (limítrofe) (29): 16, 28, 61, 62, 76, 78, 85, 99, 112, 116, 125, 139, 140, 153, 154, 160, 168, 169, 175, 177, 179, 182, 186, 187, 189, 195, 201, 203, 210
 - VERIFICAR (0): 
 - NÃO ENTRA (limítrofe) (11): 25, 51, 71, 94, 115, 132, 141, 148, 161, 171, 172
 - NÃO ENTRA (74): 2, 4, 5, 6, 7, 8, 10, 13, 15, 19, 20, 21, 22, 23, 26, 32, 34, 36, 38, 40, 43, 47, 54, 55, 57, 58, 60, 64, 69, 72, 73, 77, 80, 81, 82, 83, 88, 90, 96, 97, 102, 103, 106, 109, 111, 118, 120, 122, 124, 127, 131, 133, 134, 136, 137, 138, 142, 146, 151, 152, 155, 159, 164, 173, 181, 184, 188, 194, 196, 198, 204, 205, 208, 211
@@ -44,7 +44,8 @@ Marcações: ENTRA (desfecho de saúde mental claro); ENTRA (limítrofe) (o desf
 5. Periódicos: nomes em caixa alta ou em registro bibliográfico bruto (LILACS, com "Tab.", "Graf." e datas) foram normalizados; "Sport Psychologist" virou "The Sport Psychologist"; "Sustainability Switzerland" e "Applied Sciences Switzerland" perderam o sufixo de país; "&amp;" virou "&". Preprints (nºs 163, 190, 195) estão marcados como tal.
 6. Registros sem periódico recuperado (nºs 1, 33, 44, 45, 51, 75) ficaram marcados como "Sem periódico recuperado (registro LILACS)" em vez de ficarem em branco. O nº 16 foi atribuído à Psicologia: Teoria e Pesquisa pelo prefixo do DOI (10.1590/S0102-3772).
 7. Estrutura: a instrução de trabalho ("analisar os títulos... desfecho com saúde mental") estava solta entre as listas e sem critério operacional. Esta versão define o critério por escrito e aplica-o a todos os 183 registros da triagem por resumo e também aos 16 confirmados em texto completo, mantendo visível a decisão anterior (seis famílias) ao lado da nova.
-8. Lacuna de numeração: a lista de 183 vai do nº 1 ao nº 211 com 28 números faltando, que são exatamente os 28 excluídos na tabela de motivos. Isso está correto e foi conferido.
+8. Checagem por resumo real: os 98 registros que seguiam para a próxima fase (ENTRA e ENTRA limítrofe) tiveram o resumo real consultado em fontes abertas (Semantic Scholar, Crossref, Europe PMC, OpenAlex, PubMed e os sites dos periódicos). Isso revelou autores e periódicos que estavam em branco (nºs 1, 33, 45, 46, 75, 76, 85 e 143) e corrigiu-os; o nº 1 é De Rose Jr., Simões e Vasconcellos (Revista Paulista de Educação Física, 1994), o nº 45 é Silva, Padovani e Viana (RBTCC) e o nº 75 saiu na revista Conexões (Unicamp).
+9. Lacuna de numeração: a lista de 183 vai do nº 1 ao nº 211 com 28 números faltando, que são exatamente os 28 excluídos na tabela de motivos. Isso está correto e foi conferido.
 
 ## 4. Protocolo original (seis famílias), em caixa normal
 
@@ -127,11 +128,11 @@ Legenda original: verde = entra; amarelo = difícil dizer apenas pelo título (p
 
 Em cada registro: referência corrigida; descrição e resumo do arquivo original (em caixa normal); decisão anterior pelas seis famílias; decisão nova pelo critério de saúde mental, com o motivo.
 
-1. Autoria não recuperada (1994). Situações de jogo causadoras de "stress" no handebol de alto nível. Sem periódico recuperado (registro LILACS).
+1. De Rose Jr. D., Simões A.C., Vasconcellos E.G. (1994). Situações de jogo causadoras de "stress" no handebol de alto nível. Revista Paulista de Educação Física, 8(1), 30-37.
    - Situações de jogo estressoras na seleção brasileira de handebol.
    - Resumo: 19 atletas da seleção brasileira masculina na preparação para os Jogos Olímpicos de 1992; situações de jogo que mais causam estresse.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse competitivo: situações de jogo estressoras na seleção brasileira.
+   - **Saúde mental: ENTRA.** Resumo real (Revista Paulista de Educação Física, 1994; autores De Rose Jr., Simões e Vasconcellos): 19 atletas da seleção brasileira masculina antes de Barcelona 1992 apontam as situações de jogo mais estressoras (jogar em más condições físicas, arbitragem, exclusão em momentos decisivos).
 2. Martinez, JG; Bonet, AC; Encinas, FL (1998). Psychological Program to Improve the Output of Handball Players. Psicothema.
    - Programa psicológico para rendimento de jogadores de handebol.
    - Resumo: Programa psicológico (controle da ativação, manejo do estresse, metas, atenção/concentração e imagética) em cadetes melhora o rendimento no ataque em jogos.
@@ -171,7 +172,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Orientação de metas e ansiedade pré-competitiva em adolescentes.
    - Resumo: 109 jogadores escolares; orientação de metas, competência percebida e ansiedade pré-competitiva (CSAI-2).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade pré-competitiva medida pelo CSAI-2 (intensidade e direção).
+   - **Saúde mental: ENTRA.** Resumo real (PubMed 17918551): 109 jogadores escolares; CSAI-2 modificado (intensidade e direção da ansiedade cognitiva e somática) predita por metas e competência percebida.
 13. Ronglan, Lars Tore (2007). Building and Communicating Collective Efficacy: A Season-Long In-Depth Study of an Elite Sport Team. The Sport Psychologist. https://doi.org/10.1123/tsp.21.1.78
    - Eficácia coletiva em equipe feminina de handebol ao longo da temporada.
    - Resumo: Seleção feminina acompanhada por uma temporada com Mundial e Olimpíadas; construção e recuperação da eficácia coletiva.
@@ -181,7 +182,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Motivação e ansiedade de desempenho em equipes de elite de handebol.
    - Resumo: 143 jogadores de 10 equipes de elite; clima motivacional, orientação ao ego e ansiedade de desempenho.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade de desempenho medida em equipes de elite.
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): 143 jogadores de 10 equipes de elite; ansiedade de desempenho maior nas mulheres, associada a orientação ao ego e clima de desempenho.
 15. Sanchez Miguel, Pedro Antonio; Leo Marcos, Francisco Miguel; Gomez Corrales, Francisco Rafael; Sanchez Oliva, David; De La Cruz Sanchez, Ernesto; Garcia Calvo, Tomas (2009). Orientations and Motivational Climates of the Other Significatives in Young Handball Players from Extremadura. Retos.
    - Orientações e climas motivacionais em jovens jogadores de handebol.
    - Resumo: 127 jovens jogadores federados; orientações de meta e climas motivacionais de colegas, pais e treinadores.
@@ -191,17 +192,17 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Afeto e esforço percebido em atletas de handebol durante sessões de corrida manipuladas.
    - Resumo: 18 atletas de handebol em 4 sessões de corrida com manipulação da informação sobre a duração; afeto, PSE, FC e cortisol.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Afeto medido durante as sessões de corrida; indicador de humor, embora secundário ao desenho fisiológico.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): afeto, PSE, FC e cortisol em 4 sessões de corrida; o afeto subiu nas sessões "fragmentada" e "superestimada". Afeto é desfecho secundário de desenho fisiológico.
 17. Bresciani G. (2010). Monitoring Biological and Psychological Measures Throughout an Entire Season in Male Handball Players. European Journal of Sport Science. https://doi.org/10.1080/17461391003699070
    - Humor e recuperação-estresse ao longo da temporada em jogadores de handebol.
    - Resumo: POMS e RESTQ-Sport em 14 jogadores ao longo de 40 semanas de temporada.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor (POMS) e recuperação-estresse (RESTQ-Sport) ao longo de 40 semanas.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): POMS e RESTQ-Sport em 14 jogadores ao longo de 40 semanas; sem mudança no distúrbio total de humor, mudanças em escalas do RESTQ.
 18. Meeûs M.S.P. (2010). The Effects of Video Feedback on Coaches’ Behavior and the Coach-Athlete Relationship. Journal of Clinical Sport Psychology. https://doi.org/10.1123/jcsp.4.4.323
    - Ansiedade competitiva de atletas de handebol após feedback em vídeo aos treinadores.
    - Resumo: CSAI-2 em atletas de handebol antes/depois de 7 semanas de feedback em vídeo aos treinadores; ansiedade diminuiu.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva (CSAI-2) antes e depois da intervenção com os treinadores.
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): CSAI-2 em 112 participantes antes e após 7 semanas; atletas do grupo intervenção relataram menos ansiedade; goleiros mais ansiosos.
 19. Olmedilla, Aurelio; Blas, Amador; Laguna, Maria (2010). Motivation and Sport Injuries in Handball Players. Revista Argentina de Ciencias del Comportamiento.
    - Motivação e lesões em jogadores de handebol; decidido pelo título.
    - Resumo não acessível nas fontes abertas; o título indica motivação e lesões em jogadores de handebol.
@@ -241,32 +242,32 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Ansiedade pré-competitiva medida pelo CSAI-2 em jogadores de handebol.
    - Resumo: 18 jogadores de elite; CSAI-2 na pausa da temporada e antes de jogo do campeonato, com marcadores periodontais.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade pré-competitiva (CSAI-2) antes de jogo do campeonato.
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): 18 jogadores de elite; CSAI-2 diferiu entre pausa da temporada e véspera de jogo do campeonato, com marcadores periodontais.
 28. Geukes K. (2013). Activation of Self-Focus and Self-Presentation Traits under Private, Mixed, and Public Pressure. Journal of Sport and Exercise Psychology. https://doi.org/10.1123/jsep.35.1.50
    - Ansiedade sob pressão em tarefa de arremesso com jogadoras de handebol.
    - Resumo: 120 jogadoras em tarefa de arremesso sob pressão baixa e alta; ansiedade medida.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade medida em tarefa de arremesso sob pressão.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Crossref): 120 jogadoras; ansiedade medida como checagem da manipulação de pressão (subiu de baixa para alta pressão); o desfecho principal é desempenho sob traços de autofoco.
 29. Gutierrez Vargas, Juan Carlos; Gutierrez Vargas, Randall; Urena Bonilla, Pedro (2013). General Self-Efficacy, Precompetitive Anxiety and Feeling to Flow in Handball Players of the National Team of Costa Rica. MHSalud: Revista en Ciencias del Movimiento Humano y la Salud.
    - Sem resumo; título indica autoeficácia, ansiedade pré-competitiva e flow em seleção nacional.
    - Resumo não acessível; o título indica autoeficácia, ansiedade pré-competitiva e flow na seleção da Costa Rica.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: ENTRA.** Ansiedade pré-competitiva declarada no título (resumo não acessível).
+   - **Saúde mental: ENTRA.** Resumo real (MHSalud 10(2), 2013): 28 jogadores das seleções da Costa Rica; ansiedade pré-competitiva menor e autoconfiança maior nos homens; autoeficácia e flow.
 31. Ortín-Montero F.J. (2013). Optimism, Anxiety State and Self-Confidence in Young Players of Handball. Anales de Psicología. https://doi.org/10.6018/analesps.29.3.175751
    - Sem resumo; ansiedade estado e autoconfiança em jogadores de handebol.
    - Resumo: 133 jogadores adolescentes; otimismo, ansiedade estado competitiva e autoconfiança (CSAI-2).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade estado competitiva (CSAI-2) em jovens jogadores.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 133 adolescentes; LOT-R e CSAI-2; otimistas com menos ansiedade estado cognitiva e somática e mais autoconfiança.
 32. Vasconcelos-Raposo J. (2013). Motivational Climate in a Team Handball Players. Motricidade. https://doi.org/10.6063/motricidade.9(3).2974
    - Orientação motivacional de tarefa e ego em jogadores de um clube.
    - Resumo: 57 jogadores de um clube português; orientação motivacional à tarefa e ao ego por nível competitivo e posição.
    - Triagem anterior (seis famílias): ENTRA.
    - **Saúde mental: NÃO ENTRA.** Orientação motivacional à tarefa e ao ego.
-33. Autoria não recuperada (2014). Correlação entre resistência anaeróbia e estados de humor ao longo de uma temporada na modalidade handebol. Sem periódico recuperado (registro LILACS).
+33. Montes F.A., Gomes S.C. (2014). Correlação entre resistência anaeróbia e estados de humor ao longo de uma temporada na modalidade handebol. Journal of Health Sciences (UNOPAR), 16(2).
    - Estados de humor pelo POMS ao longo da temporada em equipe portuguesa.
    - Resumo: 14 jogadores da primeira divisão portuguesa; humor (POMS) e aptidão física no repouso, após o mesociclo preparatório e no período competitivo.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estados de humor (POMS) ao longo da temporada.
+   - **Saúde mental: ENTRA.** Resumo não localizado nas fontes abertas (Journal of Health Sciences 16(2), 2014; autores Montes e Gomes). Mantido pela descrição original: POMS em 14 jogadores da primeira divisão portuguesa em três momentos da temporada.
 34. Gomez-Lopez, Manuel; Granero-Gallegos, Antonio; Baena-Extremera, Antonio; Abraldes, J. Arturo (2014). Goal Orientation Effects on Elite Handball Players Motivation and Motivational Climate. Procedia: Social and Behavioral Sciences (6th International Conference on Intercultural Education). https://doi.org/10.1016/j.sbspro.2014.04.333
    - Orientação de metas, motivação e clima motivacional em handebolistas de elite.
    - Resumo: 63 jogadoras de elite; orientação de metas, motivação esportiva e clima motivacional percebido.
@@ -286,7 +287,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - POMS e frequência cardíaca ao longo da temporada em jovens atletas.
    - Resumo: 37 jovens; POMS e frequência cardíaca mensais de setembro a maio (temporada).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor (POMS) mensal ao longo da temporada.
+   - **Saúde mental: ENTRA.** Resumo real (Europe PMC): POMS mensal em 37 adolescentes de setembro a maio, com FC de repouso e VFC; sensibilidade fraca para prever desempenho.
 40. De Backer M. (2015). A Team Fares Well with a Fair Coach: Predictors of Social Loafing in Interactive Female Sport Teams. Scandinavian Journal of Medicine and Science in Sports. https://doi.org/10.1111/sms.12303
    - Clima motivacional em estudo exclusivo com jogadoras norueguesas de handebol.
    - Resumo: O estudo 2 tem só 110 jogadoras de handebol (dados separáveis); clima motivacional e coesão.
@@ -296,12 +297,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Humor após vitória em jogo e desempenho cognitivo de handebolistas.
    - Resumo: 61 jogadores; humor após vitória em jogo comparado ao treino, com testes de memória e controle executivo.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor após vitória em jogo, comparado ao treino.
+   - **Saúde mental: ENTRA.** Resumo real (Europe PMC): 61 jogadores; humor diferiu entre pós-vitória e treino, com efeitos sobre memória; ativação e motivação iguais.
 42. Leme L.C. (2015). The Influence of a Weekend with Passive Rest on the Psychological and Autonomic Recovery in Professional Male Handball Players. Kinesiology.
    - Sem resumo; recuperação psicológica em jogadores profissionais de handebol.
    - Resumo não acessível; o título indica recuperação psicológica após fim de semana de repouso em jogadores profissionais.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: ENTRA.** Verificado no resumo (Kinesiology, 2015): sintomas de estresse pelo DALDA e VFC antes e depois de 72 h de repouso; respostas "pior que o normal" caíram de 6,1 para 3,4.
+   - **Saúde mental: ENTRA.** Resumo real (Kinesiology, 2015): sintomas de estresse pelo DALDA e VFC antes e depois de 72 h de repouso; respostas "pior que o normal" caíram de 6,1 para 3,4.
 43. Olmedilla, Aurelio, Ortega, Enrique, Garcés De Los Fayos, Enrique, Abenza, Lucía, Blas, Amador, Laguna, María (2015). Psychological Profile of Professional Handball Players and Differences between Specific Positions. Revista Latinoamericana de Psicología, 47(3), 177-184, 2015.
    - Perfil psicológico CPRD em jogadores profissionais de handebol.
    - Resumo: 80 profissionais; CPRD (controle do estresse, motivação, habilidade mental) por posição.
@@ -311,17 +312,17 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Ansiedade estado, autoconfiança e coesão durante competição de handebol.
    - Resumo: 62 atletas de handebol; coesão e ansiedade estado (CSAI-2) ao longo de um torneio.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade estado (CSAI-2) ao longo de um torneio.
-45. Autoria não recuperada (2016). O emprego do biofeedback como estratégia de manejo do estresse e da ansiedade em atletas: um ensaio clínico. Sem periódico recuperado (registro LILACS).
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 62 atletas; CSAI-2 e Questionário de Ambiente de Grupo ao longo de um torneio; ansiedade somática das mulheres caiu durante a competição.
+45. Silva J.D.A., Padovani R.C., Viana M.B. (2016). O emprego do biofeedback como estratégia de manejo do estresse e da ansiedade em atletas: um ensaio clínico. Revista Brasileira de Terapia Comportamental e Cognitiva.
    - Biofeedback para estresse e ansiedade competitiva em equipe de handebol.
    - Resumo: Atletas de uma equipe de handebol; treino com biofeedback reduziu estresse e ansiedade competitiva (CSAI-2).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse e ansiedade competitiva (CSAI-2) reduzidos por biofeedback.
-46. Baro J.P.M. (2016). The Relationsship between the Sports Psychological Profile and Competitive Anxiety in Beach Handball Players. Revista de Psicología del Deporte.
+   - **Saúde mental: ENTRA.** Resumo real (RBTCC; autores Silva, Padovani e Viana): atletas de uma equipe de handebol; biofeedback de VFC avaliado com WHOQOL-bref, BAI, ISSL de Lipp e CSAI-2; reduziu estresse e ansiedade competitiva.
+46. Morillo Baro J.P., Reigal R.E., Hernández-Mendo A. (2016). The Relationsship between the Sports Psychological Profile and Competitive Anxiety in Beach Handball Players. Revista de Psicología del Deporte.
    - Perfil psicológico esportivo e ansiedade competitiva no handebol de praia.
    - Resumo não acessível; o título indica perfil psicológico esportivo e ansiedade competitiva no handebol de praia.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: ENTRA.** Ansiedade competitiva declarada no título (resumo não acessível).
+   - **Saúde mental: ENTRA.** Resumo real (RPD 25(1), 2016; autores Morillo Baro, Reigal e Hernández-Mendo): 112 jogadores de handebol de praia; IPED e CSAI-2 (ansiedade e autoconfiança).
 47. Bormann K.C. (2016). Athlete Characteristics and Team Competitive Performance as Moderators for the Relationship between Coach Transformational Leadership and Athlete Performance. Journal of Sport and Exercise Psychology. https://doi.org/10.1123/jsep.2015-0182
    - A orientação para a vitória, construto motivacional, foi medida em jogadores de equipes alemãs de handebol em contexto competitivo.
    - Resumo: 336 jogadores de equipes alemãs; orientação para a vitória como moderador do desempenho competitivo.
@@ -331,7 +332,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Perfis de burnout e abandono em jovens de centros de treinamento de handebol.
    - Resumo: 458 jovens de centros de treinamento de elite; perfis de burnout predizem o abandono do handebol seis anos depois.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Perfis de burnout e abandono seis anos depois.
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): 458 jovens de centros de elite; perfis de burnout no T1 predizem ter parado de jogar 6 anos depois.
 51. Autoria não recuperada (2017). Contribuições do esporte adaptado: reflexões da terapia ocupacional para a área da saúde. Sem periódico recuperado (registro LILACS).
    - Paratletas de handebol adaptado descrevem o controle emocional como benefício da prática esportiva, o que atende aos quatro critérios.
    - Resumo: 7 paratletas de handebol adaptado relatam controle emocional como benefício da prática (foco em terapia ocupacional).
@@ -341,7 +342,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Sintomas de estresse pré-competitivo antes de jogo estadual.
    - Resumo: 97 atletas adolescentes avaliados 30 minutos antes do primeiro jogo de uma competição estadual; estresse pré-competitivo moderado.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Sintomas de estresse pré-competitivo antes de jogo estadual.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 97 adolescentes; Lista de Sintomas de Estresse Pré-Competitivo 30 min antes do primeiro jogo estadual; estresse moderado.
 54. Enríquez Caro L.C. (2017). Methodical Study of Psychological Performance in Professional Handball Players Based on Loehr Test. Revista Cubana de Investigaciones Biomédicas.
    - Desempenho psicológico pelo teste de Loehr em jogadores profissionais de handebol.
    - Resumo: 7 jogadores profissionais de clube; rendimento psicológico pelo teste de Loehr (autoconfiança, controle emocional e atencional), comparado ao juízo do treinador.
@@ -356,7 +357,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Estressores e sono na transição para escola esportiva em jogadoras de handebol.
    - Resumo: 6 jovens jogadoras na transição para escola esportiva; estressores competitivos e organizacionais e falta de sono com aumento do treino.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estressores competitivos e organizacionais e falta de sono descritos na transição escolar (qualitativo).
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): 6 jogadoras de 13 a 14 anos; entrevistas e questionários mostram estressores competitivos, organizacionais e pessoais, incluindo falta de sono.
 57. Martinez-Moreno, Alfonso (2017). Motivational Profile Quality Players Handball. E-balonmano.com: Revista de Ciencias del Deporte.
    - Perfil motivacional de jogadores de handebol; decidido pelo título.
    - Resumo: 495 jogadores de elite de 12 a 16 anos; perfil motivacional nas competições, por sexo, idade e anos de prática.
@@ -371,7 +372,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Recuperação e estresse percebidos com cortisol em período competitivo; decidido pelo título.
    - Resumo não acessível; o título indica recuperação-estresse e cortisol em período competitivo.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: ENTRA.** Recuperação-estresse percebidos com cortisol em período competitivo.
+   - **Saúde mental: ENTRA.** Resumo real (RPD 26(2), 2017): 14 jogadores; RESTQ-Sport em 4 aplicações e cortisol em 6 coletas; estresse geral, estresse emocional, fadiga e qualidade do sono mudaram entre pré e pós-competição.
 60. Ruiz-Sanchez, Victoria; Gomez-Lopez, Manuel; Granero-Gallegos, Antonio (2017). Motivational Climate and Fear of Failure in the Youthful Teams of Handball. E-balonmano.com: Revista de Ciencias del Deporte.
    - Sem resumo; clima motivacional e medo do fracasso em equipes juvenis de handebol.
    - Resumo: 479 jogadores das seleções juvenis territoriais; clima motivacional do treinador e medo de falhar no contexto competitivo.
@@ -381,17 +382,17 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Escala ARSS de recuperação e estresse após treino de sprints.
    - Resumo: 12 jogadores; escala de recuperação e estresse agudos (ARSS) após treinos de sprint.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** ARSS inclui estresse geral e equilíbrio emocional, mas o foco é fisiológico (compressão).
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Crossref): 12 jogadores; ARSS antes, logo após, 24 h e 48 h de sprints com compressão; desfecho principal é fisiológico (CK, ureia).
 62. Bjørndal C.T. (2018). Successful and Unsuccessful Transitions to the Elite Level: The Youth National Team Pathways in Norwegian Handball. International Journal of Sports Science and Coaching. https://doi.org/10.1177/1747954117740014
    - Transições ao alto nível, motivação e burnout em jovens de seleções de handebol.
    - Resumo: Entrevistas com 9 jogadores de seleções de base; descrevem exaustão, burnout e perda de motivação.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Exaustão, burnout e perda de motivação descritos nas entrevistas.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Crossref): entrevistas com 9 jogadores de seleções de base; o modelo de desenvolvimento é vivido como exaustivo. Descrição qualitativa, sem instrumento.
 63. De Sousa Assunção Carvalho L.C. (2018). Syzygium cumini Nectar Supplementation Reduced Biomarkers of Oxidative Stress, Muscle Damage, and Improved Psychological Response in Highly Trained Young Handball Players. Frontiers in Physiology. https://doi.org/10.3389/fphys.2018.01508
    - Suplementação com efeito sobre estados de humor (POMS) em jovens atletas de handebol.
    - Resumo: 25 jovens de seleção; POMS antes/depois de 28 dias de treino com suplementação.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estados de humor (POMS) antes e depois de 28 dias de treino.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 25 jovens; POMS antes e depois de 28 dias de treino com néctar de Syzygium cumini ou placebo.
 64. Debanne T. (2018). Motivational Orientations and Performance in Penalty Throws during Elite Male Team Handball Games. Scandinavian Journal of Medicine and Science in Sports. https://doi.org/10.1111/sms.12995
    - Foco regulatório motivacional e desempenho em tiros de sete metros.
    - Resumo: 327 tiros de 7 m em 68 jogos de elite; orientação motivacional (foco regulatório) e pressão do momento.
@@ -401,17 +402,17 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Bem estar e motivação intrínseca em mulheres praticantes de treino de handebol.
    - Resumo: 28 mulheres destreinadas em 12 semanas de treino de handebol (ECR); bem-estar e motivação avaliados.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Bem-estar avaliado em ensaio controlado com treino de handebol.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): ECR com 28 mulheres destreinadas; bem-estar e motivação avaliados por questionário antes e depois de 12 semanas de treino de handebol.
 67. Kristjánsdóttir H. (2018). Psychological Skills, Mental Toughness and Anxiety in Elite Handball Players. Personality and Individual Differences. https://doi.org/10.1016/j.paid.2018.06.011
    - Sem resumo; título claro sobre habilidades psicológicas, dureza mental e ansiedade em elite.
    - Resumo não acessível; o título indica habilidades psicológicas, dureza mental e ansiedade em jogadores de elite.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: ENTRA.** Ansiedade declarada no título (resumo não acessível).
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 174 jogadores de seleções; TOPS, SMTQ e SAS-2; homens com menos ansiedade que mulheres.
 68. Lesinger F. (2018). The Relationship of Sport Experience and the Effect of Competitive Anxiety during the Match for Junior Handball Player Students. Quality and Quantity. https://doi.org/10.1007/s11135-018-0686-9
    - Ansiedade competitiva durante o jogo em handebolistas juniores.
    - Resumo: 128 jogadores juniores; ansiedade competitiva (CSAI-2) durante o jogo, menor com mais experiência de treino.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva (CSAI-2) durante o jogo.
+   - **Saúde mental: ENTRA.** Resumo parcial (Quality & Quantity 52(6), 2018): CSAI-2 (ansiedade somática, cognitiva e autoconfiança) em juniores durante a partida, conforme descrição original.
 69. Morillo J.P. (2018). Motivational Orientation, Autonomy Support, and Psychological Needs in Beach Handball. Revista Internacional de Medicina y Ciencias de la Actividad Física y del Deporte. https://doi.org/10.15366/rimcafd2018.69.007
    - Orientação motivacional, apoio à autonomia e necessidades psicológicas no handebol de praia.
    - Resumo: 112 jogadores de handebol de praia; orientação motivacional e apoio à autonomia predizem a satisfação das necessidades psicológicas.
@@ -421,7 +422,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Humor pelo POMS durante período pré-competitivo no handebol de praia.
    - Resumo: 17 atletas da seleção brasileira de handebol de praia em 18 dias de treino pré-competitivo; humor (POMS) monitorado com marcadores fisiológicos.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor (POMS) em período pré-competitivo.
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): 17 atletas da seleção de handebol de praia; POMS em 3 momentos de 18 dias de treino pré-competitivo, com CK, LDH e modulação autonômica.
 71. Pavlović L. (2018). Diurnal Variations in Physical Performance: Are There Morning-To-Evening Differences in Elite Male Handball Players? Journal of Human Kinetics. https://doi.org/10.2478/hukin-2018-0012
    - Qualidade e duração do sono autorrelatadas em jogadores de elite.
    - Resumo: 16 jogadores de elite; testes físicos de manhã e à noite, com qualidade e duração do sono autorrelatadas.
@@ -441,17 +442,17 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Sem resumo; indicadores psicológicos e eficácia competitiva em jogadores.
    - Resumo: 179 jogadores do campeonato letão 2015; CSAI-2 (ansiedade e autoconfiança) e coesão.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade e autoconfiança (CSAI-2) com coesão.
-75. Autoria não recuperada (2019). Correlação entre microlesão muscular e estresse em atletas usuários de cadeira de rodas. Sem periódico recuperado (registro LILACS).
+   - **Saúde mental: ENTRA.** Resumo real (Transformations in Business & Economics 17(1), 2018): 179 jogadores do campeonato letão de 2015; CSAI-2 (ansiedade e autoconfiança) e GEQ (coesão) relacionados a gols e classificação.
+75. Autoria não recuperada (2019). Correlação entre microlesão muscular e estresse em atletas usuários de cadeira de rodas. Conexões (Unicamp), 17.
    - Estresse e recuperação pelo RESTQ-Sport antes do jogo em handebol em cadeira de rodas.
    - Resumo: 10 atletas de handebol em cadeira de rodas; estresse e recuperação (RESTQ-Sport) antes do jogo e creatina quinase.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse e recuperação (RESTQ-Sport) antes do jogo.
-76. Aldasoro E.R. (2019). Effects of the Psychological Stress, Fatigue, Muscle Damage and Rest Perception in Pre-Match Warm-Up of Amateur Handball Players. E-balonmano.com: Revista de Ciencias del Deporte.
+   - **Saúde mental: ENTRA.** Resumo real (Conexões, Unicamp, 2019): 10 atletas de handebol em cadeira de rodas; RESTQ-Sport 30 min antes do jogo e CK antes e depois; escores moderados em conflitos/pressão e lesões.
+76. Romaratezabala E., Castillo D., Rodríguez-Negro J., Yanci J. (2019). Effects of the Psychological Stress, Fatigue, Muscle Damage and Rest Perception in Pre-Match Warm-Up of Amateur Handball Players. E-balonmano.com: Revista de Ciencias del Deporte.
    - Sem resumo; estresse psicológico e percepção de descanso no aquecimento pré-jogo.
    - Resumo: 12 jogadores sênior; estresse, sono, fadiga e dor (Hooper) antes do aquecimento pré-jogo, relacionados ao desempenho e à PSE.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Questionário de Hooper (estresse, sono, fadiga, dor) antes do aquecimento pré-jogo.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (E-balonmano.com, 2019; autores Romaratezabala, Castillo, Rodríguez-Negro e Yanci): 12 jogadores sênior; percepção de descanso/sono, estresse, fadiga e dor antes do aquecimento; maior estresse e pior sono associados a pior desempenho.
 77. Alesi M. (2019). Effects of a Motivational Climate on Psychological Needs Satisfaction, Motivation and Commitment in Teen Handball Players. International Journal of Environmental Research and Public Health. https://doi.org/10.3390/ijerph16152702
    - Clima motivacional, necessidades psicológicas, motivação e compromisso em jovens jogadores.
    - Resumo: 479 jovens de alto rendimento; clima motivacional, necessidades psicológicas, motivação autodeterminada e comprometimento.
@@ -461,12 +462,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Bem-estar e carga percebida em semanas normais e congestionadas.
    - Resumo: 20 profissionais monitorados na temporada; bem-estar (Hooper), fadiga e dor em semanas normais e congestionadas.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Bem-estar pelo Hooper (inclui estresse e sono) em semanas normais e congestionadas.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 20 profissionais na temporada; Hooper (dor, fadiga, índice total) em semanas normais e congestionadas; foco em carga.
 79. Korobeynikov G. (2019). The Dependence of Emotional Burnout on Ovarian-Menstrual Cycle Phases. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2019.s4199
    - Burnout emocional conforme fases do ciclo menstrual em jogadoras.
    - Resumo: Jogadoras de handebol; burnout emocional maior nas fases menstrual, ovulatória e pré-menstrual, com implicações para treino e competição.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Burnout emocional conforme fase do ciclo menstrual.
+   - **Saúde mental: ENTRA.** Resumo real (JPES 19 S4, 2019): burnout emocional maior nas fases menstrual, ovulatória e pré-menstrual em jogadoras.
 80. Gómez-López M. (2019). A Cluster Analysis of High-Performance Handball Players' Perceived Motivational Climate: Implications on Motivation, Implicit Beliefs of Ability and Intention to Be Physically Active. International Journal of Sports Science and Coaching. https://doi.org/10.1177/1747954119861855
    - Clima motivacional e motivação em jogadores de alto rendimento.
    - Resumo: 444 jogadores de alto rendimento; perfis de clima motivacional relacionados à motivação esportiva e às crenças de habilidade.
@@ -491,22 +492,22 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Ansiedade competitiva e enfrentamento na seleção júnior de handebol.
    - Resumo: 35 jogadores da seleção júnior; ansiedade competitiva (SCAT) e estratégias de enfrentamento por sexo.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva (SCAT) e enfrentamento por sexo.
-85. Korobeynikov G. (2019). Psychophysiological State of Female Handball Players with Different Game Roles. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2019.03248
+   - **Saúde mental: ENTRA.** Resumo real (JPES 19, Art. 180, 2019): 35 adolescentes da seleção júnior; SCAT e Ways of Coping; mulheres com mais ansiedade competitiva.
+85. Korobeynikov G., Potop V., Ion M., Korobeynikova L., Borisova O., Tishchenko V., Yarmak O., Tolkunova I., Mospan M., Smoliar I. (2019). Psychophysiological State of Female Handball Players with Different Game Roles. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2019.03248
    - Estado psicofisiológico e nível de estresse em jogadoras juniores por posição.
    - Resumo: 34 jogadoras da seleção júnior; estado emocional e nível de estresse (teste de Lüscher) por posição.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Estado emocional e nível de estresse (teste de Lüscher, projetivo) por posição.
+   - **Saúde mental: ENTRA (limítrofe).** Texto completo (JPES 19(3), Art. 248, 2019): 34 jogadoras da seleção júnior; teste de cores de Lüscher, funções neurodinâmicas, Raven e Stroop; "alto nível de estresse" nas pivôs. Estresse por teste projetivo.
 86. Lisenchuk G. (2019). Analysis of Psychological State of Qualified Female Handball Players Depending on the Phase of the Ovarian-Menstrual Cycle. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2019.s3115
    - Estado emocional e humor de jogadoras conforme ciclo menstrual.
    - Resumo: 32 jogadoras de clubes; bem-estar, atividade e humor (SAN) nas fases do ciclo menstrual.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Bem-estar, atividade e humor (SAN) nas fases do ciclo menstrual.
+   - **Saúde mental: ENTRA.** Resumo indireto (citações do estudo, JPES 19 S3, 2019): jogadoras de dois clubes de elite, 19 a 21 anos; maior desconforto emocional, humor negativo e tensão na fase menstrual.
 87. Miranda, Rosângela Maria Da Silva, Lopes, Kamilla Johnny Yoshi, Fragata, Mariney Bruce, Boaes, Drucila Coelho, Ramos, Murilo Sousa, Borges, Grasiely Faccin (2019). Muscle Skeletal Disorders and Factors of Stress in Handball Athletes. Journal of Health Sciences (Londrina), 21(2), 2019. https://doi.org/10.17921/2447-8938.2019v21n2p144-148
    - Sintomas e fontes de estresse pelo DALDA em atletas de handebol após treinos.
    - Resumo: 45 jovens atletas avaliados após treinos regulares; sintomas e fontes de estresse (DALDA) e distúrbios musculoesqueléticos.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Sintomas e fontes de estresse (DALDA) após treinos.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 45 atletas após treinos; DALDA (fontes e sintomas de estresse) e questionário nórdico; clima e sono como principais fontes.
 88. Arraya M. (2020). Goal-Setting, Collectivism, Task Orientation and Performance: Predictors and Mediators. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2020.s3282
    - Estabelecimento de metas e orientação para tarefa em equipes de handebol.
    - Resumo: Jogadores de três países; estabelecimento de metas, coletivismo e orientação à tarefa como preditores do desempenho.
@@ -521,12 +522,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Clima motivacional, medo do fracasso e ansiedade pré-competitiva em jovens jogadores.
    - Resumo: 479 jovens de alto rendimento; clima motivacional, medo do fracasso e ansiedade pré-competitiva (CSAI-2R).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade pré-competitiva (CSAI-2R) com clima e medo do fracasso.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 479 jovens; CSAI-2R (ansiedade cognitiva, somática e autoconfiança) com clima motivacional e medo do fracasso.
 93. Ivaskevych D. (2020). Association between Competitive Anxiety, Hardiness, and Coping Strategies: A Study of the National Handball Team. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2020.s1051
    - Ansiedade competitiva, resistência psicológica e enfrentamento na seleção de handebol.
    - Resumo: 19 jogadoras da seleção nacional; ansiedade competitiva, ansiedade traço/estado, enfrentamento e hardiness.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva, traço e estado, com enfrentamento e hardiness.
+   - **Saúde mental: ENTRA.** Resumo real (JPES 20 S1, Art. 51, 2020): jogadoras da seleção nacional, 22 a 35 anos; ansiedade competitiva, ansiedade traço e estado, hardiness e Ways of Coping.
 94. L'Hermette, Maxime; Castres, Ingrid; Coquart, Jeremy; Tabben, Montassar; Ghoul, Nihel; Andrieu, Bernard; Tourny, Claire (2020). Cold Water Immersion after a Handball Training Session: The Relationship between Physical Data and Sensorial Experience. Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2020.581705
    - Sensações emocionais e recuperação percebida após treino de handebol com imersão fria.
    - Resumo: Jogadoras após treino; imersão fria x recuperação passiva, com relatos de sensações emocionais e de regeneração.
@@ -536,7 +537,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Humor, inteligência emocional, resiliência e sono no treinamento durante isolamento.
    - Resumo: 187 jogadores no isolamento da COVID-19; humor, sono, inteligência emocional, resiliência e condições de treino.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor e sono durante o isolamento da COVID-19.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 187 jogadores no isolamento; humor, qualidade e horas de sono, inteligência emocional e resiliência; qualidade do sono caiu.
 96. Popa D. (2020). Mindfulness and Self-Regulation Strategies Predict Performance of Romanian Handball Players. Sustainability. https://doi.org/10.3390/su12093667
    - Mindfulness, autorregulação e autoeficácia em jovens jogadores romenos.
    - Resumo: 288 jogadores romenos de 12 a 14 anos; mindfulness, autorregulação e autoeficácia explicam o desempenho esportivo.
@@ -551,17 +552,17 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Ansiedade competitiva, humor e autoeficácia em jogadores de handebol de praia.
    - Resumo: 181 jogadores de handebol de praia; perfil psicológico (IPED), ansiedade competitiva (CSAI-2), humor (POMS) e autoeficácia.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva (CSAI-2) e humor (POMS) com perfil psicológico.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 181 jogadores de handebol de praia; IPED, CSAI-2, POMS e GSES.
 99. Salman R.A. (2020). The Relationship of Psychological Tension with Some Concentrations of Antioxidants among Young Handball Players. Annals of Tropical Medicine and Public Health. https://doi.org/10.36295/asro.2020.231416
    - Tensão psicológica e antioxidantes em jovens jogadores de clubes.
    - Resumo não acessível; o título indica tensão psicológica e antioxidantes em jovens jogadores, sem contexto informado.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título; limítrofe).
-   - **Saúde mental: ENTRA (limítrofe).** Tensão psicológica declarada no título, sem contexto informado (resumo não acessível).
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): nível de tensão/estimulação emocional de jovens jogadores relacionado a antioxidantes; instrumento não especificado no resumo.
 100. Soto D. (2020). Well-Being and Throwing Speed of Women Handball Players Affected by Feedback. International Journal of Environmental Research and Public Health. https://doi.org/10.3390/ijerph17176064
    - Afeto positivo, motivação e feedback em jogadoras experientes de handebol.
    - Resumo: 39 jogadoras com experiência internacional; feedback altera afeto positivo, competência, motivação e velocidade de arremesso.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Afeto positivo como desfecho do feedback, junto a competência e motivação.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 39 jogadoras experientes; bem-estar (vitalidade, afeto positivo e negativo) como desfecho do feedback em tarefa de arremesso; afeto positivo diferiu entre grupos.
 102. Autoria não recuperada (2021). ¿Qué me ocurre cuando me influyen los demás? Impacto en las características psicológicas de jóvenes jugadores de balonmano. Summa Psicológica UST.
    - Clima motivacional e controle do estresse em jovens jogadores de handebol.
    - Resumo (publicado na Summa Psicológica UST, 2021): 149 jovens; clima motivacional e características psicológicas, como controle do estresse.
@@ -581,12 +582,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Comprometimento, medo do fracasso e burnout em jovens jogadores de handebol.
    - Resumo: 479 jovens de seleções regionais; comprometimento, medo do fracasso e burnout (IBD-R) em contexto competitivo.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Burnout (IBD-R) com comprometimento e medo do fracasso.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 479 jovens; IBD-R (exaustão emocional, despersonalização), PFAI e SCQE.
 108. Graja A. (2021). Effect of Ramadan Intermittent Fasting on Cognitive, Physical and Biochemical Responses to Strenuous Short-Term Exercises in Elite Young Female Handball Players. Physiology and Behavior. https://doi.org/10.1016/j.physbeh.2020.113241
    - Índice de Hooper e sonolência em jogadoras de elite durante o Ramadã e treinamento.
    - Resumo: 12 jogadoras de elite; índice de Hooper e sonolência (Epworth) antes e durante o Ramadã.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Índice de Hooper e sonolência (Epworth) antes e durante o Ramadã.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 12 jogadoras de elite; índice de Hooper e Escala de Sonolência de Epworth antes e durante o Ramadã; sonolência maior na última semana.
 109. Gómez-López M. (2021). Predicting the Motivational Climate among Peers, through the Psychological Characteristics of Young Handball Players. Anuario de Psicología. https://doi.org/10.1344/anpsic2021.51/3.31815
    - Clima motivacional e características psicológicas em jovens jogadores.
    - Resumo: 149 jovens jogadores (mesma amostra dos nº 102 e 111); características psicológicas (CPRD) predizem o clima motivacional entre pares.
@@ -596,7 +597,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Motivação, medo de falhar e ansiedade competitiva em jovens jogadores.
    - Resumo: 479 jovens de alto nível; perfis de motivação, medo do fracasso e ansiedade competitiva (CSAI-2R).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva (CSAI-2R) em perfis de motivação.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 479 jovens; perfis com SMS, PFAI e CSAI-2R; um perfil com os maiores níveis de ansiedade.
 111. Gómez-López M. (2021). Psychological Characteristics for Sport Performance in Adolescent Players of Handball. Journal of Sport and Health Research.
    - Características psicológicas para rendimento em adolescentes de handebol.
    - Resumo: 149 jovens (provável mesma amostra do nº 102); CPRD, controle do estresse competitivo.
@@ -606,12 +607,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Estresse percebido e recuperação após exercício de sprint em jogadores de handebol.
    - Resumo: 29 jogadores; estresse percebido antes/depois de sprints e até 72 h.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse percebido antes e depois de sprints e até 72 h.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 29 jogadores; nível de estresse percebido antes, depois e até 72 h de sprints, junto a dor muscular e CK; estresse como marcador de recuperação.
 113. Koretskaya I.A. (2021). Effects of Emotional Burnout on Interpersonal Interaction in Professional Handball. Teoriya i Praktika Fizicheskoy Kultury.
    - Sem resumo; burnout emocional no handebol profissional.
    - Resumo não acessível; o título indica burnout emocional e interação interpessoal no handebol profissional.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: ENTRA.** Burnout emocional declarado no título (resumo não acessível).
+   - **Saúde mental: ENTRA.** Resumo não localizado nas fontes abertas (Teoriya i Praktika Fizicheskoy Kultury, 2021, em russo). Mantido pelo título, que declara burnout emocional em handebol profissional.
 115. Nasief G. (2021). Social Stressors and Motivation of Athletic Achievement of the Handball Players in Palestine. An-Najah University Journal for Research (B: Humanities). https://doi.org/10.35552/0247-035-011-003
    - Estressores sociais e motivação de realização em jogadores de handebol.
    - Resumo: 65 jogadores palestinos; estressores sociais (inclusive ligados à equipe) e motivação de realização esportiva.
@@ -621,12 +622,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Cochilos, qualidade do sono e sonolência em jogadores universitários de handebol.
    - Resumo: 11 jogadores universitários; cochilos de 20 e 60 min antes de tarefa específica, com PSQI e sonolência (Karolinska).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Qualidade do sono (PSQI) e sonolência (Karolinska) em protocolo de cochilos.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 11 universitários; PSQI (qualidade habitual do sono) e Escala de Sonolência de Karolinska antes e depois dos cochilos.
 117. Oytun M. (2021). Comparison of Anxiety and Narcissism Levels of Different Performance Groups in Female Handball Players. Anadolu Psikiyatri Dergisi. https://doi.org/10.5455/apd.116943
    - Ansiedade e narcisismo em jogadoras de liga por nível de desempenho.
    - Resumo: 59 jogadoras das 4 melhores equipes da liga 2017/18; ansiedade (Beck) e narcisismo comparados por nível de desempenho.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: ENTRA.** Ansiedade (Beck) por nível de desempenho.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 59 jogadoras de liga; Inventário de Ansiedade de Beck e narcisismo; ansiedade maior no grupo de menor desempenho.
 118. Popovych I. (2021). Psychological Factors of Competitiveness of the Women’s Youth Handball Team. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2021.01030
    - Otimismo, motivação para o sucesso e dureza mental em jogadoras juvenis.
    - Resumo: 61 jogadoras juvenis; otimismo, motivação para o sucesso e hardiness.
@@ -636,7 +637,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Motivação intrínseca e ansiedade competitiva em handebol em cadeira de rodas.
    - Resumo: 37 atletas do Campeonato Brasileiro de handebol em cadeira de rodas; motivação intrínseca reduz ansiedade competitiva (SAS).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva (SAS) em handebol em cadeira de rodas.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 37 atletas de handebol em cadeira de rodas; SAS (ansiedade competitiva) e IMI; competência percebida explica 15 % da ansiedade somática.
 120. Sánchez-Sáez J.A. (2021). Pilot Study on Players' and Coaches' Motor and Psychological Responses during Competition to the Proposed Mini-Beach Handball Rules. Retos. https://doi.org/10.47197/retos.v43i0.89294
    - Respostas psicológicas de jogadores durante competição de mini handebol de praia.
    - Resumo: 35 crianças de mini handebol de praia; competência percebida e diversão após treinos e torneio.
@@ -646,7 +647,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Sem resumo; sono e bem-estar após prática de handebol recreativo.
    - Resumo não acessível; o título indica sono, bem-estar e características psicológicas com a prática de handebol recreativo.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: ENTRA.** Sono e bem-estar declarados no título (resumo não acessível).
+   - **Saúde mental: ENTRA.** Resumo parcial (Medical Science 25(117), 2021): 24 universitários destreinados; 12 semanas de handebol recreativo melhoraram a qualidade do sono; bem-estar também avaliado.
 122. Abod Z.F. (2022). Achievement Motivation and its Relationship to Jump Pass and Jump Shot in Handball. SPORT TK: Revista EuroAmericana de Ciencias del Deporte. https://doi.org/10.6018/sportk.537131
    - Motivação para realização em jogadores de clube de handebol.
    - Resumo: 12 jogadores de clube; motivação de realização relacionada à precisão do passe e do arremesso em suspensão.
@@ -661,12 +662,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Qualidade do sono após esforço intenso em jogadores de handebol.
    - Resumo: 20 jogadores amadores; recuperação ativa com natação após esforço intenso melhora lactato e qualidade do sono.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Qualidade do sono após esforço intenso.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 20 amadores; qualidade do sono após esforço intenso com recuperação por natação; instrumento não descrito no resumo.
 126. Essid S. (2022). Time-Of-Day Effects in Physical Performances and Psychological Responses in Young Elite Male Handball Players. Biological Rhythm Research. https://doi.org/10.1080/09291016.2021.1922212
    - Respostas psicológicas conforme horário do dia em jovens de elite.
    - Resumo: 18 jogadores de elite; POMS e questionário de Hooper antes de testes em 3 horários.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor (POMS) e questionário de Hooper por horário do dia.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 18 jogadores de elite; POMS e Hooper em 3 horários; humor negativo (ansiedade, raiva, confusão, depressão, fadiga) maior de manhã.
 127. García A.I.L. (2022). Psychological Skills for Mental Toughness in Handball Players. E-balonmano.com: Revista de Ciencias del Deporte.
    - Sem resumo; título claro sobre habilidades psicológicas e dureza mental em jogadores de handebol.
    - Resumo: 96 jogadores espanhóis; resiliência e otimismo por categoria esportiva e nível de competição.
@@ -676,12 +677,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Competência percebida, motivação autônoma e bem-estar em jogadoras de elite.
    - Resumo: 73 jogadoras da Liga Iberdrola; feedback altera competência percebida, motivação autônoma e bem-estar.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Bem-estar com competência percebida e motivação autônoma.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 73 jogadoras da Liga Iberdrola; bem-estar subjetivo, competência percebida e motivação autônoma após feedback comparativo.
 129. Ghazel N. (2022). The Effect of Music on Short-Term Exercise Performance during the Different Menstrual Cycle Phases in Female Handball Players. Research in Sports Medicine. https://doi.org/10.1080/15438627.2020.1860045
    - Estados de humor (POMS) em jogadoras de handebol nas fases do ciclo menstrual.
    - Resumo: 14 jogadoras; POMS nas fases do ciclo (ansiedade, raiva, confusão).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor (POMS) nas fases do ciclo menstrual.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 14 jogadoras; POMS nas fases do ciclo; ansiedade, raiva e confusão maiores na fase menstrual.
 131. Iusepolsky R. (2022). The “Empty-Goal” Rule Change from the Perspective of International-Level Team Handball Goalkeepers. International Journal of Environmental Research and Public Health. https://doi.org/10.3390/ijerph19116506
    - Confiança de goleiros internacionais em situações de gol vazio.
    - Resumo: Questionário com 95 goleiros profissionais; confiança em situações de gol vazio.
@@ -721,12 +722,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Qualidade do sono pelo PSQI avaliada em jogadoras durante o Ramadã.
    - Resumo: 13 jovens jogadoras; cafeína no Ramadã com PSQI avaliado em todos os períodos de teste.
    - Triagem anterior (seis famílias): ENTRA (sono medido).
-   - **Saúde mental: ENTRA (limítrofe).** Qualidade do sono (PSQI) em todos os períodos de teste; desfecho secundário.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 13 jogadoras; PSQI avaliado em todos os períodos, mas o desfecho é desempenho com cafeína no Ramadã.
 140. Bougrine H. (2023). Ramadan Fasting and Short-Term Maximal Physical Performance: Searching for Optimal Timing of the Last Meal “Suhoor” in Female Pre-University Handball Players. European Journal of Investigation in Health Psychology and Education. https://doi.org/10.3390/ejihpe13100152
    - Qualidade do sono pelo PSQI em jogadoras durante o Ramadã.
    - Resumo: 19 jogadoras; horário do Suhoor no Ramadã com PSQI, que piorou durante e após o mês.
    - Triagem anterior (seis famílias): ENTRA (sono medido).
-   - **Saúde mental: ENTRA (limítrofe).** Qualidade do sono (PSQI), que piorou durante e após o Ramadã; desfecho secundário.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 19 jogadoras; padrões de sono controlados junto a IMC e temperatura; desfecho é desempenho conforme horário do suhoor.
 141. Buehren, Christoph; Gabriel, Marvin (2023). Performing Best When It Matters the Most: Evidence from Professional Handball. Journal of Quantitative Analysis in Sports. https://doi.org/10.1515/jqas-2022-0070
    - Pressão psicológica em pênaltis de jogos oficiais de handebol.
    - Resumo: Mais de 5.500 tiros de 7 m em jogos das ligas alemãs; pressão psicológica e choking autorrelatado.
@@ -737,16 +738,16 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Resumo: Estratégias de foco regulatório (motivação) e desempenho em 84 jogos da liga francesa.
    - Triagem anterior (seis famílias): ENTRA.
    - **Saúde mental: NÃO ENTRA.** Estratégias de foco regulatório.
-143. Do Nascimento A.M.M. (2023). Cross-Sectional Associations between Competitive Anxiety and Individual Characteristics among Handball Athletes. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2023.07196
+143. Do Nascimento A.M.M., Gaia J.W.P., Ferreira R.W., Pires D.A. (2023). Cross-Sectional Associations between Competitive Anxiety and Individual Characteristics among Handball Athletes. Journal of Physical Education and Sport. https://doi.org/10.7752/jpes.2023.07196
    - Ansiedade competitiva em atletas de handebol.
    - Resumo: 81 atletas de handebol; ansiedade competitiva e autoconfiança (CSAI-2R) por tempo de prática, idade e sexo.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva e autoconfiança (CSAI-2R).
+   - **Saúde mental: ENTRA.** Texto completo (JPES 23(7), Art. 196, 2023): 81 atletas; CSAI-2R; tempo de prática associado à direção e frequência da ansiedade somática.
 145. Guembri M.A. (2023). Evaluation of Age-Based Sleep Quality and Fitness in Adolescent Female Handball Players. International Journal of Environmental Research and Public Health. https://doi.org/10.3390/ijerph20010330
    - Qualidade do sono, sonolência e insônia em jogadoras adolescentes de handebol.
    - Resumo: 72 jogadoras U14 e U17; qualidade do sono, sonolência e insônia comparadas com a aptidão física.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: ENTRA.** Qualidade do sono, sonolência e insônia.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 72 jogadoras U14 e U17; PSQI, Epworth e Índice de Gravidade de Insônia com testes físicos.
 146. Karacsony P. (2023). Analysis of Factors Influencing the Motivation of Hungarian Junior Handball Players. Physical Education Theory and Methodology. https://doi.org/10.17309/tmfv.2023.3.17
    - Fatores motivacionais em jogadores juniores de handebol.
    - Resumo: 190 jogadores juniores húngaros; fatores de motivação esportiva ligados ao prazer e aos resultados.
@@ -761,12 +762,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Burnout em atletas infantis antes e após camping da seleção brasileira.
    - Resumo: 64 atletas infantis antes e depois do camping técnico da seleção; burnout (ABQ) aumentou.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Burnout (ABQ) antes e depois do camping.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 64 atletas infantis; ABQ antes e depois do camping da seleção; burnout aumentou em todas as dimensões.
 150. Suárez-Iglesias D. (2023). The Impact of COVID-19 on Healthy Habits and Psychological Well-Being of Chilean Female Handball Players. E-balonmano.com: Revista de Ciencias del Deporte. https://doi.org/10.17398/1885-7019.19.1
    - Bem estar psicológico e sono em handebolistas chilenas de seleção durante confinamento.
    - Resumo: 18 jogadoras de seleções chilenas no confinamento; atividade física, sono e bem-estar psicológico medidos duas vezes.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: ENTRA.** Bem-estar psicológico e sono no confinamento.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 18 jogadoras de seleções chilenas; bem-estar psicológico caiu no confinamento; qualidade do sono sem mudança, problemas de sono reduziram.
 151. Van Den Tillaar R. (2023). Effect of Difficulty of Task on Throwing Performance and Coping Strategies in Team Handball. Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2023.1107861
    - Estratégias de enfrentamento sob oposição no arremesso em handebol.
    - Resumo: 24 jogadoras; arremessos com níveis crescentes de oposição e estratégias de enfrentamento após cada condição.
@@ -781,12 +782,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Recuperação e fadiga percebidas ao longo da temporada em handebolistas.
    - Resumo: 100 jogadores ao longo da temporada; recuperação percebida (PRSS) e escala curta de recuperação e estresse.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Escala curta de recuperação e estresse (inclui estresse geral e equilíbrio emocional) com recuperação percebida.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 100 jogadores na temporada; questionários subjetivos de fadiga junto ao teste de recuperação de pernas; estresse só como item de escala de recuperação.
 154. Bougrine H. (2024). The Impact of Intermittent Fasting during Ramadan on Psychomotor and Cognitive Skills in Adolescent Athletes. Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2024.1362066
    - Qualidade do sono pelo PSQI em jogadoras durante o Ramadã.
    - Resumo: 23 jogadoras; PSQI (qualidade e duração do sono) ao longo do Ramadã.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Qualidade e duração do sono (PSQI) ao longo do Ramadã.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 23 jogadoras em 6 sessões ao longo do Ramadã; desfecho principal é psicomotor e cognitivo, com PSQI conforme descrição original.
 155. Daniela B. (2024). The Effect of Controlled Movement Imaginary on Performance in a Modified 7-Metre Shot Test of Elite Female Handball Players. Studia Sportiva. https://doi.org/10.5817/sts2024-2-3
    - Intervenção de imagética motora em jogadoras de elite de handebol.
    - Resumo: Jogadoras da liga principal tcheca; imagética do movimento melhorou o desempenho no teste de 7 m.
@@ -796,12 +797,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Estresse percebido e carga em 189 jogadores de elite ao longo da temporada.
    - Resumo: 189 jogadores de elite em 45 semanas; estresse percebido semanal ligado à carga de treino e competição e ao cortisol.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse percebido semanal ligado à carga e ao cortisol.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 189 jogadores de elite em 45 semanas; estresse percebido semanal associado a carga (r = 0,19 a 0,46) e cortisol.
 158. Guembri M.A. (2024). Effects of Ramadan Fasting on Sleep and Physical Fitness among Young Female Handball Players. Children. https://doi.org/10.3390/children11080954
    - Qualidade do sono, insônia e sonolência durante o Ramadã em jogadoras jovens.
    - Resumo: 65 jogadoras U14 e U17; qualidade do sono, insônia e sonolência antes e durante o Ramadã, com testes físicos.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Qualidade do sono, insônia e sonolência antes e durante o Ramadã.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 65 jogadoras U14 e U17; PSQI, ISI e Epworth pioraram durante o Ramadã.
 159. Gómez-López M. (2024). Fear of Failure and Perception of the Motivational Climate under the Coach Pressure. International Journal of Sports Science and Coaching. https://doi.org/10.1177/17479541231223652
    - Medo do fracasso, necessidades psicológicas e clima motivacional em jovens de handebol.
    - Resumo: 681 jovens jogadores; perfis de clima motivacional, medo do fracasso e necessidades psicológicas básicas.
@@ -811,7 +812,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Estresse e recuperação percebidos na pré temporada de handebolistas profissionais.
    - Resumo: 16 profissionais na pré-temporada; escala curta de recuperação e estresse e creatina quinase ao longo dos microciclos.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Escala curta de recuperação e estresse ao longo dos microciclos.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 16 profissionais na pré-temporada; itens da SRSS (capacidade física, recuperação geral, estresse muscular e estresse geral) e CK.
 161. Horička P. (2024). The Relationship of Decision-Making Style and Reaction Agility Performance Regarding the Type of Stimulus in Handball. Studia Sportiva. https://doi.org/10.5817/sts2024-1-20
    - Estilo decisório com ansiedade e sobrecarga em juniores de handebol.
    - Resumo: 11 juniores; teste de agilidade e questionário de estilo decisório com fator de ansiedade/sobrecarga.
@@ -821,12 +822,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Bem-estar e estresse pelo Hooper em competição oficial de handebol de praia.
    - Resumo: 10 jogadoras da seleção italiana em competição oficial de vários dias; bem-estar (Hooper), fadiga e estresse pioraram ao longo da competição.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Bem-estar, fadiga e estresse (Hooper) ao longo de competição oficial.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 10 jogadoras da seleção italiana em competição oficial; Hooper com nível de estresse subindo de 4,5 para 5,5 ao longo dos dias; índice de bem-estar deteriorado.
 163. Martiny L, Dias G, Ferreira JP, Mendes R, Mendes R. (2024). Flow Training Program, Mindfulness, Decision Making and Mental Well-Being of Young and Adult Elite Handball Athletes. Preprints.org (preprint, não revisado por pares). https://doi.org/10.20944/preprints202404.0171.v1
    - Programa de fluxo baseado em mindfulness e bem-estar mental em atletas de handebol.
    - Resumo: 105 atletas de elite; programa de flow baseado em mindfulness melhorou bem-estar mental, flow e tomada de decisão.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Bem-estar mental como desfecho de programa de flow com mindfulness.
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): 105 atletas de elite; programa de flow com mindfulness melhorou bem-estar mental, tomada de decisão e flow disposicional.
 164. Paula, Roselane De Almeida; Castanheira, Luisa Freire Da Silveira; Da Silva, Otavio Augusto Monteiro; Ferreira, Rodrigo Weyll; Gaia, Jhonatan Welington Pereira; Pires, Daniel Alvarez (2024). Perception of the Flow Dimensions and Influence of the Variable Sex in School Handball Athletes: A Cross-Sectional Study. Retos.
    - O título indica medida do estado de flow, variável psicológica, em atletas escolares de handebol, o que atende aos critérios na ausência de resumo.
    - Resumo: 110 atletas escolares; dimensões do estado de flow na competição (concentração, controle, metas claras) por sexo.
@@ -836,32 +837,32 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Ansiedade de nova lesão em jogadores de ligas de elite de handebol.
    - Resumo: 220 jogadores das três primeiras divisões iranianas; ansiedade de nova lesão (RIAI) relacionada ao histórico de lesões.
    - Triagem anterior (seis famílias): ENTRA (não é população clínica).
-   - **Saúde mental: ENTRA.** Ansiedade de nova lesão (RIAI).
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 220 jogadores de elite; Re-Injury Anxiety Inventory e histórico de lesões.
 166. Wang X. (2024). The Association between Team Behaviors and Competitive Anxiety among Team-Handball Players: The Mediating Role of Achievement Goals. Frontiers in Psychology. https://doi.org/10.3389/fpsyg.2024.1417562
    - Ansiedade competitiva, autoconfiança e orientação motivacional em jogadores de handebol.
    - Resumo: 298 jogadores; comportamento controlador do treinador e coesão predizem ansiedade competitiva, mediados pelas metas de realização.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade competitiva com comportamento do treinador e coesão.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 298 jogadores; comportamento controlador do treinador prediz ansiedade estado e somática; coesão prediz negativamente.
 167. Wolf S.A. (2024). Everything is Cool When You're Part of a Team? The Effects of Outcome Interdependence on Appraisal, Emotions, and Performance under Pressure. Psychology of Sport and Exercise. https://doi.org/10.1016/j.psychsport.2024.102683
    - Avaliação cognitiva, ansiedade e excitação sob pressão em jogadores de handebol.
    - Resumo: 189 jogadores em experimento de campo com tiros de 7 m sob pressão; avaliação cognitiva, ansiedade e excitação.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade e excitação sob pressão em experimento de campo.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): experimento de campo com 189 jogadores; avaliações, ansiedade e excitação sob pressão em pênaltis com interdependência de resultado.
 168. Aase E. (2025). From Pandemic to Podium? Norwegian Olympic Handball Players’ Journey to Tokyo 2020. Frontiers in Psychology. https://doi.org/10.3389/fpsyg.2025.1566238
    - Preparação mental e enfrentamento de jogadores olímpicos de handebol.
    - Resumo: Entrevistas com 7 jogadores olímpicos; preparação mental, estressores e enfrentamento antes de Tóquio.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Verificado no texto completo (Front Psychol, 2025): estudo qualitativo que descreve exaustão mental, preocupação e isolamento dos jogadores na preparação olímpica durante a pandemia, sem instrumento padronizado.
+   - **Saúde mental: ENTRA (limítrofe).** Texto completo (Front Psychol, 2025): entrevistas retrospectivas descrevem exaustão mental, preocupação e isolamento na preparação olímpica durante a pandemia.
 169. Akroush S.H. (2025). Psychological Mood Patterns among Jordanian Handball Players. Retos. https://doi.org/10.47197/retos.v62.109407
    - Padrões de humor em handebolistas da liga jordaniana.
    - Resumo: 76 jogadores da liga jordaniana 2022/23; padrões de humor por experiência e posição.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Padrões de humor por experiência e posição.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 76 jogadores da liga jordaniana; "lista de padrões de humor para atletas" (flexibilidade pessoal, cessar operações, excitação); instrumento pouco padronizado.
 170. Andolšek J. (2025). Stressed but Still in the Game: How Focus and REM Sleep Shape Daily Engagement in Elite Athletes. Kinesiologia Slovenica. https://doi.org/10.52165/kinsi.31.2.177-190
    - Estresse, foco, engajamento e sono REM diários durante a temporada.
    - Resumo: 19 jogadoras profissionais acompanhadas por 60 dias na temporada; estresse diário, foco, engajamento esportivo e sono REM.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse diário, engajamento e sono REM na temporada.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 19 profissionais em 60 dias; estresse diário por questionário móvel, foco, engajamento e sono REM por anel Oura.
 171. Bugten, Jesper Barth; Haugen, Tommy; Ivarsson, Andreas; Knight, Camilla Jane; Ommundsen, Yngvar; Spencer, Matthew Ronald; Stenling, Andreas; Solstad, Bard Erlend (2025). Daily Measures of Sport Enjoyment, Social Interaction, and Attendance among Female Adolescent Handball Players. Psychology of Sport and Exercise. https://doi.org/10.1016/j.psychsport.2025.102852
    - Prazer esportivo e interações sociais em treinos de jogadoras adolescentes de handebol.
    - Resumo: 27 jogadoras adolescentes acompanhadas em 10 treinos; prazer no esporte e interações com pares e treinador.
@@ -881,32 +882,32 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Programa de compaixão e aceitação reduz estresse competitivo na seleção sub 18 de handebol.
    - Resumo: Seleção portuguesa sub-18; programa de compaixão e ACT reduziu o estresse competitivo e melhorou mindfulness e competências psicológicas.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse competitivo reduzido por programa de compaixão e ACT.
+   - **Saúde mental: ENTRA.** Resumo real (Retos, 2025): seleção portuguesa sub-18; estresse na competição, autocompaixão, mindfulness e habilidades psicológicas antes e depois do programa BCOMP.ACT.
 175. Drole, Kristina; Paravlic, Armin; Steffen, Kathrin; Doupona, Mojca (2025). Physical, Psychosocial and Dual-Career Loads as Risk Factors for Injuries and Illnesses in Elite Handball Players: A 45-Week Prospective Cohort Study. Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2025.1664247
    - Eventos de vida e carga psicossocial como fatores de risco em handebol de elite.
    - Resumo: 189 jogadores de elite em 45 semanas; carga psicossocial (eventos de vida) e cargas de treino e competição como risco de lesão e doença.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Carga psicossocial (eventos de vida) como estresse de risco para lesão e doença.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 189 jogadores em 45 semanas; carga psicossocial pelo LESCA (eventos de vida) como fator de risco de lesão e doença.
 176. Font R. (2025). Analysis of Sleep Quality and Quantity during a Half-Season in World-Class Handball Players. Biology of Sport. https://doi.org/10.5114/biolsport.2025.148578
    - Sono monitorado ao longo de meia temporada em jogadores de elite.
    - Resumo: 13 jogadores de elite em meia temporada; qualidade e quantidade do sono após treinos, jogos e viagens.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Qualidade e quantidade do sono em meia temporada.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 13 jogadores de elite em 14 semanas; duração, latência e eficiência do sono por anel Oura após treinos, jogos em casa e fora e seleções.
 177. García-Sánchez C. (2025). Towards Personalized Recovery in Handball? The Effects of Playing Positions and Player Role on Internal Match Load and Well-Being Responses in Female Players. Applied Sciences. https://doi.org/10.3390/app15031228
    - Bem-estar pelo questionário de Hooper após partidas oficiais.
    - Resumo: 14 jogadoras monitoradas em 13 jogos oficiais; PSE do jogo e bem-estar (Hooper) nos dias seguintes, por posição e papel.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Bem-estar pelo Hooper nos dias após partidas oficiais.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 14 jogadoras em 13 jogos; Hooper em MD+1 e MD+2 por posição e papel.
 179. Korobeinikova L. (2025). Gender Features of Psychophysiological State in Handball Players. Health, Sport, Rehabilitation. https://doi.org/10.58962/hsr.2025.1276
    - Estado psicoemocional e tensão emocional em jogadores e jogadoras de handebol.
    - Resumo: 41 jogadores e jogadoras; estado psicoemocional e tensão emocional.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Estado psicoemocional e tensão emocional por sexo.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 24 jogadoras e 17 jogadores; bateria "Multipsychometer-05" de estado psicoemocional e funções neurodinâmicas.
 180. Lepir D. (2025). The Effect of Neurofeedback SMR Training on Psycho-Physiological and Behavioral Phenomena in Professional Handball Players: An Exploratory Study. SPORT TK: Revista EuroAmericana de Ciencias del Deporte. https://doi.org/10.6018/sportk.630051
    - Neurofeedback e ansiedade pré competitiva em jogadores profissionais de handebol.
    - Resumo: 10 jogadores profissionais; neurofeedback reduziu ansiedade geral e pré-competitiva.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade geral e pré-competitiva reduzidas por neurofeedback.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 10 profissionais; ansiedade geral e pré-competitiva, tempo de reação e atenção antes e depois de neurofeedback SMR.
 181. Malfa D. (2025). Impact of the Ludocomprehensive Model on the Interpersonal Style of the Coach, Motivation, and Game Learning in Novice Handball Players. Sportis: Scientific Technical Journal of School Sport, Physical Education and Psychomotricity. https://doi.org/10.17979/sportis.2025.11.4.11990
    - Motivação autônoma e apoio à autonomia em handebolistas de iniciação.
    - Resumo: 63 jogadores em iniciação; intervenção de ensino alterou apoio à autonomia e motivação autônoma.
@@ -916,12 +917,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Bem-estar subjetivo pelo índice de Hooper em jogadores universitários.
    - Resumo: 64 jogadores universitários; bem-estar pelo índice de Hooper relacionado à carga de treino e à alimentação.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Bem-estar subjetivo pelo índice de Hooper.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 64 universitários; índice de Hooper (sono, dor, estresse, fadiga) associado à alimentação.
 183. Norouzi E. (2025). Using Functional Imagery Training to Enhance Motor Performance and Well-Being in Elite Handball Players Post-COVID-19. Journal of Imagery Research in Sport and Physical Activity. https://doi.org/10.1515/jirspa-2025-0009
    - Imagética, regulação emocional, ansiedade e estresse em jogadoras profissionais de handebol.
    - Resumo: 36 jogadoras profissionais; treino de imagética reduziu desregulação emocional, ansiedade e estresse.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Desregulação emocional, ansiedade e estresse reduzidos por imagética.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 36 jogadoras profissionais; desregulação emocional, sintomas de ansiedade e estresse percebido reduziram com imagética funcional.
 184. Nuell S. (2025). Effects of Daily Use of Intermittent Pneumatic Compression in Competitive Handball Players: A Randomized Controlled Trial. Biology of Sport. https://doi.org/10.5114/biolsport.2025.151656
    - Recuperação percebida com compressão pneumática em jogadores de handebol.
    - Resumo: 17 jogadores; 5 semanas de compressão pneumática com recuperação percebida registrada diariamente durante o treino.
@@ -931,12 +932,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Burnout e sono avaliados em jogadores de handebol, grupo separável.
    - Resumo: 175 jogadores de handebol (dados separáveis dos de esports); dor musculoesquelética e volume de treino, com sono e burnout avaliados.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: ENTRA.** Burnout e sono avaliados no grupo de handebol.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 175 jogadores de handebol e 76 de esports; padrões de sono e burnout coletados por questionário, mas o desfecho principal é dor musculoesquelética.
 187. Syed A.A.S. (2025). Training Load, Fatigue, and Anterior Cruciate Ligament Injury Risk in Male Collegiate Handball Players: A Two-Season Prospective Cohort Study. Physical Education Theory and Methodology. https://doi.org/10.17309/tmfv.2025.4.19
    - Escalas diárias de bem-estar e fadiga ao longo de duas temporadas.
    - Resumo: 93 universitários em 2 temporadas; bem-estar diário (wellness) e fadiga.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Bem-estar diário (wellness) e fadiga em duas temporadas.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Crossref): 93 universitários em 2 temporadas; fadiga por avaliações diárias de wellness e CMJ; desfecho é risco de LCA.
 188. Upadhyay K. (2025). Enhancing Skill Performing Competency among Handball Players: Comparative Effects of Mental Imagery, Self-Talk, and Their Combination. Physical Education Theory and Methodology. https://doi.org/10.17309/tmfv.2025.6.07
    - Imagética e autodiálogo em jogadores de handebol.
    - Resumo: 40 jogadores; 6 semanas de imagética mental e autodiálogo junto ao treino melhoraram o arremesso em suspensão.
@@ -946,27 +947,27 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Bem estar psicológico e apoio social em estudantes atletas de handebol.
    - Resumo: 287 estudantes-atletas de handebol; apoio de família, pares e treinadores e bem-estar psicológico.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: ENTRA.** Bem-estar psicológico e apoio social.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (IJHMSS 13(3), 2025): 287 estudantes-atletas; bem-estar psicológico é um dos desfechos de desenvolvimento social, junto a competência social e identidade.
 190. Yüksel S, Debener S, Schmidt B. (2025). Collective Super Power: A Season-Long Study of Hypnosis to Enhance Confidence and Reduce Pre-Competition Anxiety and Stress in Two Handball Teams. Preprints.org (preprint, não revisado por pares). https://doi.org/10.20944/preprints202511.0158.v1
    - Hipnose, autoconfiança e ansiedade pré-competitiva ao longo de jogos oficiais.
    - Resumo: 24 jogadoras de duas equipes em 8 jogos oficiais; hipnose reduziu ansiedade pré-competitiva e aumentou a autoconfiança (CSAI-2).
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade pré-competitiva e estresse (CSAI-2) com hipnose.
+   - **Saúde mental: ENTRA.** Resumo real (Crossref): 24 jogadoras de duas equipes em 8 jogos oficiais; questionários de estado psicológico (estresse, ansiedade pré-competitiva) e VFC com hipnose.
 191. De La Rubia A. (2025). Exploring the Role of Sex and Maturation in a Bio-Banding Competition: Insights into Pre-Competition Anxiety in Youth Handball. Science and Sports. https://doi.org/10.1016/j.scispo.2025.02.012
    - Ansiedade pré-competitiva em competição juvenil de handebol.
    - Resumo: 87 jovens em competição com bio-banding; ansiedade pré-competitiva e autoconfiança (CSAI-2R) por sexo e maturação.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade pré-competitiva (CSAI-2R) em competição com bio-banding.
+   - **Saúde mental: ENTRA.** Resumo real (Science & Sports 40(7), 2025): 87 jovens de 13 a 17 anos; ansiedade cognitiva e somática maiores nas meninas, autoconfiança nos meninos.
 192. Batalla-Gavalda A. (2026). Superior Ecological Validity from the Game-Based Performance Test Compared to the Yo-Yo IR1 in Women's Amateur Handball Players. Journal of Sport and Health Research. https://doi.org/10.58727/jshr.118640
    - Humor e estresse percebido em testes e jogos oficiais.
    - Resumo: 16 jogadoras amadoras em testes e 10 jogos oficiais; humor (POMS) e estresse percebido medidos.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Humor (POMS) e estresse percebido em testes e jogos.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 16 jogadoras amadoras; POMS e escala de estresse percebido em testes e em 10 jogos oficiais.
 193. Batalla-Gavaldaa, Abraham; Beltran-Garrido, Jose Vicente; Montoliu-Colase, Raul; Reina-Gomezf, Alvaro; Corbig, Francisco; Daza-Sobrinoc, Gabriel (2026). Ecological Validity of Maximal Exercise Tests to Simulate Competitive Demands in Amateur Female Handball. Acta Kinesiologica. https://doi.org/10.51371/issn.1840-2976.651
    - Estresse percebido e estados de humor em partidas oficiais de jogadoras amadoras.
    - Resumo: 16 jogadoras amadoras (provavelmente a mesma amostra do nº 192) em testes de laboratório e 10 jogos oficiais; estresse percebido e humor.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Estresse percebido e humor em jogos oficiais.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 16 jogadoras amadoras; estresse percebido e estados de humor em testes de laboratório e 10 jogos oficiais.
 194. Bauer J. (2026). In-Game Monitoring of Adolescent Handball Players: A Preliminary Examination of Associations between External Load Parameters and Objective and Subjective Fatigue Markers. Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2026.1765225
    - Recuperação percebida e esforço percebido durante jogo oficial.
    - Resumo: 11 adolescentes monitorados em jogo oficial; recuperação percebida (PRSS) e PSE associadas à carga externa.
@@ -976,7 +977,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Necessidades básicas, prazer e afeto em sessões de treino de handebol.
    - Resumo: 50 jogadoras adolescentes (mesma amostra do nº 196) em 11 a 12 treinos; necessidades psicológicas, prazer e afeto relacionados à carga física.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Afeto em sessões de treino, com necessidades e prazer.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Crossref): 50 adolescentes em 11 a 12 treinos; satisfação de necessidades, prazer e sentimentos de prazer (afeto) antes e depois de cada treino.
 196. Bugten, Jesper B.; Solstad, Bard Erlend; Ivarsson, Andreas; Spencer, Matt R.; Stenling, Andreas; Haugen, Tommy (2026). Youth Sport Players' Enjoyment in Team Practice Sessions: The Daily Impact of Coaches and Basic Psychological Need Satisfaction. Journal of Sport and Exercise Psychology. https://doi.org/10.1123/jsep.2025-0306
    - Prazer e necessidades psicológicas em sessões de treino de handebol.
    - Resumo: 50 jogadoras adolescentes em 11 a 12 treinos; apoio do treinador, necessidades psicológicas e prazer no treino.
@@ -991,22 +992,22 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Clima motivacional, ansiedade, depressão, estresse e autoestima em jovens jogadores.
    - Resumo: 522 jovens jogadores; clima motivacional da equipe associado a ansiedade, depressão, estresse (DASS-21) e autoestima.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Ansiedade, depressão e estresse (DASS-21) e autoestima.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 522 jovens; DASS-21 (ansiedade, depressão, estresse) e autoestima de Rosenberg com clima motivacional.
 200. Güler M. (2026). Psychological Well-Being and Aggression in Handball Players: Examining the Mediating Role of Exercise Addiction. Physician and Sportsmedicine. https://doi.org/10.1080/00913847.2026.2667725
    - Bem-estar psicológico, agressividade e dependência de exercício em atletas de ligas turcas.
    - Resumo: 442 jogadores das ligas turcas; bem-estar psicológico, agressividade e dependência de exercício.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: ENTRA.** Bem-estar psicológico com agressividade e dependência de exercício.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): 442 jogadores de ligas turcas; Escala de Bem-Estar Psicológico, agressividade de Buss-Perry e dependência de exercício.
 201. Henze A.S. (2026). Athlete Monitoring in Handball (ATHMON HB): Relationship between Well-Being and Match Performance in Elite Male Handball Players. International Journal of Sports Physiology and Performance. https://doi.org/10.1123/ijspp.2025-0341
    - Bem-estar nos dias de jogo e desempenho em liga de elite.
    - Resumo: 18 jogadores da primeira liga alemã em uma temporada; bem-estar nos dias de jogo relacionado ao desempenho.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Bem-estar nos dias de jogo relacionado ao desempenho.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 18 jogadores da Bundesliga em uma temporada; bem-estar por questionário não validado de 3 itens (condição física, frescor mental, sono e recuperação) nos dias de jogo.
 203. Marqués-Jiménez D. (2026). A Comparison of Match Loads and Time Course of Recovery in Youth Handball Players with Different Neuromuscular Performance. Sports Health. https://doi.org/10.1177/19417381261459595
    - Bem-estar percebido na recuperação pós-jogo em jovens jogadores.
    - Resumo: 34 jovens; bem-estar percebido antes e até 48 h após jogo simulado.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Bem-estar percebido antes e até 48 h após jogo simulado.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): 34 jovens; wellness percebido antes, 24 h e 48 h após jogo simulado, com testes neuromusculares.
 204. Martins, Ricardo; Krustrup, Peter; Castagna, Carlo; Mohr, Magni; Teixeira, Jorge; Carneiro, Ivone; Povoas, Susana (2026). Walking Handball as an Exercise Alternative to Conventional Walking and Recreational Team Handball. Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2026.1784474
    - Praticantes com experiência em handebol recreativo tiveram a diversão avaliada em sessões de handebol, o que configura variável afetiva medida em contexto de treino.
    - Resumo: 22 praticantes idosos de handebol recreativo; sessões de handebol caminhado e recreativo com diversão avaliada.
@@ -1021,7 +1022,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Qualidade do sono e carga de treino em handebolistas surdos durante períodos de concentração.
    - Resumo: Jogadores surdos em quatro períodos de concentração; qualidade do sono e carga de treino semana a semana.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Qualidade do sono semana a semana em períodos de concentração.
+   - **Saúde mental: ENTRA.** Resumo real (Semantic Scholar): jogadores surdos em 4 períodos de concentração; qualidade do sono e latência semana a semana com carga de treino.
 208. Saket, Imen; Goumni, Chiraz; Hammami, Achraf; Driss, Adel; Hammami, Raouf; Amar, Imen Ben (2026). Effects of an 8-Week Mental Preparation Program Combining Progressive Muscle Relaxation and Mental Imagery on Self-Determined Motivation and Dynamic Postural Control in Youth Female Handball Players: An Experimental Study. Frontiers in Psychology. https://doi.org/10.3389/fpsyg.2026.1902591
    - Programa de relaxamento e imagética altera motivação autodeterminada em handebolistas jovens.
    - Resumo: 36 jogadoras cadetes; 8 semanas de relaxamento e imagética junto ao treino aumentaram a motivação intrínseca (SMS-28).
@@ -1031,12 +1032,12 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Avaliação psicológica em treinos intervalados e jogos reduzidos; decidido pelo título.
    - Resumo: 14 jogadores de elite na temporada; MTDS (estresse, fadiga, humor) em 3 tipos de treino.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA.** Escala multicomponente de distresse de treino (estresse, fadiga, humor).
+   - **Saúde mental: ENTRA.** Resumo real (IJPAS, 2026): 14 jogadores de elite; MTDS (escala multicomponente de distresse de treino), CR10 e NASA-TLX em HIIT, jogos reduzidos e jogos completos.
 210. Skarbalius A. (2026). Integrated Monitoring of Training and Sport Performance Throughout an Entire Handball Season: Practical Applications in Semi-Professional Female Players. Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2026.1869707
    - Temporada completa; bem-estar e estado mental monitorados em atletas.
    - Resumo: Temporada inteira (159 treinos, 34 jogos); estado mental por questionário de bem-estar.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: ENTRA (limítrofe).** Estado mental por questionário de bem-estar na temporada inteira.
+   - **Saúde mental: ENTRA (limítrofe).** Resumo real (Semantic Scholar): temporada inteira de semiprofissionais; estado mental da atleta avaliado junto a carga, CMJ e desempenho; instrumento não detalhado no resumo.
 211. Staiano W. (2026). Overcoming Mental Fatigue through Mindfulness: Improving Physical and Cognitive Performance in Elite Handball Players. Journal of Science and Medicine in Sport. https://doi.org/10.1016/j.jsams.2025.08.004
    - Intervenção de mindfulness e fadiga mental em handebol de elite.
    - Resumo: 79 jogadores de elite; 6 semanas de mindfulness junto ao treino reduziram demanda mental e frustração percebidas.
@@ -1048,5 +1049,6 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
 - As duas listas (16 confirmados e 183 por resumo) não se sobrepõem na numeração e parecem vir de buscas diferentes. Os 16 já foram validados em texto completo; os 183 ainda estão na fase de resumo.
 - Amostras repetidas entre registros incluídos, já apontadas no original: nºs 102, 109 e 111 (149 jovens); nºs 192 e 193 (16 jogadoras amadoras); nºs 195 e 196 (50 adolescentes); nºs 60, 77, 81, 91, 107 e 110 (479 jovens espanhóis); nºs 80, 82 e 90 (444 jovens); nºs 156 e 175 (189 atletas de elite). Na extração, vale tratá-las como um estudo com várias publicações.
 - Os nºs 163 e 190 são preprints com versão publicada ainda não localizada; o nº 195 é preprint do nº 196 e deve ser tratado como duplicata na extração.
+- Dos 98 registros que seguem para o texto completo, 96 foram confirmados pelo resumo real (ou texto completo) e 2 ficaram sem resumo localizado (nº 33, Journal of Health Sciences, e nº 113, em russo), mantidos pela descrição e pelo título. A checagem rebaixou 7 de ENTRA para ENTRA (limítrofe) (nºs 28, 62, 112, 125, 154, 186 e 189) e subiu 1 de limítrofe para ENTRA (nº 100); nenhum saiu. O resumo consultado está em resumos_reais_98.json.
 - Onze registros tinham ficado em VERIFICAR (nºs 2, 25, 42, 71, 132, 136, 161, 168 e 172, mais Brandão 2023 e Ji 2026 entre os confirmados). Todos foram resolvidos com o resumo ou o texto completo obtidos nas fontes abertas (Psicothema, Redalyc, Frontiers, JPES, Studia Sportiva, Europe PMC, Semantic Scholar, Crossref); o motivo de cada um registra a fonte. Resultado: 2 entram (42 e 168), 9 não entram.
 - O critério de saúde mental é mais estreito que as seis famílias do protocolo. Ele retira da próxima fase 78 registros cuja única variável psicológica é motivacional, de autoeficácia, de habilidades mentais ou de desempenho. Se o grupo preferir manter o escopo das seis famílias, a lista anterior continua válida e esta triagem serve como subconjunto para o eixo de saúde mental.
