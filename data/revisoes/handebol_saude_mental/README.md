@@ -18,6 +18,15 @@ saúde mental e handebol selecionar para a próxima fase").
 - **`resumos_reais_98.json`** — para cada um dos 98 registros que seguem
   para o texto completo, o resumo real consultado (ou a fonte, quando só foi
   possível busca web), a decisão e o motivo.
+- **`extracao_texto_completo.xlsx`** / **`.json`** e **`relatorio_texto_completo.docx`** —
+  fase de texto completo dos 98: tabela de extração (país, desenho, amostra,
+  nível, contexto, variáveis de saúde mental com instrumento e momento,
+  resultados, decisão após leitura, justificativa, limitação) e o relatório
+  com uma ficha por registro. 49 foram lidos no texto completo em acesso
+  aberto; os outros 49 só pelo resumo real (editoras pagas ou sites que
+  bloqueiam download), o que está marcado em cada ficha.
+- **`fontes_texto_completo.json`** — de onde veio o texto completo de cada
+  um dos 49 obtidos (URL e número de palavras).
 - **`triagem_saude_mental.json`** — os mesmos registros em formato estruturado
   (`autores`, `ano`, `titulo`, `revista`, `doi`, `descricao`, `resumo`,
   `triagem_6_familias`, `saude_mental`, `motivo_saude_mental`), para importar
@@ -62,3 +71,12 @@ acelerar essa triagem, não substituto dela.
 5. Checagem por resumo real dos 98 que seguem para o texto completo
    (`resumos_reais_98.json`): 96 confirmados, 2 sem resumo localizado
    (nºs 33 e 113), 8 rebaixados para limítrofe e 1 promovido a ENTRA.
+6. Fase de texto completo (`extracao_texto_completo.xlsx`,
+   `relatorio_texto_completo.docx`): download do PDF de acesso aberto via
+   Europe PMC, Semantic Scholar e sites dos periódicos (49 obtidos, título
+   conferido contra o registro); leitura e extração por seis agentes de IA
+   em paralelo com esquema único; os 49 sem texto completo foram extraídos
+   só pelo resumo real e assim marcados. Resultado: 62 ENTRA, 32 ENTRA
+   (limítrofe), 3 NÃO ENTRA (limítrofe) (nºs 175, 179, 187) e 1 NÃO ENTRA
+   (nº 169). Onze registros mudaram de decisão em relação à triagem por
+   resumo.
