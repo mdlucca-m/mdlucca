@@ -24,18 +24,20 @@ saúde mental e handebol selecionar para a próxima fase").
 
 | Decisão (saúde mental)  | Lista dos 183 | 16 confirmados |
 |-------------------------|---------------|----------------|
-| ENTRA                   | 75            | 7              |
-| ENTRA (limítrofe)       | 21            | 0              |
-| VERIFICAR               | 9             | 2              |
-| NÃO ENTRA (limítrofe)   | 6             | 0              |
-| NÃO ENTRA               | 72            | 7              |
+| ENTRA                   | 76            | 7              |
+| ENTRA (limítrofe)       | 22            | 0              |
+| VERIFICAR               | 0             | 0              |
+| NÃO ENTRA (limítrofe)   | 11            | 0              |
+| NÃO ENTRA               | 74            | 9              |
 
 ## O que isto NÃO é
 
 **Isto não é uma decisão de triagem da revisão.** Cada registro foi lido e
 classificado por um agente de IA (Claude) a partir das descrições e resumos já
 presentes no arquivo original, contra o critério de saúde mental escrito na
-seção 2 do documento; não houve leitura nova de texto completo. O fluxo do
+seção 2 do documento. Só os 11 registros que tinham ficado em VERIFICAR
+tiveram o resumo ou o texto completo consultados em fontes abertas; os demais
+partem das descrições já presentes no arquivo. O fluxo do
 LAPE tem triagem com dois avaliadores e consolidação de conflito
 (`scripts/lape/revisao.py`, tela `/triagem`). Estes arquivos são sugestão para
 acelerar essa triagem, não substituto dela.
@@ -50,5 +52,6 @@ acelerar essa triagem, não substituto dela.
    e saúde mental positiva), com base no consenso do COI sobre saúde mental de
    atletas (Reardon et al., 2019) e no modelo de duplo contínuo (Keyes, 2002).
 4. Aplicação do critério a cada um dos 183 + 16 registros, com motivo por
-   escrito. Os casos em que a decisão depende do texto completo ficaram em
-   VERIFICAR.
+   escrito. Os 11 casos em que a decisão dependia do texto completo foram
+   resolvidos consultando resumo ou texto nas fontes abertas (a fonte está no
+   motivo de cada um).

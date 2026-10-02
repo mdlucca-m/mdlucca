@@ -6,22 +6,22 @@ Base: arquivo INCLUIDOS_MAPPING_HANDEBOL (16 confirmados em texto completo + 183
 
 | Decisão (saúde mental) | Lista dos 183 | 16 confirmados |
 |---|---|---|
-| ENTRA | 75 | 7 |
-| ENTRA (limítrofe) | 21 | 0 |
-| VERIFICAR | 9 | 2 |
-| NÃO ENTRA (limítrofe) | 6 | 0 |
-| NÃO ENTRA | 72 | 7 |
+| ENTRA | 76 | 7 |
+| ENTRA (limítrofe) | 22 | 0 |
+| VERIFICAR | 0 | 0 |
+| NÃO ENTRA (limítrofe) | 11 | 0 |
+| NÃO ENTRA | 74 | 9 |
 | Total | 183 | 16 |
 
-Seguem para a próxima fase (texto completo) os marcados ENTRA e ENTRA (limítrofe); os VERIFICAR precisam do texto completo só para decidir; os NÃO ENTRA saem do eixo de saúde mental.
+Seguem para a próxima fase (texto completo) os marcados ENTRA e ENTRA (limítrofe); não restou nenhum VERIFICAR; os NÃO ENTRA saem do eixo de saúde mental.
 
 **Números por decisão (lista dos 183):**
 
-- ENTRA (75): 1, 12, 14, 17, 18, 27, 28, 29, 31, 33, 39, 41, 44, 45, 46, 49, 53, 56, 59, 62, 63, 65, 67, 68, 70, 74, 75, 79, 84, 86, 87, 91, 93, 95, 98, 107, 108, 110, 112, 113, 117, 119, 121, 125, 126, 128, 129, 143, 145, 149, 150, 154, 156, 158, 162, 163, 165, 166, 167, 169, 170, 174, 176, 180, 183, 186, 189, 190, 191, 192, 193, 199, 200, 206, 209
-- ENTRA (limítrofe) (21): 16, 61, 76, 78, 85, 99, 100, 116, 139, 140, 153, 160, 175, 177, 179, 182, 187, 195, 201, 203, 210
-- VERIFICAR (9): 2, 25, 42, 71, 132, 136, 161, 168, 172
-- NÃO ENTRA (limítrofe) (6): 51, 94, 115, 141, 148, 171
-- NÃO ENTRA (72): 4, 5, 6, 7, 8, 10, 13, 15, 19, 20, 21, 22, 23, 26, 32, 34, 36, 38, 40, 43, 47, 54, 55, 57, 58, 60, 64, 69, 72, 73, 77, 80, 81, 82, 83, 88, 90, 96, 97, 102, 103, 106, 109, 111, 118, 120, 122, 124, 127, 131, 133, 134, 137, 138, 142, 146, 151, 152, 155, 159, 164, 173, 181, 184, 188, 194, 196, 198, 204, 205, 208, 211
+- ENTRA (76): 1, 12, 14, 17, 18, 27, 28, 29, 31, 33, 39, 41, 42, 44, 45, 46, 49, 53, 56, 59, 62, 63, 65, 67, 68, 70, 74, 75, 79, 84, 86, 87, 91, 93, 95, 98, 107, 108, 110, 112, 113, 117, 119, 121, 125, 126, 128, 129, 143, 145, 149, 150, 154, 156, 158, 162, 163, 165, 166, 167, 169, 170, 174, 176, 180, 183, 186, 189, 190, 191, 192, 193, 199, 200, 206, 209
+- ENTRA (limítrofe) (22): 16, 61, 76, 78, 85, 99, 100, 116, 139, 140, 153, 160, 168, 175, 177, 179, 182, 187, 195, 201, 203, 210
+- VERIFICAR (0): 
+- NÃO ENTRA (limítrofe) (11): 25, 51, 71, 94, 115, 132, 141, 148, 161, 171, 172
+- NÃO ENTRA (74): 2, 4, 5, 6, 7, 8, 10, 13, 15, 19, 20, 21, 22, 23, 26, 32, 34, 36, 38, 40, 43, 47, 54, 55, 57, 58, 60, 64, 69, 72, 73, 77, 80, 81, 82, 83, 88, 90, 96, 97, 102, 103, 106, 109, 111, 118, 120, 122, 124, 127, 131, 133, 134, 136, 137, 138, 142, 146, 151, 152, 155, 159, 164, 173, 181, 184, 188, 194, 196, 198, 204, 205, 208, 211
 
 ## 2. Critério de saúde mental aplicado
 
@@ -106,7 +106,7 @@ Legenda original: verde = entra; amarelo = difícil dizer apenas pelo título (p
    - **Saúde mental: NÃO ENTRA.** Barreiras e fatores motivacionais para exercícios de prevenção.
 11. Brandão, Fernanda Martins, Duarte, Thiago Seixas, Cunha, Vinícius Figueroa Da, Werneck, Francisco Zacaron, Bara Filho, Maurício Gattás (2023). Physical Demands and Psychophysiological Stress in Young Athletes Team Sports. Journal of Physical Education (Maringá), 34, 2023. https://doi.org/10.4025/jphyseduc.v34i1.3440
    - Monitoramento de dez sessões por modalidade, com esforço percebido da sessão e estado de recuperação, e resultado próprio do handebol.
-   - **Saúde mental: VERIFICAR.** "Estresse psicofisiológico" e estado de recuperação; confirmar se o instrumento traz subescala de estresse ou humor ou se é só recuperação física (TQR).
+   - **Saúde mental: NÃO ENTRA.** Verificado no resumo (J Phys Educ, 2023): respostas psicofisiológicas medidas por PSE da sessão, TRIMP e TQR; recuperação física, sem estresse ou humor.
 12. Freire G.L.M. (2023). Coach-Athlete Relationship, Team Cohesion, and Motivation in Brazilian Youth Athletes: A Cluster Analysis. Human Movement. https://doi.org/10.5114/hm.2023.116531
    - Relação treinador-atleta, coesão e motivação em jovens de quatro modalidades, com associação relatada para o handebol.
    - **Saúde mental: NÃO ENTRA.** Relação treinador-atleta, coesão e motivação.
@@ -118,7 +118,7 @@ Legenda original: verde = entra; amarelo = difícil dizer apenas pelo título (p
    - **Saúde mental: ENTRA.** Depressão, ansiedade e estresse reportados para o handebol.
 15. Ji, Tianchang; De Jonge, Jan; Peeters, Maria C. W.; Taris, Toon W. (2026). "Take a Break!": The Role of Off-Job Detachment in the Relation between Demands and Work Performance in Elite Athletes. Humanities & Social Sciences Communications. https://doi.org/10.1057/s41599-026-06541-4
    - Cento e noventa e um handebolistas chineses de elite, com desligamento psicológico do trabalho esportivo e recuperação.
-   - **Saúde mental: VERIFICAR.** Desligamento psicológico e recuperação ligados ao desempenho; confirmar se exaustão ou bem-estar foram medidos.
+   - **Saúde mental: NÃO ENTRA.** Verificado no resumo (HSSC, 2026): demandas mentais e físicas, desligamento e desfechos de desempenho (vivacidade cognitiva, força física, desempenho na tarefa e sustentável); sem bem-estar, exaustão ou saúde mental.
 16. Sziráki Z. (2026). Psychological and Behavioural Correlates of Dietary Intake in Adolescent Elite Female Handball Players. Nutrients. https://doi.org/10.3390/nu18172904
    - Setenta e duas handebolistas adolescentes de elite de dois clubes, com ansiedade esportiva pelo SAS-2 e resiliência pelo CD-RISC-10, em dias de avaliação durante a temporada.
    - **Saúde mental: ENTRA.** Ansiedade esportiva (SAS-2) e resiliência em dias de avaliação.
@@ -136,7 +136,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Programa psicológico para rendimento de jogadores de handebol.
    - Resumo: Programa psicológico (controle da ativação, manejo do estresse, metas, atenção/concentração e imagética) em cadetes melhora o rendimento no ataque em jogos.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: VERIFICAR.** O programa inclui manejo do estresse e da ativação, mas o desfecho relatado é só o rendimento no ataque; confirmar no texto completo se ansiedade ou estresse foram medidos.
+   - **Saúde mental: NÃO ENTRA.** Verificado no texto completo (Psicothema, 1998): as variáveis dependentes são só categorias de rendimento no ataque registradas em vídeo (passes, recepções, arremessos); ansiedade, ativação e estresse foram treinados, não medidos.
 4. Rascle O. (1998). Aggression and Goal Orientations in Handball: Influence of Institutional Sport Context. Perceptual and Motor Skills. https://doi.org/10.2466/pms.1998.86.3c.1347
    - Orientação de metas e agressividade em jogos de handebol adolescente.
    - Resumo: 240 jogadores adolescentes; orientação de metas e agressividade observada em 30 jogos de três contextos.
@@ -231,7 +231,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Lesão e características psicológicas em jogadores de handebol.
    - Resumo: 100 jogadores; estresse, motivação e habilidade mental (CPRD) relacionados às lesões.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: VERIFICAR.** O CPRD traz "controle do estresse" como habilidade, não como sintoma; confirmar se o estudo reporta estresse ou ansiedade como desfecho associado às lesões.
+   - **Saúde mental: NÃO ENTRA (limítrofe).** Verificado no texto completo (RAMD, 2011): instrumento é o CPRD; "controle do estresse" é escala de recurso/habilidade, não de sintoma; os desfechos são as lesões. Coerente com os nºs 43, 102, 109 e 111.
 26. Granero-Gallegos A. (2012). Self-Determined Motivation in Amateur Handball. Revista Iberoamericana de Diagnóstico y Evaluación Psicológica.
    - Motivação autodeterminada no handebol amador; decidido pelo título.
    - Resumo não acessível; o título indica motivação autodeterminada no handebol amador.
@@ -301,7 +301,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Sem resumo; recuperação psicológica em jogadores profissionais de handebol.
    - Resumo não acessível; o título indica recuperação psicológica após fim de semana de repouso em jogadores profissionais.
    - Triagem anterior (seis famílias): ENTRA (decidido pelo título).
-   - **Saúde mental: VERIFICAR.** "Recuperação psicológica" no título; confirmar o instrumento (RESTQ-Sport ou TQR) e se há subescala de estresse ou humor (resumo não acessível).
+   - **Saúde mental: ENTRA.** Verificado no resumo (Kinesiology, 2015): sintomas de estresse pelo DALDA e VFC antes e depois de 72 h de repouso; respostas "pior que o normal" caíram de 6,1 para 3,4.
 43. Olmedilla, Aurelio, Ortega, Enrique, Garcés De Los Fayos, Enrique, Abenza, Lucía, Blas, Amador, Laguna, María (2015). Psychological Profile of Professional Handball Players and Differences between Specific Positions. Revista Latinoamericana de Psicología, 47(3), 177-184, 2015.
    - Perfil psicológico CPRD em jogadores profissionais de handebol.
    - Resumo: 80 profissionais; CPRD (controle do estresse, motivação, habilidade mental) por posição.
@@ -426,7 +426,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Qualidade e duração do sono autorrelatadas em jogadores de elite.
    - Resumo: 16 jogadores de elite; testes físicos de manhã e à noite, com qualidade e duração do sono autorrelatadas.
    - Triagem anterior (seis famílias): ENTRA (sono medido).
-   - **Saúde mental: VERIFICAR.** Sono autorrelatado só como covariável do desempenho diurno; confirmar se a qualidade do sono é reportada como resultado.
+   - **Saúde mental: NÃO ENTRA (limítrofe).** Verificado no resumo (J Hum Kinet, 2018): sono autorrelatado foi só variável de controle, sem correlação com desempenho; não é desfecho do estudo.
 72. Penna, Eduardo Macedo, Filho, Edson, Campos, Bruno Teobaldo, Pires, Daniel Alvarez, Nakamura, Fabio Yuzo, Mendes, Thiago Teixeira (2018). Mental Fatigue Does Not Affect Heart Rate Recovery but Impairs Performance in Handball Players. Revista Brasileira de Medicina do Esporte, 24(5), 347-351, 2018. https://doi.org/10.1590/1517-869220182405180483
    - Fadiga mental e motivação associadas ao desempenho em jogadores de handebol.
    - Resumo: 12 jogadores; fadiga mental induzida antes do Yo-Yo IR1; motivação e esforço mental medidos.
@@ -691,7 +691,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Habilidades mentais por posição e sexo; análise fatorial não é o único objetivo.
    - Resumo: 170 jogadores de semi-elite a elite; habilidades mentais (ansiedade, concentração, autoconfiança) por sexo e posição; não é só validação.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: VERIFICAR.** Inventário de habilidades mentais com subescala de ansiedade; confirmar se o escore de ansiedade é reportado como resultado por sexo e posição.
+   - **Saúde mental: NÃO ENTRA (limítrofe).** Verificado no texto completo (Front Psychol, 2022): instrumento é o Bull's Mental Skills Questionnaire; o fator "manejo de ansiedade e concentração" mede habilidade de manejar a ansiedade, não sintoma. Mesma regra do CPRD.
 133. Kristjánsdóttir H. (2022). Orientation and Motivational Climate in Elite Handball Players: Multivariate Modeling of Performance. Nordic Psychology. https://doi.org/10.1080/19012276.2021.1922304
    - Orientação de metas e clima motivacional em seleções nacionais.
    - Resumo: 174 jogadores de seleções nacionais; orientação de metas e clima motivacional predizem ser titular ou reserva.
@@ -706,7 +706,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - O título indica estudo de estados mentais de jovens jogadoras de handebol, o que atende aos critérios na ausência de resumo.
    - Resumo: Jovens jogadoras; estados mentais de autorrealização, com fator de automotivação.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: VERIFICAR.** "Estados mentais de autorrealização"; construto pouco claro; confirmar se inclui bem-estar ou afeto.
+   - **Saúde mental: NÃO ENTRA.** Verificado no texto completo (JPES, 2022): fatores de autorrealização e autorregulação (busca de autorrealização, automotivação, incongruência temporal, percepção de mundo, atitude à cognição); sem bem-estar, afeto, ansiedade ou estresse.
 137. Shihab M.H. (2022). Social-Kinetic Cohesion and its Relationship to Goal Direction with its Two Dimensions (Performance and Result) for Advanced Handball Players in Iraq. Revista Iberoamericana de Psicología del Ejercicio y el Deporte.
    - Coesão e orientação de metas em jogadores avançados de handebol.
    - Resumo não acessível; o título indica coesão e orientação de metas em jogadores avançados.
@@ -816,7 +816,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Estilo decisório com ansiedade e sobrecarga em juniores de handebol.
    - Resumo: 11 juniores; teste de agilidade e questionário de estilo decisório com fator de ansiedade/sobrecarga.
    - Triagem anterior (seis famílias): ENTRA (limítrofe).
-   - **Saúde mental: VERIFICAR.** Fator ansiedade/sobrecarga do questionário de estilo decisório; confirmar se é reportado como resultado.
+   - **Saúde mental: NÃO ENTRA (limítrofe).** Verificado no resumo (Studia Sportiva, 2024): o fator "ansiedade e sobrecarga" do CETD aparece só como correlação com agilidade (r = 0,105); o construto é estilo decisório, não saúde mental.
 162. Lara Cobos D. (2024). Perception of Fatigue and Well-Being in International Beach Handball Players in Official Competition. E-balonmano.com: Revista de Ciencias del Deporte. https://doi.org/10.17398/1885-7019.20.263
    - Bem-estar e estresse pelo Hooper em competição oficial de handebol de praia.
    - Resumo: 10 jogadoras da seleção italiana em competição oficial de vários dias; bem-estar (Hooper), fadiga e estresse pioraram ao longo da competição.
@@ -851,7 +851,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Preparação mental e enfrentamento de jogadores olímpicos de handebol.
    - Resumo: Entrevistas com 7 jogadores olímpicos; preparação mental, estressores e enfrentamento antes de Tóquio.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: VERIFICAR.** Entrevistas sobre estressores, preparação mental e enfrentamento rumo a Tóquio; confirmar se descrevem saúde mental ou bem-estar no período.
+   - **Saúde mental: ENTRA (limítrofe).** Verificado no texto completo (Front Psychol, 2025): estudo qualitativo que descreve exaustão mental, preocupação e isolamento dos jogadores na preparação olímpica durante a pandemia, sem instrumento padronizado.
 169. Akroush S.H. (2025). Psychological Mood Patterns among Jordanian Handball Players. Retos. https://doi.org/10.47197/retos.v62.109407
    - Padrões de humor em handebolistas da liga jordaniana.
    - Resumo: 76 jogadores da liga jordaniana 2022/23; padrões de humor por experiência e posição.
@@ -871,7 +871,7 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
    - Afetividade negativa e enfrentamento associados à automedicação em handebol de elite.
    - Resumo: 459 jogadores das ligas alemãs; analgésico como estratégia de enfrentamento, afetividade negativa.
    - Triagem anterior (seis famílias): ENTRA.
-   - **Saúde mental: VERIFICAR.** Afetividade negativa e enfrentamento ligados à automedicação; confirmar instrumento e se é reportada como desfecho.
+   - **Saúde mental: NÃO ENTRA (limítrofe).** Verificado no resumo (IRSS, 2025): afetividade negativa entra como traço psicossocial que define perfil de risco; o desfecho é o uso de analgésicos, não um estado de saúde mental.
 173. Bursik J. (2025). “Anyone Who Weighs Up Risks Doesn’t Belong Here”: How do Elite Handball Players Manage Physical Health Risk Throughout Their Professional Careers? Frontiers in Sports and Active Living. https://doi.org/10.3389/fspor.2025.1553948
    - Percepção e enfrentamento de riscos à saúde em atletas de seleção.
    - Resumo: Entrevistas com 11 jogadores das seleções alemãs; percepção e enfrentamento de riscos à saúde na carreira.
@@ -1048,5 +1048,5 @@ Em cada registro: referência corrigida; descrição e resumo do arquivo origina
 - As duas listas (16 confirmados e 183 por resumo) não se sobrepõem na numeração e parecem vir de buscas diferentes. Os 16 já foram validados em texto completo; os 183 ainda estão na fase de resumo.
 - Amostras repetidas entre registros incluídos, já apontadas no original: nºs 102, 109 e 111 (149 jovens); nºs 192 e 193 (16 jogadoras amadoras); nºs 195 e 196 (50 adolescentes); nºs 60, 77, 81, 91, 107 e 110 (479 jovens espanhóis); nºs 80, 82 e 90 (444 jovens); nºs 156 e 175 (189 atletas de elite). Na extração, vale tratá-las como um estudo com várias publicações.
 - Os nºs 163 e 190 são preprints com versão publicada ainda não localizada; o nº 195 é preprint do nº 196 e deve ser tratado como duplicata na extração.
-- Nove registros ficaram em VERIFICAR porque a decisão depende do texto completo: nºs 2, 25, 42, 71, 132, 136, 161, 168 e 172. Dois dos 16 confirmados também: Brandão (2023) e Ji (2026).
+- Onze registros tinham ficado em VERIFICAR (nºs 2, 25, 42, 71, 132, 136, 161, 168 e 172, mais Brandão 2023 e Ji 2026 entre os confirmados). Todos foram resolvidos com o resumo ou o texto completo obtidos nas fontes abertas (Psicothema, Redalyc, Frontiers, JPES, Studia Sportiva, Europe PMC, Semantic Scholar, Crossref); o motivo de cada um registra a fonte. Resultado: 2 entram (42 e 168), 9 não entram.
 - O critério de saúde mental é mais estreito que as seis famílias do protocolo. Ele retira da próxima fase 78 registros cuja única variável psicológica é motivacional, de autoeficácia, de habilidades mentais ou de desempenho. Se o grupo preferir manter o escopo das seis famílias, a lista anterior continua válida e esta triagem serve como subconjunto para o eixo de saúde mental.

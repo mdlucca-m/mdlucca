@@ -119,8 +119,8 @@
    "revista": "Journal of Physical Education (Maringá), 34, 2023",
    "doi": "10.4025/jphyseduc.v34i1.3440",
    "descricao": "Monitoramento de dez sessões por modalidade, com esforço percebido da sessão e estado de recuperação, e resultado próprio do handebol.",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "\"Estresse psicofisiológico\" e estado de recuperação; confirmar se o instrumento traz subescala de estresse ou humor ou se é só recuperação física (TQR)."
+   "saude_mental": "NÃO ENTRA",
+   "motivo_saude_mental": "Verificado no resumo (J Phys Educ, 2023): respostas psicofisiológicas medidas por PSE da sessão, TRIMP e TQR; recuperação física, sem estresse ou humor."
   },
   {
    "n": 12,
@@ -163,8 +163,8 @@
    "revista": "Humanities & Social Sciences Communications",
    "doi": "10.1057/s41599-026-06541-4",
    "descricao": "Cento e noventa e um handebolistas chineses de elite, com desligamento psicológico do trabalho esportivo e recuperação.",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "Desligamento psicológico e recuperação ligados ao desempenho; confirmar se exaustão ou bem-estar foram medidos."
+   "saude_mental": "NÃO ENTRA",
+   "motivo_saude_mental": "Verificado no resumo (HSSC, 2026): demandas mentais e físicas, desligamento e desfechos de desempenho (vivacidade cognitiva, força física, desempenho na tarefa e sustentável); sem bem-estar, exaustão ou saúde mental."
   },
   {
    "n": 16,
@@ -202,8 +202,8 @@
    "descricao": "Programa psicológico para rendimento de jogadores de handebol.",
    "resumo": "Programa psicológico (controle da ativação, manejo do estresse, metas, atenção/concentração e imagética) em cadetes melhora o rendimento no ataque em jogos.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "O programa inclui manejo do estresse e da ativação, mas o desfecho relatado é só o rendimento no ataque; confirmar no texto completo se ansiedade ou estresse foram medidos."
+   "saude_mental": "NÃO ENTRA",
+   "motivo_saude_mental": "Verificado no texto completo (Psicothema, 1998): as variáveis dependentes são só categorias de rendimento no ataque registradas em vídeo (passes, recepções, arremessos); ansiedade, ativação e estresse foram treinados, não medidos."
   },
   {
    "n": 4,
@@ -449,8 +449,8 @@
    "descricao": "Lesão e características psicológicas em jogadores de handebol.",
    "resumo": "100 jogadores; estresse, motivação e habilidade mental (CPRD) relacionados às lesões.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "O CPRD traz \"controle do estresse\" como habilidade, não como sintoma; confirmar se o estudo reporta estresse ou ansiedade como desfecho associado às lesões."
+   "saude_mental": "NÃO ENTRA (limítrofe)",
+   "motivo_saude_mental": "Verificado no texto completo (RAMD, 2011): instrumento é o CPRD; \"controle do estresse\" é escala de recurso/habilidade, não de sintoma; os desfechos são as lesões. Coerente com os nºs 43, 102, 109 e 111."
   },
   {
    "n": 26,
@@ -631,8 +631,8 @@
    "descricao": "Sem resumo; recuperação psicológica em jogadores profissionais de handebol.",
    "resumo": "Resumo não acessível; o título indica recuperação psicológica após fim de semana de repouso em jogadores profissionais.",
    "triagem_6_familias": "ENTRA (decidido pelo título)",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "\"Recuperação psicológica\" no título; confirmar o instrumento (RESTQ-Sport ou TQR) e se há subescala de estresse ou humor (resumo não acessível)."
+   "saude_mental": "ENTRA",
+   "motivo_saude_mental": "Verificado no resumo (Kinesiology, 2015): sintomas de estresse pelo DALDA e VFC antes e depois de 72 h de repouso; respostas \"pior que o normal\" caíram de 6,1 para 3,4."
   },
   {
    "n": 43,
@@ -956,8 +956,8 @@
    "descricao": "Qualidade e duração do sono autorrelatadas em jogadores de elite.",
    "resumo": "16 jogadores de elite; testes físicos de manhã e à noite, com qualidade e duração do sono autorrelatadas.",
    "triagem_6_familias": "ENTRA (sono medido)",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "Sono autorrelatado só como covariável do desempenho diurno; confirmar se a qualidade do sono é reportada como resultado."
+   "saude_mental": "NÃO ENTRA (limítrofe)",
+   "motivo_saude_mental": "Verificado no resumo (J Hum Kinet, 2018): sono autorrelatado foi só variável de controle, sem correlação com desempenho; não é desfecho do estudo."
   },
   {
    "n": 72,
@@ -1645,8 +1645,8 @@
    "descricao": "Habilidades mentais por posição e sexo; análise fatorial não é o único objetivo.",
    "resumo": "170 jogadores de semi-elite a elite; habilidades mentais (ansiedade, concentração, autoconfiança) por sexo e posição; não é só validação.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "Inventário de habilidades mentais com subescala de ansiedade; confirmar se o escore de ansiedade é reportado como resultado por sexo e posição."
+   "saude_mental": "NÃO ENTRA (limítrofe)",
+   "motivo_saude_mental": "Verificado no texto completo (Front Psychol, 2022): instrumento é o Bull's Mental Skills Questionnaire; o fator \"manejo de ansiedade e concentração\" mede habilidade de manejar a ansiedade, não sintoma. Mesma regra do CPRD."
   },
   {
    "n": 133,
@@ -1684,8 +1684,8 @@
    "descricao": "O título indica estudo de estados mentais de jovens jogadoras de handebol, o que atende aos critérios na ausência de resumo.",
    "resumo": "Jovens jogadoras; estados mentais de autorrealização, com fator de automotivação.",
    "triagem_6_familias": "ENTRA (limítrofe)",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "\"Estados mentais de autorrealização\"; construto pouco claro; confirmar se inclui bem-estar ou afeto."
+   "saude_mental": "NÃO ENTRA",
+   "motivo_saude_mental": "Verificado no texto completo (JPES, 2022): fatores de autorrealização e autorregulação (busca de autorrealização, automotivação, incongruência temporal, percepção de mundo, atitude à cognição); sem bem-estar, afeto, ansiedade ou estresse."
   },
   {
    "n": 137,
@@ -1970,8 +1970,8 @@
    "descricao": "Estilo decisório com ansiedade e sobrecarga em juniores de handebol.",
    "resumo": "11 juniores; teste de agilidade e questionário de estilo decisório com fator de ansiedade/sobrecarga.",
    "triagem_6_familias": "ENTRA (limítrofe)",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "Fator ansiedade/sobrecarga do questionário de estilo decisório; confirmar se é reportado como resultado."
+   "saude_mental": "NÃO ENTRA (limítrofe)",
+   "motivo_saude_mental": "Verificado no resumo (Studia Sportiva, 2024): o fator \"ansiedade e sobrecarga\" do CETD aparece só como correlação com agilidade (r = 0,105); o construto é estilo decisório, não saúde mental."
   },
   {
    "n": 162,
@@ -2061,8 +2061,8 @@
    "descricao": "Preparação mental e enfrentamento de jogadores olímpicos de handebol.",
    "resumo": "Entrevistas com 7 jogadores olímpicos; preparação mental, estressores e enfrentamento antes de Tóquio.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "Entrevistas sobre estressores, preparação mental e enfrentamento rumo a Tóquio; confirmar se descrevem saúde mental ou bem-estar no período."
+   "saude_mental": "ENTRA (limítrofe)",
+   "motivo_saude_mental": "Verificado no texto completo (Front Psychol, 2025): estudo qualitativo que descreve exaustão mental, preocupação e isolamento dos jogadores na preparação olímpica durante a pandemia, sem instrumento padronizado."
   },
   {
    "n": 169,
@@ -2113,8 +2113,8 @@
    "descricao": "Afetividade negativa e enfrentamento associados à automedicação em handebol de elite.",
    "resumo": "459 jogadores das ligas alemãs; analgésico como estratégia de enfrentamento, afetividade negativa.",
    "triagem_6_familias": "ENTRA",
-   "saude_mental": "VERIFICAR",
-   "motivo_saude_mental": "Afetividade negativa e enfrentamento ligados à automedicação; confirmar instrumento e se é reportada como desfecho."
+   "saude_mental": "NÃO ENTRA (limítrofe)",
+   "motivo_saude_mental": "Verificado no resumo (IRSS, 2025): afetividade negativa entra como traço psicossocial que define perfil de risco; o desfecho é o uso de analgésicos, não um estado de saúde mental."
   },
   {
    "n": 173,
