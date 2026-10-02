@@ -1337,30 +1337,63 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
         publicados: meus.filter(function (a) { return a.status === "publicado"; }).length,
         producao: meus.filter(function (a) { return a.status === "em_producao"; }).length,
         avaliacao: meus.filter(function (a) {
-          return a.status === "submetido" || a.status === "em_revisao"; }).length };
+          return a.status === "submetido" || a.status === "em_revisao"; }).length,
+        artigos: meus };
     }).filter(function (x) { return x.ativa || x.total; })
       .sort(function (a, b) { return b.total - a.total; });
-    const semLinha = rows.filter(function (a) { return !a.research_line; }).length;
+    const semLinhaArtigos = rows.filter(function (a) { return !a.research_line; });
+    const semLinha = semLinhaArtigos.length;
     /* Uma fileira de barras de comprimento zero parece gráfico e não diz
        nada. Quando nenhuma linha tem artigo, o que há para contar é
        justamente que a classificação não foi feita. */
     const comArtigo = linhas.filter(function (x) { return x.total > 0; });
-    const areas = card("Por linha de pesquisa", "onde a produção está", [
+    const maiorTotal = Math.max.apply(null, comArtigo.map(function (x) { return x.total; }).concat([1]));
+
+    function segmento(tom, qtd, total, ultimo) {
+      if (!qtd) return null;
+      const largura = (100 * qtd / total) + "%";
+      const seg = el("div", { class: "seg", style: "width:" + largura });
+      seg.style.background = "linear-gradient(180deg, color-mix(in srgb, var(" + tom + ") 72%, white) 0%,"
+        + " var(" + tom + ") 45%, color-mix(in srgb, var(" + tom + ") 82%, black) 100%)";
+      if (ultimo) seg.style.borderRadius = "0 5px 5px 0";
+      return seg;
+    }
+
+    const areas = card("Por linha de pesquisa",
+      comArtigo.length ? "onde a produção está — clique numa linha para filtrar o painel" : "onde a produção está",
+      [
       comArtigo.length
         /* Barra horizontal, e composta. Horizontal porque "Fibromialgia e
            doenças reumáticas" não cabe embaixo de uma coluna -- em
            coluna o rótulo gira e colide com a legenda. Composta porque
            duas linhas com dez artigos cada não são a mesma coisa se uma
            tem dez publicados e a outra tem dez ainda em produção, e o
-           total sozinho apaga essa diferença. */
-        ? C.bars({ items: comArtigo.slice(0, 8).map(function (x) {
-            return { label: x.nome, value: x.total, partes: [
-              { rotulo: "publicados", valor: x.publicados },
-              { rotulo: "em produção", valor: x.producao },
-              { rotulo: "em avaliação", valor: x.avaliacao },
-            ] }; }),
-            unit: "artigos", labelWidth: 210, labelChars: 30, rowH: 32,
-            caption: "artigos por linha, repartidos por situação" })
+           total sozinho apaga essa diferença. O comprimento da barra é
+           relativo à maior linha (não a 100% da coluna), senão toda
+           linha pareceria ter o mesmo tamanho. */
+        ? el("div", { class: "linhas-prod" }, comArtigo.slice(0, 8).map(function (x) {
+            const pct = x.total ? Math.round(100 * x.publicados / x.total) : 0;
+            const ultimaFatia = x.avaliacao ? "avaliacao" : (x.producao ? "producao" : "publicados");
+            const segs = [
+              segmento("--series-1", x.publicados, x.total, ultimaFatia === "publicados"),
+              segmento("--series-2", x.producao, x.total, ultimaFatia === "producao"),
+              segmento("--series-3", x.avaliacao, x.total, ultimaFatia === "avaliacao"),
+            ].filter(Boolean);
+            const fileira = el("div", { class: "fileira", tabindex: "0", role: "button",
+              "aria-label": "Filtrar o painel por " + x.nome }, [
+              el("div", { class: "nome", text: x.nome, title: x.nome }),
+              el("div", { class: "trilho", style: "width:" + (100 * x.total / maiorTotal) + "%" }, segs),
+              el("div", { class: "totais" }, [
+                el("b", { text: C.fmt(x.total) }),
+                el("small", { text: pct + "% publicado" }),
+              ]),
+            ]);
+            const filtrar = function () { STATE.linha = x.nome; buildToolbar(); render(); };
+            fileira.addEventListener("click", filtrar);
+            fileira.addEventListener("keydown", function (ev) {
+              if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); filtrar(); } });
+            return fileira;
+          }))
         : el("div", { class: "empty",
             text: "Nenhum artigo está associado a uma linha de pesquisa." }),
       /* O que está fora de qualquer linha é a informação que falta, e ela
@@ -1371,10 +1404,19 @@ view("resumo", "Resumo", "", "O laboratório inteiro numa página: onde está, "
           ponto.style.background = C.serie(i);
           return el("span", {}, [ponto, el("span", { text: rotulo })]);
         })) : null,
-      semLinha ? leituraDe({ sinal: "parado",
-        forte: semLinha + " artigo(s)",
-        texto: "estão sem linha de pesquisa e não entram em nenhuma barra acima" })
-        : null,
+      semLinha ? (function () {
+        const nota = leituraDe({ sinal: "parado",
+          forte: semLinha + " artigo(s)",
+          texto: "estão sem linha de pesquisa — clique para ver " + (semLinha === 1 ? "qual" : "quais") });
+        nota.classList.add("semlinha");
+        nota.tabIndex = 0;
+        nota.setAttribute("role", "button");
+        const abrir = function () { abrirLinha("Sem linha declarada", semLinhaArtigos); };
+        nota.addEventListener("click", abrir);
+        nota.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); abrir(); } });
+        return nota;
+      })() : null,
     ].filter(Boolean));
 
     /* ---------------- equipe ---------------- */
