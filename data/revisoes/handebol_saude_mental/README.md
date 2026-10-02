@@ -27,8 +27,8 @@ saúde mental e handebol selecionar para a próxima fase").
 
 | Decisão (saúde mental)  | Lista dos 183 | 16 confirmados |
 |-------------------------|---------------|----------------|
-| ENTRA                   | 70            | 7              |
-| ENTRA (limítrofe)       | 28            | 0              |
+| ENTRA                   | 69            | 7              |
+| ENTRA (limítrofe)       | 29            | 0              |
 | VERIFICAR               | 0             | 0              |
 | NÃO ENTRA (limítrofe)   | 11            | 0              |
 | NÃO ENTRA               | 74            | 9              |
@@ -61,4 +61,4 @@ acelerar essa triagem, não substituto dela.
    motivo de cada um).
 5. Checagem por resumo real dos 98 que seguem para o texto completo
    (`resumos_reais_98.json`): 96 confirmados, 2 sem resumo localizado
-   (nºs 33 e 113), 7 rebaixados para limítrofe e 1 promovido a ENTRA.
+   (nºs 33 e 113), 8 rebaixados para limítrofe e 1 promovido a ENTRA.
