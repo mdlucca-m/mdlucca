@@ -124,6 +124,93 @@ class TestEstudos(BaseGinasticaRitmica):
         self.assertEqual(titulos, ["Novo", "Antigo"])
 
 
+class TestSemeaduraDaBuscaPesquisada(BaseGinasticaRitmica):
+    """Pedido do Mateus: "pesquisa e cadastra uns estudos e refaça as
+    buscas". `ESTUDOS_SEMEADOS` vem de busca aberta na web -- não uma
+    busca sistemática reproduzível -- por isso cada um carrega o link
+    real na observação, e nenhum tem Qualis/fator de impacto chutado."""
+
+    def test_semear_cadastra_todos_os_estudos_pesquisados(self):
+        saida = ginastica_ritmica.semear_estudos_iniciais(self.db, criado_por=self.mateus)
+        self.assertEqual(len(saida["novos"]), len(ginastica_ritmica.ESTUDOS_SEMEADOS))
+        self.assertEqual(saida["ja_existiam"], [])
+        self.assertEqual(len(ginastica_ritmica.listar_estudos(self.db)),
+                         len(ginastica_ritmica.ESTUDOS_SEMEADOS))
+
+    def test_semear_de_novo_nao_duplica(self):
+        # "refaça as buscas" tem de poder rodar de novo sem duplicar o que
+        # já está cadastrado -- é a própria busca que pode trazer repetido
+        ginastica_ritmica.semear_estudos_iniciais(self.db, criado_por=self.mateus)
+        saida = ginastica_ritmica.semear_estudos_iniciais(self.db, criado_por=self.mateus)
+        self.assertEqual(saida["novos"], [])
+        self.assertEqual(len(saida["ja_existiam"]), len(ginastica_ritmica.ESTUDOS_SEMEADOS))
+        self.assertEqual(len(ginastica_ritmica.listar_estudos(self.db)),
+                         len(ginastica_ritmica.ESTUDOS_SEMEADOS))
+
+    def test_todo_estudo_semeado_tem_titulo_autores_ano_e_link_na_observacao(self):
+        for estudo in ginastica_ritmica.ESTUDOS_SEMEADOS:
+            with self.subTest(titulo=estudo["titulo"]):
+                self.assertTrue(estudo.get("titulo"))
+                self.assertTrue(estudo.get("autores"))
+                self.assertTrue(estudo.get("ano_publicacao"))
+                self.assertIn("http", estudo.get("observacoes") or "",
+                              "sem link/DOI verificável na observação")
+
+    def test_nenhum_estudo_semeado_chuta_qualis_ou_fator_de_impacto(self):
+        # o mesmo principio da Ana (ana.py): um numero chutado e pior que
+        # nenhum -- Qualis e fator de impacto so entram quando conferidos,
+        # e nesta busca nenhum foi
+        for estudo in ginastica_ritmica.ESTUDOS_SEMEADOS:
+            with self.subTest(titulo=estudo["titulo"]):
+                self.assertNotIn("qualis", estudo)
+                self.assertNotIn("fator_impacto", estudo)
+
+
+class TestComandoRitmica(unittest.TestCase):
+    """`lape_agent.py ritmica` -- a mesma semeadura, pela linha de comando."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.caminho = Path(self.tmp.name) / "r.sqlite"
+        db = Database(self.caminho)
+        db.migrate()
+        db.close()
+
+    def rodar(self, semear):
+        import argparse
+        import io
+        from contextlib import redirect_stdout
+
+        sys.path.insert(0, str(ROOT / "scripts"))
+        import lape_agent
+
+        saida = io.StringIO()
+        with redirect_stdout(saida):
+            codigo = lape_agent.cmd_ritmica(argparse.Namespace(db=self.caminho, semear=semear))
+        return codigo, saida.getvalue()
+
+    def test_lista_vazia_sugere_semear(self):
+        codigo, texto = self.rodar(semear=False)
+        self.assertEqual(codigo, 0)
+        self.assertIn("--semear", texto)
+
+    def test_semear_cadastra_e_listar_mostra_os_titulos(self):
+        codigo, texto = self.rodar(semear=True)
+        self.assertEqual(codigo, 0)
+        self.assertIn(f"{len(ginastica_ritmica.ESTUDOS_SEMEADOS)} estudo(s) novo(s)", texto)
+        codigo, texto = self.rodar(semear=False)
+        self.assertEqual(codigo, 0)
+        self.assertIn("Competitive State Anxiety", texto)
+
+    def test_semear_de_novo_pela_linha_de_comando_nao_duplica(self):
+        self.rodar(semear=True)
+        codigo, texto = self.rodar(semear=True)
+        self.assertEqual(codigo, 0)
+        self.assertIn("0 estudo(s) novo(s)", texto)
+        self.assertIn(f"{len(ginastica_ritmica.ESTUDOS_SEMEADOS)} já estavam no banco", texto)
+
+
 class TestRotasDaAbaPrivada(unittest.TestCase):
     """O que a rota devolve para quem tem acesso, e o que ela NUNCA revela
     para quem não tem."""

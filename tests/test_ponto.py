@@ -409,18 +409,24 @@ class TestEditarSessao(BasePonto):
     direto na própria tabela, sem precisar da coordenação."""
 
     def test_corrige_o_horario_de_uma_sessao_fechada(self):
-        hoje = date.today().isoformat()
-        ponto_id = self.sessao(hoje, "13:00", "13:05")
-        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=f"{hoje} 16:00:00")
+        # ontem, nao hoje: editar para "16:00" so e valido se esse horario
+        # ja tiver acontecido, e um teste que roda de manha nao pode
+        # depender de a suite so rodar a tarde
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        ponto_id = self.sessao(ontem, "13:00", "13:05")
+        resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, saida=f"{ontem} 16:00:00")
         self.assertTrue(resultado["editou"])
         self.assertEqual(resultado["horas"], 3.0)
         linha = ponto.historico(self.db, self.eu)[0]
-        self.assertEqual(str(linha["saida"]), f"{hoje} 16:00:00")
+        self.assertEqual(str(linha["saida"]), f"{ontem} 16:00:00")
         self.assertTrue(linha["conta"])
 
     def test_corrige_tambem_a_atividade(self):
-        hoje = date.today().isoformat()
-        ponto_id = self.sessao(hoje, "13:00", "16:00", atividade="rascunho")
+        # ontem: a sessao ja nasce com saida as 16:00, e editar_sessao
+        # confere o horario de saida (mesmo sem mexer nele) contra o
+        # relogio -- as 16:00 de HOJE pode ainda nao ter acontecido
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        ponto_id = self.sessao(ontem, "13:00", "16:00", atividade="rascunho")
         resultado = ponto.editar_sessao(self.db, self.eu, ponto_id, atividade="artigo revisado")
         self.assertTrue(resultado["editou"])
         linha = ponto.historico(self.db, self.eu)[0]
@@ -1173,17 +1179,19 @@ class TestRotasDoPonto(unittest.TestCase):
     def test_a_rota_edita_e_a_rota_exclui_a_propria_sessao(self):
         db = Database(self.db_path)
         member_id = db.scalar("SELECT id FROM members WHERE full_name = 'Bento Lima'")
-        hoje = date.today().isoformat()
+        # ontem, nao hoje: editar a saida para "16:00" so e aceito se esse
+        # horario ja tiver acontecido -- e a suite tambem roda de manha
+        ontem = (date.today() - timedelta(days=1)).isoformat()
         db.execute(
             "INSERT INTO ponto (member_id, entrada, saida, atividade)"
-            " VALUES (?, ?, ?, 'rascunho')", (member_id, f"{hoje} 13:34:00", f"{hoje} 13:34:00"))
+            " VALUES (?, ?, ?, 'rascunho')", (member_id, f"{ontem} 13:34:00", f"{ontem} 13:34:00"))
         db.conn.commit()
         ponto_id = db.scalar("SELECT id FROM ponto WHERE member_id = ?", (member_id,))
         db.close()
 
         status, editado = self.chamar(
             "/api/ponto/editar", self.bento, "POST",
-            {"ponto_id": ponto_id, "saida": f"{hoje} 16:00:00", "atividade": "artigo revisado"})
+            {"ponto_id": ponto_id, "saida": f"{ontem} 16:00:00", "atividade": "artigo revisado"})
         self.assertEqual(status, 200)
         self.assertTrue(editado["editou"])
         self.assertEqual(editado["horas"], 2.43)

@@ -96,3 +96,137 @@ def excluir_estudo(db: Database, estudo_id: int) -> bool:
     if cursor.rowcount:
         db.conn.commit()
     return bool(cursor.rowcount)
+
+
+# ----------------------------------------------------------------------
+# Estudos achados numa busca aberta na web (pedido do Mateus: "pesquisa
+# e cadastra uns estudos"), em variáveis psicológicas na ginástica
+# rítmica -- ansiedade, imagem corporal/transtornos alimentares,
+# automotivação/autoconceito, autoestima, perfeccionismo e estressores.
+#
+# NÃO é uma busca sistemática reproduzível (sem acesso a PubMed/Scopus/
+# WoS/CINAHL neste ambiente, só busca aberta na web) -- é apoio de
+# triagem para a equipe conferir com acesso institucional, igual à
+# atualização que fizemos para o Andrade et al. 2023. Título, autores,
+# ano e o link/DOI vêm de fontes reais e conferidas; periódico, Qualis e
+# fator de impacto ficam de fora quando não puderam ser confirmados --
+# um número chutado é pior que nenhum (mesmo princípio da Ana, ver
+# ana.py). `study_type` só entra quando o delineamento é claro no
+# resumo; desenho quase-experimental, por exemplo, fica sem rótulo para
+# não ser lido como ensaio randomizado.
+ESTUDOS_SEMEADOS: tuple[dict[str, Any], ...] = (
+    {
+        "titulo": "In the pitfall of expectations: an exploratory analysis of "
+                  "stressors in elite rhythmic gymnastics",
+        "autores": "Kovács, Krisztina; Kéringer, Johanna; Rácz, József; "
+                   "Gyömbér, Noémi; Németh, Krisztina",
+        "ano_publicacao": 2022,
+        "observacoes": "Entrevistas semiestruturadas com ginastas, técnicos e pais sobre "
+                       "estressores e clima do esporte; os três grupos relataram um "
+                       "ambiente percebido como prejudicial, e corpo magro associado a "
+                       "sucesso. Frontiers in Psychology, DOI: 10.3389/fpsyg.2022.955232 "
+                       "— https://doi.org/10.3389/fpsyg.2022.955232",
+    },
+    {
+        "titulo": "Body image and attitudinal aspects of eating disorders in "
+                  "rhythmic gymnasts",
+        "autores": "Salbach, Harriet; Klinkowski, Nora; Pfeiffer, Ernst; "
+                   "Lehmkuhl, Ulrike; Korte, Alexander",
+        "ano_publicacao": 2007,
+        "study_type": "Estudo transversal",
+        "observacoes": "Compara 50 ginastas de elite (seleção alemã), 58 pacientes com "
+                       "anorexia nervosa e 56 alunas de ensino médio no Eating Disorder "
+                       "Inventory-2; sem alteração atitudinal relevante de TA nas "
+                       "ginastas, mas leve distorção de imagem corporal no abdômen. "
+                       "PMID 17652951 — https://pubmed.ncbi.nlm.nih.gov/17652951/ "
+                       "(periódico/Qualis/fator de impacto não conferidos aqui).",
+    },
+    {
+        "titulo": "Body Dissatisfaction among Young Girls in Recreational "
+                  "Rhythmic Gymnastics",
+        "autores": "Núñez, B. P.; Sánchez-Lastra, M. A.; Diz, J. C.; Ayán-Pérez, C.",
+        "ano_publicacao": 2024,
+        "study_type": "Estudo transversal",
+        "observacoes": "88 meninas de 6-11 anos praticantes de GR vs. 88 controles "
+                       "pareadas por idade; sem diferença significativa de insatisfação "
+                       "corporal entre os grupos. Children, 11(6), "
+                       "DOI: 10.3390/children11060696 — https://doi.org/10.3390/children11060696",
+    },
+    {
+        "titulo": "Prevalence of eating disorder, body image dissatisfaction and "
+                  "musculoskeletal complaints among former Spanish rhythmic "
+                  "gymnasts: a retrospective study",
+        "autores": "Portas-Núñez, Belén; Blanco-Martínez, Nerea; "
+                   "Sánchez-Lastra, Miguel Adriano; Diz-Gómez, José Carlos; "
+                   "Ayán-Pérez, Carlos",
+        "ano_publicacao": 2026,
+        "study_type": "Estudo transversal",
+        "observacoes": "Estudo retrospectivo com ex-ginastas espanholas; 10,6% acima do "
+                       "limiar de transtorno alimentar e 68,1% relataram insatisfação "
+                       "corporal. The Physician and Sportsmedicine, v. 54, n. 2 — "
+                       "https://pubmed.ncbi.nlm.nih.gov/41327901/",
+    },
+    {
+        "titulo": "Motivation, Self-Concept and Discipline in Young Adolescents Who "
+                  "Practice Rhythmic Gymnastics. An Intervention",
+        "autores": "González-Valero, Gabriel; Zurita-Ortega, Félix; "
+                   "Ubago-Jiménez, José Luis; Puertas-Molero, Pilar",
+        "ano_publicacao": 2020,
+        "observacoes": "Intervenção quase-experimental (estratégias TARGET) com 104 "
+                       "adolescentes (60 controle, 44 experimental); grupo intervenção "
+                       "melhorou clima de tarefa, autoconceito físico, disciplina e "
+                       "flexibilidade. Sem tipo de estudo declarado aqui -- é "
+                       "quase-experimental, não randomizado. Children, 7(9), 135, "
+                       "DOI: 10.3390/children7090135 — https://doi.org/10.3390/children7090135",
+    },
+    {
+        "titulo": "Self-Perceptions and Self-Esteem in Adolescent Rhythmic Gymnasts: "
+                  "Is Training Level a Determinant?",
+        "autores": "Mastrogianni, Angeliki; Psychountaki, Maria; Donti, Olyvia",
+        "ano_publicacao": 2020,
+        "study_type": "Estudo transversal",
+        "observacoes": "100 ginastas (32 competitivas, 68 recreativas), 13-15 anos; "
+                       "competitivas pontuaram mais alto em relação com os pais e "
+                       "autovalor global. Science of Gymnastics Journal, 12(3), 357-366 "
+                       "— https://journals.uni-lj.si/sgj/article/view/11739",
+    },
+    {
+        "titulo": "Quality of life and level of perfectionism of rhythmic "
+                  "gymnastics athletes",
+        "autores": "Buzzi, Pâmela Calvo; Carignano, Fernanda Shizue Nishida; "
+                   "Felipe, Daniele Fernanda; Oliveira, Leonardo Pestillo de",
+        "ano_publicacao": 2025,
+        "study_type": "Estudo transversal",
+        "observacoes": "36 atletas do Paraná (juvenil e adulto); correlação "
+                       "significativa entre qualidade de vida e perfeccionismo na "
+                       "categoria adulta (r = 0,70; p = 0,007). Motriz, 31(1) — "
+                       "https://www.periodicos.rc.biblioteca.unesp.br/index.php/motriz/article/view/19251",
+    },
+    {
+        "titulo": "Competitive State Anxiety and Performance in Young Female "
+                  "Rhythmic Gymnasts",
+        "autores": "Tsopani, D.; Dallas, G.; Skordilis, E. K.",
+        "ano_publicacao": 2011,
+        "study_type": "Estudo transversal",
+        "observacoes": "86 ginastas de 11-12 anos responderam ao CSAI-2 uma hora antes "
+                       "da competição; autoconfiança foi a única preditora significativa "
+                       "de desempenho. Perceptual and Motor Skills (periódico/volume não "
+                       "confirmados nesta busca) — https://www.researchgate.net/"
+                       "publication/51214011_Competitive_State_Anxiety_and_Performance_"
+                       "in_Young_Female_Rhythmic_Gymnasts",
+    },
+)
+
+
+def semear_estudos_iniciais(db: Database, criado_por: int | None = None) -> dict[str, Any]:
+    """Cadastra `ESTUDOS_SEMEADOS`, pulando quem já está no banco pelo
+    título -- seguro de rodar de novo quando a busca for refeita."""
+    novos, ja_existiam = [], []
+    for estudo in ESTUDOS_SEMEADOS:
+        if db.scalar("SELECT 1 FROM ginastica_ritmica_estudos WHERE titulo = ?",
+                     (estudo["titulo"],)):
+            ja_existiam.append(estudo["titulo"])
+            continue
+        gravar_estudo(db, criado_por=criado_por, **estudo)
+        novos.append(estudo["titulo"])
+    return {"novos": novos, "ja_existiam": ja_existiam}
