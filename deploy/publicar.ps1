@@ -647,9 +647,24 @@ if (-not $antigoVivo) {
   # desatualizada; copiar os tres junto e o que garante uma foto igual ao
   # que a API real esta lendo agora.
   Copy-Item $bancoReal $bancoCandidato -Force
+  # -wal/-shm sao os arquivos auxiliares do modo WAL do SQLite, e o
+  # servico ATUAL os mantem com uma regiao de memoria compartilhada
+  # travada o tempo todo que estiver no ar. No Windows (diferente do
+  # Linux) isso pode recusar ate uma COPIA do arquivo, com "o processo
+  # nao pode acessar o arquivo porque outro processo bloqueou parte do
+  # arquivo" -- e essa excecao, sem tratamento, derrubava a atualizacao
+  # inteira ANTES de sequer tentar o candidato. Copiar os dois e so para
+  # o candidato testar com um retrato mais fresco; sem eles ele ainda
+  # abre o .sqlite principal e passa no teste de saude do mesmo jeito,
+  # so com os ultimos commits (que so existiam no -wal) de fora. Por
+  # isso a copia aqui e sempre best-effort: uma trava do sistema
+  # operacional nao pode custar a atualizacao do laboratorio inteiro.
   foreach ($sufixo in @("-wal", "-shm")) {
     $origem = "$bancoReal$sufixo"
-    if (Test-Path $origem) { Copy-Item $origem "$bancoCandidato$sufixo" -Force }
+    if (Test-Path $origem) {
+      try { Copy-Item $origem "$bancoCandidato$sufixo" -Force -ErrorAction Stop }
+      catch { Aviso "Nao consegui copiar $sufixo do banco (em uso agora) -- seguindo sem ele." }
+    }
   }
 
   $candidato = Start-Process -FilePath $Python `
