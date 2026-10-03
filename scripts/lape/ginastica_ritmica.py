@@ -400,6 +400,566 @@ ESTUDOS_SEMEADOS: tuple[dict[str, Any], ...] = (
                        "periódico/Qualis/fator de impacto não conferidos aqui) — "
                        "https://pubmed.ncbi.nlm.nih.gov/25730932/",
     },
+    # ------------------------------------------------------------------
+    # Terceira rodada: o Mateus mandou a planilha de verdade da própria
+    # revisão (CSV/XLSX exportados do Mendeley/Bibliometrix, com 40
+    # artigos já triados pela equipe -- autor, ano, DOI, país, fator de
+    # impacto e as "variáveis" que o próprio grupo já tinha anotado). É a
+    # base mais confiável que entrou aqui até agora, porque veio de busca
+    # institucional real (EMBASE/WoS/Scopus/PubMed), não de web aberta.
+    # Sete títulos já estavam cadastrados (rodadas 1 e 2) e por isso não
+    # se repetem; um (habilidades psicomotoras/tempo de reação) ficou de
+    # fora por não tratar de variável psicológica. O campo "observações"
+    # reaproveita, quando existia, a própria anotação de "variáveis" que
+    # a equipe já tinha escrito na planilha -- não é uma leitura nova
+    # feita aqui. Duas entradas (Borrione et al. 2013 e a de nutrição em
+    # espanhol) tinham DOI/periódico visivelmente trocados na planilha
+    # (apontando para outro artigo da própria planilha); esses campos
+    # ficaram em branco aqui em vez de reproduzir o erro.
+    {
+        "titulo": "Effects of competitiveness in rhythmic gymnastics: a "
+                  "qualitative research",
+        "autores": "Esposito, Giovanni",
+        "ano_publicacao": 2024,
+        "fator_impacto": 0.4,
+        "observacoes": "24 ginastas de 13-20 anos (grupo profissional e grupo "
+                       "não profissional) responderam a um questionário de 22 "
+                       "itens sobre fatores cognitivos, comportamento alimentar e "
+                       "motivação para o esporte; sofrimento psicológico foi maior "
+                       "no grupo profissional, associado a estresse, dieta e "
+                       "pressão dos técnicos -- os autores atribuem o sofrimento à "
+                       "relação técnico-atleta, não à ginástica rítmica em si. "
+                       "Acta Kinesiologica, DOI: 10.51371/issn.1840-2976.2024.18.4.7 "
+                       "— https://doi.org/10.51371/issn.1840-2976.2024.18.4.7",
+    },
+    {
+        "titulo": "Effects of Rhythmic Gymnastics on Joint Attention and "
+                  "Emotional Problems of Autistic Children: A Preliminary "
+                  "Investigation",
+        "autores": "Duan, Guanting; Han, Qing; Yao, Mingyan; Li, Ran",
+        "ano_publicacao": 2022,
+        "observacoes": "Estudo de caso único (desenho A-B-A) com duas crianças "
+                       "autistas de 6 anos; a ginástica rítmica adaptada ajudou a "
+                       "desenvolver atenção compartilhada responsiva e reduziu "
+                       "problemas emocionais. Foge do escopo de 'ginasta' para "
+                       "'ginástica como intervenção', por isso entra à parte das "
+                       "demais. Computational Intelligence and Neuroscience, "
+                       "DOI: 10.1155/2022/2596095 — https://doi.org/10.1155/2022/2596095",
+    },
+    {
+        "titulo": "Psychopathology in elite rhythmic gymnasts and anorexia "
+                  "nervosa patients",
+        "autores": "Klinkowski, Nora",
+        "ano_publicacao": 2008,
+        "fator_impacto": 4.8,
+        "study_type": "Estudo transversal",
+        "observacoes": "Compara ginastas de elite (n=51), pacientes internadas "
+                       "com anorexia nervosa (n=55) e colegiais (n=53) no Symptom "
+                       "Checklist (SCL-90-R); as ginastas não mostraram sofrimento "
+                       "psicológico comparável ao das pacientes com AN, apesar do "
+                       "físico magro -- depressão foi o que melhor discriminou os "
+                       "três grupos. European Child & Adolescent Psychiatry, "
+                       "DOI: 10.1007/s00787-007-0643-y — https://doi.org/10.1007/s00787-007-0643-y",
+    },
+    {
+        "titulo": "\"It's Always the Judge's Fault\": Attention, Emotion "
+                  "Recognition, and Expertise in Rhythmic Gymnastics Assessment",
+        "autores": "van Bokhorst, Lindsey G.; Knapová, Lenka; Majoranc, Kim; "
+                   "Szebeni, Zea K.; Táborský, Adam; Tomić, Dragana; Cañadas, Elena",
+        "ano_publicacao": 2016,
+        "fator_impacto": 2.9,
+        "observacoes": "Protocolo de estudo (não traz amostra própria nesta "
+                       "versão) sobre como o reconhecimento de emoções e a "
+                       "capacidade atencional de juízas de ginástica rítmica "
+                       "influenciam a precisão da nota dada -- é sobre a psicologia "
+                       "de quem julga, não de quem compete. Frontiers in "
+                       "Psychology, DOI: 10.3389/fpsyg.2016.01008 — "
+                       "https://doi.org/10.3389/fpsyg.2016.01008",
+    },
+    {
+        "titulo": "Use of video observation and motor imagery on jumping "
+                  "performance in national rhythmic gymnastics athletes",
+        "autores": "Battaglia, C.; D'Artibale, E.; Fiorilli, G.; Piazza, M.; "
+                   "Tsopani, D.; Giombini, A.; Calcagno, G.; di Cagno, A.",
+        "ano_publicacao": 2014,
+        "fator_impacto": 1.9,
+        "study_type": "Ensaio controlado randomizado",
+        "observacoes": "72 ginastas divididas em grupo experimental (observação "
+                       "de vídeo + imagética motora PETTLEP associada à prática "
+                       "física) e grupo controle (só prática física), 6 semanas; "
+                       "desempenho de salto melhorou mais no grupo experimental, e "
+                       "a capacidade de gerar imagética correlacionou-se com o "
+                       "ganho. Human Movement Science, DOI: 10.1016/j.humov.2014.10.001 "
+                       "— https://doi.org/10.1016/j.humov.2014.10.001",
+    },
+    {
+        "titulo": "Comparison of dissociative experiences between rhythmic "
+                  "gymnasts and female dancers",
+        "autores": "Thomson, Paula; Kibarska, Lilia Alexieva; Jaque, S. Victoria",
+        "ano_publicacao": 2011,
+        "fator_impacto": 3.1,
+        "study_type": "Estudo transversal",
+        "observacoes": "Ginastas de elite da Bulgária e dos EUA e bailarinas "
+                       "profissionais da Bulgária, Canadá e EUA respondem à "
+                       "Dissociative Experience Scale-II; as duas populações de "
+                       "elite (não o grupo controle) pontuaram na faixa patológica "
+                       "para transtornos dissociativos, com ginastas relatando "
+                       "maior capacidade de ignorar a dor. International Journal "
+                       "of Sport and Exercise Psychology, "
+                       "DOI: 10.1080/1612197X.2011.614850 — "
+                       "https://doi.org/10.1080/1612197X.2011.614850",
+    },
+    {
+        "titulo": "Association between parenting practices and competitive "
+                  "trait anxiety in female gymnasts",
+        "autores": "Fink, Anja; Fischler, Katharina; Raschner, Christian; "
+                   "Hildebrandt, Carolin; Ledochowski, Larissa; Kopp, Martin",
+        "ano_publicacao": 2013,
+        "fator_impacto": 0.6,
+        "study_type": "Estudo transversal",
+        "observacoes": "170 ginastas austríacas (artística e rítmica), 114 delas "
+                       "com 12 anos; comportamento parental diretivo influenciou a "
+                       "ansiedade-traço competitiva -- ginastas de rítmica "
+                       "relataram mais pressão e comportamento diretivo dos pais "
+                       "do que as de artística, e maior distância entre práticas "
+                       "parentais percebidas e desejadas. International Journal of "
+                       "Sport Psychology, DOI: 10.7352/IJSP2013.44.515 — "
+                       "https://doi.org/10.7352/IJSP2013.44.515",
+    },
+    {
+        "titulo": "Resilience in Youth Sport: A Qualitative Investigation of "
+                  "Gymnastics Coach and Athlete Perceptions",
+        "autores": "White, Rhiannon L.; Bennie, Andrew",
+        "ano_publicacao": 2015,
+        "fator_impacto": 2.1,
+        "observacoes": "22 ginastas jovens e sete técnicas australianas em "
+                       "entrevistas semiestruturadas; relações interpessoais e "
+                       "comportamentos positivos dos técnicos ajudaram as ginastas "
+                       "a superar falhas e desenvolver resiliência, autoeficácia e "
+                       "autoestima -- sem recorte específico de rítmica x "
+                       "artística declarado no resumo. International Journal of "
+                       "Sports Science & Coaching, DOI: 10.1260/1747-9541.10.2-3.379 "
+                       "— https://doi.org/10.1260/1747-9541.10.2-3.379",
+    },
+    {
+        "titulo": "Determinants of competitive performance in rhythmic "
+                  "gymnastics. a review",
+        "autores": "Bobo-Arce, Marta A.; Méndez-Rial, Belia",
+        "ano_publicacao": 2013,
+        "fator_impacto": 0.4,
+        "study_type": "Revisão",
+        "observacoes": "Revisão crítica da literatura sobre preditores de "
+                       "desempenho em ginástica rítmica, agrupados em condição "
+                       "física/biológica, aspectos técnicos, fatores psicológicos "
+                       "(processos atencionais, ansiedade-traço e de estado, "
+                       "autoconsciência, autoeficácia), processo de treino e "
+                       "outras dimensões; conclui que poucos estudos têm "
+                       "perspectiva global sobre o que prediz o desempenho. "
+                       "Journal of Human Sport and Exercise, "
+                       "DOI: 10.4100/jhse.2013.8.Proc3.18 — "
+                       "https://doi.org/10.4100/jhse.2013.8.Proc3.18",
+    },
+    {
+        "titulo": "Body image perception and satisfaction in elite rhythmic "
+                  "gymnasts: a controlled study",
+        "autores": "Borrione, P.; Battaglia, C.; Fiorilli, G.; Moffa, S.; "
+                   "Despina, T.; Piazza, M.; Calcagno, G.; Di Cagno, A.",
+        "ano_publicacao": 2013,
+        "fator_impacto": 0.6,
+        "study_type": "Estudo transversal",
+        "observacoes": "81 ginastas de elite (20 internacionais, 61 nacionais) e "
+                       "80 controles pareadas; as ginastas de elite tiveram "
+                       "percepção da própria imagem corporal mais realista "
+                       "(correspondente ao IMC real) do que ginastas de nível "
+                       "mais baixo e outras atletas, embora a amostra toda tenha "
+                       "expressado insatisfação significativa com a própria "
+                       "imagem. Medicina dello Sport, 66(1), 61-70 (DOI na "
+                       "planilha original apontava para outro artigo -- não "
+                       "reproduzido aqui) — "
+                       "https://www.minervamedica.it/en/journals/medicina-dello-sport/article.php?cod=R26Y2013N01A0061",
+    },
+    {
+        "titulo": "Comparison of anthropometric indicators in rhythmic "
+                  "gymnastics athletes satisfied and dissatisfied with body image",
+        "autores": "Zanlorenci, Suellem",
+        "ano_publicacao": 2020,
+        "study_type": "Estudo transversal",
+        "observacoes": "38 atletas de ginástica rítmica do Oeste do Paraná, "
+                       "divididas por satisfação com a imagem corporal (Body "
+                       "Shape Questionnaire); as insatisfeitas apresentaram IMC, "
+                       "dobras cutâneas e percentual de gordura mais altos, mesmo "
+                       "controlando nível econômico e maturação sexual. "
+                       "Motricidade, DOI: 10.6063/motricidade.19232 — "
+                       "https://doi.org/10.6063/motricidade.19232",
+    },
+    {
+        "titulo": "Nutritional, anthropometrical and psychological aspects in "
+                  "rhythmic gymnastics",
+        "autores": "San Mauro Martín, Ismael; Cevallos, Vanesa; "
+                   "Pina-Ordúñez, Diana; Garicano-Vilar, Elena",
+        "ano_publicacao": 2016,
+        "fator_impacto": 1.1,
+        "observacoes": "25 ginastas adultas espanholas; levantamento de "
+                       "antropometria, hábitos alimentares e imagem corporal -- "
+                       "título do próprio artigo já cita explicitamente o aspecto "
+                       "psicológico. Nutrición Hospitalaria, 33(4), 383, "
+                       "DOI: 10.20960/nh.383 (confirmado via PubMed, PMID "
+                       "27571660) — https://doi.org/10.20960/nh.383",
+    },
+    {
+        "titulo": "The associations of body image perception with serum "
+                  "resistin levels in highly trained adolescent estonian "
+                  "rhythmic gymnasts",
+        "autores": "Remmel, Liina; Jürimäe, Jaak; Tamm, Anna Liisa; "
+                   "Purge, Priit; Tillmann, Vallo",
+        "ano_publicacao": 2021,
+        "fator_impacto": 4.8,
+        "study_type": "Estudo transversal",
+        "observacoes": "33 ginastas estonianas de alto rendimento e 20 controles "
+                       "não treinadas, 14-18 anos; sem diferença na pontuação "
+                       "total do Body Attitude Test entre os grupos, mas nas "
+                       "ginastas a pontuação correlacionou-se positivamente com o "
+                       "nível sérico de resistina (r=0,35) -- resistina e IMC "
+                       "explicaram 40,8% da variabilidade na percepção de imagem "
+                       "corporal. Nutrients, DOI: 10.3390/nu13093147 — "
+                       "https://doi.org/10.3390/nu13093147",
+    },
+    {
+        "titulo": "Psychological recreation of overcoming failures and "
+                  "achieving success by young rhythmic gymnasts aged 6-8",
+        "autores": "Golenkova, Julia; Kravchuk, Tatyana; Sanzharova, Nina; "
+                   "Potop, Vladimir; Filon, Karina",
+        "ano_publicacao": 2023,
+        "fator_impacto": 2.1,
+        "study_type": "Ensaio controlado",
+        "observacoes": "20 meninas ucranianas de 6-8 anos (Kharkiv), divididas "
+                       "em grupo experimental e controle; treino psicológico "
+                       "(Sports Motivation Scale, State-Trait Anxiety Inventory "
+                       "for Children) elevado à motivação para alcançar sucesso e "
+                       "melhorou o desempenho técnico em elementos de 'risco' com "
+                       "objeto. Physical Culture Recreation and Rehabilitation, "
+                       "DOI: 10.15561/physcult.2023.0101 — "
+                       "https://doi.org/10.15561/physcult.2023.0101",
+    },
+    {
+        "titulo": "The Body Shape of Pubertal Rhythmic Gymnasts: The "
+                  "Association with BMI, Eating Disorder Risks, and Perfectionism",
+        "autores": "Marković, Andrea; Aleksić Veljković, Aleksandra; "
+                   "Vukadinović Jurišić, Mila; Obradović, Anja; Đurović, Dušanka",
+        "ano_publicacao": 2023,
+        "fator_impacto": 0.7,
+        "study_type": "Estudo transversal",
+        "observacoes": "40 ginastas sérvias de nível nacional, ~12,8 anos; "
+                       "perfeccionismo, IMC, horas de treino, experiência de "
+                       "treino, risco de transtorno alimentar (EAT-26), idade e "
+                       "experiência explicaram 64,2% da variância na "
+                       "insatisfação com a forma do corpo (BSQ) -- ginastas com "
+                       "BSQ mais alto usam mais dieta/comportamento compensatório. "
+                       "Physical Education and Sport, DOI: 10.22190/FUPES230223007M "
+                       "— https://doi.org/10.22190/FUPES230223007M",
+    },
+    {
+        "titulo": "Understanding overuse injuries in rhythmic gymnastics: A "
+                  "12-month ethnographic study",
+        "autores": "Cavallerio, Francesca; Wadey, Ross; "
+                   "Wagstaff, Christopher Robert David",
+        "ano_publicacao": 2016,
+        "fator_impacto": 3.3,
+        "observacoes": "Etnografia de 12 meses num clube italiano de elite (16 "
+                       "ginastas, 3 técnicas, 1 fisioterapeuta, 22 pais e a "
+                       "presidente do clube); examina como a cultura do esporte -- "
+                       "não só a carga física -- molda a ocorrência e a "
+                       "experiência de lesões por uso excessivo, com histórias "
+                       "etnográficas contrastando a leitura da ginasta e da "
+                       "técnica sobre a mesma sessão. Psychology of Sport and "
+                       "Exercise, DOI: 10.1016/j.psychsport.2016.05.002 — "
+                       "https://doi.org/10.1016/j.psychsport.2016.05.002",
+    },
+    {
+        "titulo": "Evaluation of eating attitudes and body image perception of "
+                  "rhythmic gymnastics athletes",
+        "autores": "Buzzi, Pamela Calvo; Nishida, Fernanda Shizue; "
+                   "de Oliveira, Leonardo Pestillo; Felipe, Daniele Fernanda",
+        "ano_publicacao": 2023,
+        "observacoes": "36 atletas (juvenil e adulto); abordagem quantitativa, "
+                       "observacional e transversal sobre imagem corporal e "
+                       "distúrbios alimentares -- mesmo grupo de pesquisa do "
+                       "estudo sobre qualidade de vida e perfeccionismo já "
+                       "cadastrado nesta aba (Buzzi et al., 2025), mas é um "
+                       "artigo diferente. RBONE — Revista Brasileira de Obesidade, "
+                       "Nutrição e Emagrecimento (DOI não informado) — "
+                       "https://www.rbone.com.br/index.php/rbone/en/article/view/2234",
+    },
+    {
+        "titulo": "Resilience and optimism in rhythmic gymnastics",
+        "autores": "Serrano-Nortes, Elena; Gómez Díaz, Magdalena; "
+                   "Reche-García, Cristina",
+        "ano_publicacao": 2021,
+        "fator_impacto": 1.2,
+        "observacoes": "29 ginastas espanholas, 13-20 anos; 24,8% com alta "
+                       "resiliência e só 20,7% com alto otimismo (62,1% com "
+                       "otimismo baixo), medidos pela Escala de Resiliência "
+                       "adaptada ao espanhol e pelo LOT-R. Retos, 41, 581-588, "
+                       "DOI: 10.47197/retos.v0i41.83086 — "
+                       "https://doi.org/10.47197/retos.v0i41.83086",
+    },
+    {
+        "titulo": "Stress in rhythmic gymnastics refereeing: A systematic review",
+        "autores": "Debien, Paula Barreiros; Noce, Franco; "
+                   "Debien, Jurema Barreiros Prado; da Costa, Varley Teoldo",
+        "ano_publicacao": 2014,
+        "observacoes": "Revisão sistemática sobre o estresse na arbitragem de "
+                       "ginástica rítmica -- é sobre a psicologia de quem julga a "
+                       "prova, não de quem compete, mas entra no escopo de "
+                       "'variáveis psicológicas associadas à ginástica rítmica' "
+                       "em sentido amplo. Revista da Educação Física, "
+                       "DOI: 10.4025/reveducfis.v25i3.22031 — "
+                       "https://doi.org/10.4025/reveducfis.v25i3.22031",
+        "study_type": "Revisão sistemática",
+    },
+    {
+        "titulo": "Psychological Intervention in a Rhythmic Gymnastics Team: "
+                  "A Case Study",
+        "autores": "Alvarez, Octavio; Falco, Coral; Estevan, Isaac; "
+                   "Molina-Garcia, Javier; Castillo, Isabel",
+        "ano_publicacao": 2013,
+        "fator_impacto": 0.6,
+        "observacoes": "Estudo de caso com 7 atletas espanholas da seleção "
+                       "nacional sênior, 15-21 anos; 14 sessões em grupo entre "
+                       "setembro e dezembro, com foco em clima motivacional, "
+                       "orientação a metas, coesão, liderança do técnico e "
+                       "habilidades psicológicas -- reduziu o clima ego-envolvido "
+                       "e a orientação ao ego, e aumentou o clima envolvido na "
+                       "tarefa. Revista de Psicología del Deporte, 22(2), 395-401 "
+                       "(DOI não disponível) — "
+                       "https://archives.rpd-online.com/rt/printerFriendly/v22-n2-alvarez-falco-estevan-molina-garcia-castillo/0.html",
+    },
+    {
+        "titulo": "A Comparative Study in (Resilience and Immunity) "
+                  "Psychological and the Level of Skillful Performance in Some "
+                  "Ball Skills in Rhythmic Gymnastics Between Students of the "
+                  "Second and Third Stages",
+        "autores": "Dhahi, Nuha Mohsin; Shihab, Muhammad Hamza",
+        "ano_publicacao": 2022,
+        "fator_impacto": 0.2,
+        "study_type": "Estudo transversal",
+        "observacoes": "135 estudantes de educação física da Universidade de "
+                       "Bagdá (segundo e terceiro ano); não houve diferença de "
+                       "resiliência nem de imunidade psicológica entre as turmas, "
+                       "mas as mais avançadas tiveram melhor desempenho técnico "
+                       "em habilidades de bola. Revista Iberoamericana de "
+                       "Psicología del Ejercicio y el Deporte, "
+                       "DOI: 10.37310/jpesm.2023.10.2.10 — "
+                       "https://doi.org/10.37310/jpesm.2023.10.2.10",
+    },
+    {
+        "titulo": "Evaluation and analysis of psychological skills related to "
+                  "athletic performance in rhythmic gymnasts",
+        "autores": "Jaenes Sanchez, Jose Carlos; Carmona Marquez, Jose; "
+                   "Lopa Peralto, Estefania",
+        "ano_publicacao": 2010,
+        "fator_impacto": 0.8,
+        "observacoes": "86 ginastas (todas as categorias); ginastas que "
+                       "trabalham com psicólogo esportivo como parte do "
+                       "treinamento pontuaram mais alto em controle do estresse, "
+                       "avaliação de desempenho e habilidade mental, medidos "
+                       "pelo CPRD. Revista Iberoamericana de Psicología del "
+                       "Ejercicio y el Deporte, 5, 15-28 (DOI não disponível) — "
+                       "https://www.redalyc.org/pdf/3111/311126267002.pdf",
+    },
+    {
+        "titulo": "Body and Performance in Rhythmic Gymnastics: Science or Belief?",
+        "autores": "de Oliveira, Laura; Costa, Vítor Ricci; "
+                   "Antualpa, Kizzy Fernandes; Nunomura, Myrian",
+        "ano_publicacao": 2023,
+        "fator_impacto": 0.7,
+        "observacoes": "28 ginastas brasileiras de 13-16 anos, em entrevistas e "
+                       "análise temática; a insatisfação com o corpo é reforçada "
+                       "por técnicos, juízas e outras atletas, que sustentam a "
+                       "crença de um tipo de corpo 'ideal' ligado a melhor "
+                       "desempenho -- técnicos usam o peso na balança para guiar "
+                       "emagrecimento, e as ginastas relataram uso de laxantes e "
+                       "restrição calórica autoimposta. Science of Gymnastics "
+                       "Journal, DOI: 10.52165/sgj.13.3.311-321 — "
+                       "https://doi.org/10.52165/sgj.13.3.311-321",
+    },
+    {
+        "titulo": "Sources of Organizational Stress Among Youth Rhythmic "
+                  "Gymnasts: An Interpretative Phenomenological Analysis",
+        "autores": "Penna, Eduardo Macedo; Filho, Edson; Bentes, Livia Maria "
+                   "Neves; Ferreira, Renato Melo; Pires, Daniel Alvarez",
+        "ano_publicacao": 2023,
+        "fator_impacto": 0.7,
+        "observacoes": "6 ginastas brasileiras de ~15 anos, em entrevistas "
+                       "semiestruturadas; aprisionamento no esporte ('sport "
+                       "entrapment'), gestão do tempo e preocupação com a imagem "
+                       "corporal apareceram como estressores, somados à pressão "
+                       "de técnicos, colegas e pais -- as atletas relataram "
+                       "ansiedade competitiva antes, durante e depois da "
+                       "competição. Science of Gymnastics Journal, "
+                       "DOI: 10.52165/sgj.15.3.427-439 — "
+                       "https://doi.org/10.52165/sgj.15.3.427-439",
+    },
+    {
+        "titulo": "Risks of Eating and Image Disorders are Correlated with "
+                  "Energy and Macronutrient Inadequacies in Youth Rhythmic "
+                  "Gymnastics",
+        "autores": "Jardim, Maria Letícia; Valencio, Ana Clara Justino; "
+                   "Menegassi, Lizia Nardi; da Silva, Ricardo Azevedo; "
+                   "Carteri, R. B.",
+        "ano_publicacao": 2022,
+        "fator_impacto": 0.7,
+        "study_type": "Estudo transversal",
+        "observacoes": "18 atletas brasileiras de nível nacional, 12-19 anos; "
+                       "risco de transtorno alimentar e distorção de imagem "
+                       "corporal correlacionaram-se com o IMC e, inversamente, "
+                       "com a ingestão de carboidrato, lipídio e energia por "
+                       "quilo de peso -- reforça a importância de acompanhamento "
+                       "nutricional multidisciplinar. Science of Gymnastics "
+                       "Journal, DOI: 10.52165/sgj.14.1.85-96 — "
+                       "https://doi.org/10.52165/sgj.14.1.85-96",
+    },
+    {
+        "titulo": "Sports Profile of Elite Athletes in Rhythmic Gymnastics",
+        "autores": "Ivanova, Ivanova Vesela",
+        "ano_publicacao": 2022,
+        "fator_impacto": 1.2,
+        "observacoes": "63 ginastas de elite dos EUA, Singapura e Taiwan; "
+                       "comparação de perfil esportivo (comprometimento, "
+                       "qualidades psicológicas, habilidades técnicas e mentais) "
+                       "entre as três seleções -- ginastas de Singapura e Taiwan "
+                       "relataram mais dificuldade de comunicação com o técnico, "
+                       "mas maior autoconsciência para melhorar; as dos EUA "
+                       "mostraram falhas de consistência no treino. Science of "
+                       "Gymnastics Journal, DOI: 10.52165/sgj.14.1.73-83 — "
+                       "https://doi.org/10.52165/sgj.14.1.73-83",
+    },
+    {
+        "titulo": "Social Physique Anxiety, Disturbed Eating Attitudes and "
+                  "Behaviors, and Perceived Pressure for Thin Body in "
+                  "Competitive Rhythmic and Aerobic Gymnasts",
+        "autores": "Ioannidou, Christina; Venetsanou, Fotini",
+        "ano_publicacao": 2019,
+        "fator_impacto": 0.7,
+        "study_type": "Estudo transversal",
+        "observacoes": "41 ginastas de rítmica e 49 de aeróbica, nível "
+                       "competitivo; sem diferença entre as duas modalidades em "
+                       "ansiedade de físico social (SPA) nem em comportamento "
+                       "alimentar perturbado (DEAB), mas atletas de aeróbica "
+                       "sentiram mais pressão dos pais para ter corpo magro; "
+                       "40% da amostra combinada apresentou DEAB, e essas atletas "
+                       "tiveram SPA e pressão percebida significativamente "
+                       "maiores. Science of Gymnastics Journal, "
+                       "DOI: 10.52165/sgj.11.3.331-342 — "
+                       "https://doi.org/10.52165/sgj.11.3.331-342",
+    },
+    {
+        "titulo": "Evaluation of an Intervention Program on Body Esteem, "
+                  "Eating Attitudes and Pressure to be Thin in Rhythmic "
+                  "Gymnastics Athletes",
+        "autores": "Kosmidou, Evdoksia; Fachantidou-Tsiligiroglou, A.",
+        "ano_publicacao": 2015,
+        "study_type": "Ensaio controlado",
+        "observacoes": "49 ginastas gregas (29 grupo intervenção, 20 controle), "
+                       "programa de 3 meses; o grupo intervenção aumentou "
+                       "autoestima corporal e reduziu atitudes alimentares de "
+                       "risco e pressão percebida para emagrecer, enquanto o "
+                       "grupo controle piorou nesses mesmos indicadores -- "
+                       "primeira intervenção controlada do tipo aplicada à "
+                       "ginástica rítmica na Grécia. Science of Gymnastics "
+                       "Journal, DOI: 10.52165/sgj.7.3.23-36 — "
+                       "https://doi.org/10.52165/sgj.7.3.23-36",
+    },
+    {
+        "titulo": "Performance Level, Abilities and Psychological "
+                  "Characteristics in Young Junior Rhythmic Gymnasts: The Role "
+                  "of Sport Experience",
+        "autores": "Zisi, Vasiliki; Giannitsopoulou, Evgenia; "
+                   "Vassiliadou, Olga; Pollatou, Elisana; Kioumourtzoglou, Efthimis",
+        "ano_publicacao": 2009,
+        "fator_impacto": 0.7,
+        "study_type": "Estudo transversal",
+        "observacoes": "33 ginastas gregas de elite, 11-12 anos, classificadas em "
+                       "três níveis de desempenho; o nível mais alto superou o "
+                       "mais baixo apenas em agrupamento de memória e "
+                       "autoconfiança, diferença explicada pela experiência "
+                       "esportiva -- motivação intrínseca ficou modesta, "
+                       "atribuída ao momento da coleta (três meses antes das "
+                       "competições). International Quarterly of Sport Science, "
+                       "4, 1-13 (DOI não disponível; periódico corrigido nesta "
+                       "atualização -- a planilha original trazia 'Science of "
+                       "Gymnastics Journal') — "
+                       "https://www.researchgate.net/publication/234106492_PERFORMANCE_LEVEL_ABILITIES_AND_PSYCHOLOGICAL_CHARACTERISTICS_IN_YOUNG_JUNIOR_RHYTHMIC_GYMNASTS_THE_ROLE_OF_SPORT_EXPERIENCE",
+    },
+    {
+        "titulo": "The Precompetitive Anxiety Impacts Immediately Actual "
+                  "Gymnastics' Performance or Sustain During Routine's Outcomes "
+                  "Over the Execution Time",
+        "autores": "Nassib, Sarra Hammoudi; Mkaouer, Bessem; "
+                   "Riahi, Sabra Hammoudi; Wali, Sameh Menzli; Nassib, Sabri",
+        "ano_publicacao": 2017,
+        "fator_impacto": 1.3,
+        "study_type": "Estudo transversal",
+        "observacoes": "16 ginastas tunisianas de nível internacional, ~14 anos; "
+                       "ansiedade cognitiva e somática (CSAI-2) foram maiores em "
+                       "competição do que em treino, com autoconfiança estável "
+                       "entre as duas situações -- o efeito da ansiedade sobre o "
+                       "desempenho foi maior na rotina de corda do que na de "
+                       "maças. Sport Sciences for Health, "
+                       "DOI: 10.1007/s11332-017-0347-8 — "
+                       "https://doi.org/10.1007/s11332-017-0347-8",
+    },
+    {
+        "titulo": "Assessment of Nutritional-Dietary Status, Body Composition, "
+                  "Eating Behavior, and Perceived Image in Rhythmic Gymnastics "
+                  "Athletes",
+        "autores": "Martínez-Rodríguez, A.; Reche-García, C.; "
+                   "Martínez-Fernández, M. D. C.; Martínez-Sanz, J. M.",
+        "ano_publicacao": 2020,
+        "study_type": "Estudo transversal",
+        "observacoes": "33 ginastas espanholas (juvenil e adulto); risco de "
+                       "transtorno alimentar, estado nutricional, composição "
+                       "corporal, comportamento alimentar e preocupações "
+                       "percebidas com a imagem corporal (anotação da própria "
+                       "equipe na planilha original). Nutrición Hospitalaria, "
+                       "37(6), 1217-1225, DOI: 10.20960/nh.03141 (confirmado via "
+                       "PubMed, PMID 33155479; periódico corrigido nesta "
+                       "atualização -- a planilha original trazia, no lugar do "
+                       "nome do periódico, a tradução do próprio título) — "
+                       "https://doi.org/10.20960/nh.03141",
+    },
+    {
+        "titulo": "Developing Social Skills Through Rhythmic Gymnastics in "
+                  "American Sport",
+        "autores": "Pushkina, Natalia",
+        "ano_publicacao": 2024,
+        "observacoes": "Estudo de caso de métodos mistos com alunas da "
+                       "Vitrychenko Gymnastics Academy (Illinois, EUA), seus "
+                       "técnicos e os pais; a ginástica rítmica apareceu ligada "
+                       "ao desenvolvimento de disciplina, autoconfiança, "
+                       "inteligência emocional, autodisciplina e adaptabilidade, "
+                       "entre outras habilidades sociais -- fatores internos "
+                       "(motivação pessoal) e externos (estilo do técnico, apoio "
+                       "parental) foram identificados como influências. Futurity "
+                       "of Social Sciences, 2(2), 79-102, "
+                       "DOI: 10.57125/FS.2024.06.20.05 (periódico confirmado "
+                       "nesta atualização -- a planilha original não o "
+                       "informava) — https://doi.org/10.57125/FS.2024.06.20.05",
+    },
+    {
+        "titulo": "Examination of Rhythmic Gymnasts Attitudes Towards Healthy "
+                  "Nutrition and Social Physique Concerns",
+        "autores": "Dogan, Duygu",
+        "ano_publicacao": 2025,
+        "study_type": "Estudo transversal",
+        "observacoes": "90 ginastas turcas de rítmica, todas as categorias; "
+                       "examina atitudes em relação à alimentação saudável e "
+                       "preocupação com o físico social -- encontrado na busca no "
+                       "Bibliometrix/Web of Science da equipe, fora da planilha "
+                       "principal de 40 artigos. Science of Gymnastics Journal, "
+                       "DOI: 10.52165/sgj.17.2.317-329 — "
+                       "https://doi.org/10.52165/sgj.17.2.317-329",
+    },
 )
 
 
