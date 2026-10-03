@@ -736,7 +736,7 @@ svg.plot.tree .tick { font-size: 11px; }
    do fundo mesmo quando a cor dela é próxima da do fundo, e uma sombra
    suave e curta dá o "chão" que a barra pisa -- sem a perspectiva 3D
    que distorce a altura percebida (o motivo de manter chapado, ver
-   `.cartao-pessoa`/`.fatia-hexagono`/o funil). */
+   `.cartao-pessoa`/`.fluxo-etapa`/o funil). */
 .plot .mark.cresce {
   stroke: color-mix(in srgb, black 20%, transparent);
   stroke-width: 1;

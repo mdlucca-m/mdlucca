@@ -1141,13 +1141,13 @@ class TestArvoreViraColunasPorRamo(unittest.TestCase):
         self.assertIn("dashed", trecho)
 
 
-class TestFrameworkViraHexagono(unittest.TestCase):
-    """`slideFrameworkN8n` -- pedido explícito do Mateus (referência de
-    hexágono giratório de 6 pétalas): o pipeline linear de círculos
-    ligados por uma faixa virou um hexágono, uma fatia de anel por
-    estado real do banco. As 5 fases do fluxo mais rejeitado/arquivado
-    (o desfecho que já existia à parte) fecham as 6 partes -- nenhuma
-    fase inventada."""
+class TestFrameworkViraTrilhaDeFluxo(unittest.TestCase):
+    """`slideFrameworkN8n` -- pedido explícito do Mateus depois de ver o
+    hexágono giratório em produção: trocar o tipo de gráfico, não só o
+    estilo. O hexágono de 6 fatias de anel virou uma trilha horizontal
+    de etapas (5 fases do fluxo principal, em sequência, com setas) mais
+    um cartão separado para rejeitado/arquivado -- o desfecho que já
+    existia à parte e continua fora da trilha sequencial."""
 
     def setUp(self):
         self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
@@ -1158,100 +1158,46 @@ class TestFrameworkViraHexagono(unittest.TestCase):
         return self.js[self.js.index("function slideFrameworkN8n("):
                        self.js.index("function slideKPIsAnalyticos(")]
 
-    def test_seis_fases_reais_nenhuma_inventada(self):
+    def test_cinco_fases_na_trilha_mais_um_desfecho_nenhuma_inventada(self):
         corpo = self.corpo
-        self.assertEqual(corpo.count('id: "'), 6)
-        for fase in ("em_producao", "submetido", "em_revisao", "aceito",
-                     "publicado", "rejeitado_arquivado"):
+        for fase in ("em_producao", "submetido", "em_revisao", "aceito", "publicado"):
             with self.subTest(fase=fase):
                 self.assertIn(f'"{fase}"', corpo)
+        # rejeitado/arquivado existe, mas como DESFECHO -- fora do array FASES
+        self.assertIn('DESFECHO = { id: "rejeitado_arquivado"', corpo)
 
-    def test_desenha_fatias_de_anel_nao_circulos_ligados_por_faixa(self):
+    def test_desenha_trilha_de_etapas_nao_hexagono_de_fatias(self):
         corpo = self.corpo
-        self.assertIn("fatia-hexagono", corpo)
-        self.assertIn("hex-hub", corpo)
-        for sumiu in ("etapa-circulo", "conector-framework", "framework-pipeline"):
+        self.assertIn("fluxo-trilha", corpo)
+        self.assertIn("fluxo-etapa", corpo)
+        self.assertIn("fluxo-seta", corpo)
+        for sumiu in ("fatia-hexagono", "hex-hub", "pontoNoCirculo",
+                      "etapa-circulo", "conector-framework", "framework-pipeline"):
             with self.subTest(sumiu=sumiu):
                 self.assertNotIn(sumiu, corpo)
 
     def test_gargalo_nunca_e_o_desfecho(self):
         """Rejeitado/arquivado não é "onde o fluxo travou" -- é onde ele
-        terminou. Só as fases antes de publicar competem pelo gargalo."""
+        terminou. Como DESFECHO nem entra no array FASES, só as fases
+        antes de publicar competem pelo gargalo."""
         corpo = self.corpo
-        self.assertIn('f.id !== "publicado" && f.id !== "rejeitado_arquivado"', corpo)
+        self.assertIn('f.id !== "publicado"', corpo)
+        array_fases = corpo[corpo.index("const FASES ="):corpo.index("const DESFECHO")]
+        self.assertNotIn("rejeitado_arquivado", array_fases)
 
     def test_gargalo_pulsa_um_efeito_so(self):
-        trecho = self.css[self.css.index(".fatia-hexagono.gargalo"):
-                          self.css.index("@keyframes pulsoHexagono")]
+        trecho = self.css[self.css.index(".fluxo-etapa.gargalo"):
+                          self.css.index("@keyframes pulsoFluxo")]
         self.assertEqual(trecho.count("animation:"), 1)
 
-    def test_efeitos_antigos_do_pipeline_linear_sairam(self):
-        for sumiu in ("varreduraFramework", "countBounce", "particula-conector",
-                      "seta-conector", "fluxoArtigos", "etapa-circulo",
-                      "conector-framework", "etapa-numero", "etapa-rotulo"):
+    def test_efeitos_e_classes_do_hexagono_sairam(self):
+        for sumiu in ("hex-numero", "hex-rotulo", "hex-flag", "hex-hub-numero",
+                      "hex-hub-rotulo", "hexagono-caixa", "hexagono-framework",
+                      "resumo-workflow", "resumo-item", "resumo-label", "resumo-valor",
+                      "pulsoHexagono", "pontoNoCirculo"):
             with self.subTest(sumiu=sumiu):
                 self.assertNotIn(sumiu, self.js)
                 self.assertNotIn(sumiu, self.css)
-
-
-class TestHexagonoTemMargemParaOsRotulos(unittest.TestCase):
-    """Achado ao vivo (screenshot que o Mateus mandou): com a caixa em
-    440x440, rótulos quase horizontais ("Submetido" à direita pura,
-    "Publicado" à esquerda pura) e o mais comprido ("Rejeitado/Arquivado")
-    furavam a borda do viewBox e saíam cortados -- SVG recorta por padrão
-    o que passa da borda, e a margem entre `rExt` e a borda nunca foi
-    larga o bastante para texto nenhum. A caixa cresceu para 640x640 sem
-    mexer em `rInt`/`rExt` (o hexágono continua do mesmo tamanho de
-    sempre); esta é a marca d'água geométrica de que a margem ficou
-    generosa o bastante -- não o pixel exato, que só um navegador de
-    verdade confere."""
-
-    def setUp(self):
-        self.js = (TEMPLATES / "slides-avancados-3d.js").read_text(encoding="utf-8")
-
-    def _numero(self, nome):
-        corpo = self.js[self.js.index("function slideFrameworkN8n("):
-                        self.js.index("function slideKPIsAnalyticos(")]
-        m = re.search(nome + r"\s*=\s*([\d.]+)", corpo)
-        self.assertIsNotNone(m, f"não achei a constante {nome}")
-        return float(m.group(1))
-
-    def test_margem_entre_o_anel_de_rotulos_e_a_borda_e_generosa(self):
-        w = self._numero("w")
-        rExt = self._numero("rExt")
-        margem = w / 2 - rExt
-        # "Rejeitado/Arquivado" é o rótulo mais comprido do hexágono; os
-        # 34px da caixa antiga (440x440) nunca foram o bastante para ele,
-        # nem para "Submetido"/"Publicado" na posição due-horizontal.
-        self.assertGreaterEqual(margem, 100)
-
-    def test_o_hexagono_em_si_nao_encolheu(self):
-        # a correção é de MARGEM, não de tamanho -- rInt/rExt continuam
-        # os mesmos de antes do ajuste
-        self.assertEqual(self._numero("rInt"), 78)
-        self.assertEqual(self._numero("rExt"), 186)
-
-
-class TestPontoNoCirculo(unittest.TestCase):
-    """`pontoNoCirculo` -- a trigonometria por trás de cada fatia do
-    hexágono (e do rótulo/número dela). 0° tem de cair no TOPO (não na
-    direita, que é a convenção padrão de ângulo em matemática) -- é o que
-    faz a primeira fase do pipeline nascer no topo do hexágono, como
-    num relógio."""
-
-    def _ponto(self, cx, cy, raio, angulo):
-        fonte = _recorta_3d("pontoNoCirculo")
-        return _no_node(fonte, f"pontoNoCirculo({cx}, {cy}, {raio}, {angulo})")
-
-    def test_zero_graus_cai_no_topo(self):
-        p = self._ponto(100, 100, 50, 0)
-        self.assertAlmostEqual(p["x"], 100, delta=0.01)
-        self.assertAlmostEqual(p["y"], 50, delta=0.01)
-
-    def test_noventa_graus_cai_na_direita(self):
-        p = self._ponto(100, 100, 50, 90)
-        self.assertAlmostEqual(p["x"], 150, delta=0.01)
-        self.assertAlmostEqual(p["y"], 100, delta=0.01)
 
 
 class TestMedianaDe(unittest.TestCase):
