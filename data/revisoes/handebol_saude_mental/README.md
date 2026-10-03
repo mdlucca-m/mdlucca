@@ -25,6 +25,11 @@ saúde mental e handebol selecionar para a próxima fase").
   com uma ficha por registro. 49 foram lidos no texto completo em acesso
   aberto; os outros 49 só pelo resumo real (editoras pagas ou sites que
   bloqueiam download), o que está marcado em cada ficha.
+- **`manuscrito_metodo_resultados.docx`** / **`.md`** — versão de trabalho
+  das seções de Método e Resultados do manuscrito (PRISMA-ScR), com os
+  trechos que só a equipe pode preencher marcados entre colchetes
+  (estratégia de busca, data, números de identificação e triagem por título,
+  registro do protocolo, conferência humana).
 - **`fontes_texto_completo.json`** — de onde veio o texto completo de cada
   um dos 49 obtidos (URL e número de palavras).
 - **`triagem_saude_mental.json`** — os mesmos registros em formato estruturado
