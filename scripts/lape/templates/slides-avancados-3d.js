@@ -182,7 +182,7 @@ function slidePesquisasLinhas3D() {
 
     const nodeRadius = Math.max(20, Math.min(60, 20 + (n_artigos / 5)));
     /* Cor por IDENTIDADE da linha (categórica, uma por linha, igual ao
-       resto do mural -- ver .cartao-pessoa/.fatia-hexagono), não mais
+       resto do mural -- ver .cartao-pessoa/.fluxo-etapa), não mais
        por taxa de publicação: com só 3 cores por faixa, linhas
        diferentes na mesma faixa ficavam indistinguíveis no grafo. A taxa
        de publicação continua visível, mas como número (badgeTaxa
@@ -925,33 +925,26 @@ function slideOrganogramaMetodologico() {
 
 /* ==================== FRAMEWORK DE PESQUISA (PIPELINE REAL) ==================== */
 /* O mesmo mapa tom -> variável de cor que `.cartao-pessoa[data-tom=...]`
-   usa no CSS -- aqui reaproveitado para colorir a fatia de cada fase do
-   hexágono. */
+   usa no CSS -- aqui reaproveitado para colorir cada etapa do fluxo. */
 const TOM_VAR = {
   azul: "--series-1", laranja: "--series-2", verde: "--series-3", ambar: "--series-4",
   magenta: "--series-5", violeta: "--series-7", bom: "--good", alerta: "--warning",
 };
 
-/* Um ponto num círculo, a partir do centro, do raio e do ângulo em graus
-   (0° = topo, sentido horário) -- a mesma trigonometria de sempre, só
-   para não repeti-la em cada segmento do hexágono. */
-function pontoNoCirculo(cx, cy, raio, anguloGraus) {
-  const rad = (anguloGraus - 90) * Math.PI / 180;
-  return { x: cx + raio * Math.cos(rad), y: cy + raio * Math.sin(rad) };
-}
-
 /* As fases batem exato com os status do banco (config.ARTICLE_STATUS) --
    nunca um estágio inventado que o sistema não consegue contar de
-   verdade. Rejeitado/arquivado sempre foram um desfecho à parte do fluxo
-   principal (nunca escondido, nunca forçado como "próximo passo") -- e é
-   exatamente esse sexto estado real que fecha as 6 partes do hexágono
-   pedido, sem inventar uma fase que não existe no banco.
+   verdade. Rejeitado/arquivado continua um desfecho à parte do fluxo
+   principal (nunca escondido, nunca forçado como "próximo passo depois
+   de publicado") -- por isso ele sai da trilha sequencial e vira um
+   cartão separado abaixo, puxado por uma borda tracejada.
 
-   Referência que o Mateus mandou é um hexágono giratório, 6 pétalas ao
-   redor de um centro. Aqui cada pétala é uma fatia de anel (SVG puro,
-   sem lib nova): o miolo mostra o total em fluxo, e a fatia do gargalo
-   (a etapa com mais manuscritos parados antes da publicação) pulsa uma
-   borda -- um efeito só, não vários empilhados. */
+   Trocado o hexágono giratório por uma trilha horizontal de etapas: a
+   mesma leitura "por onde o manuscrito está passando" mas como sequência
+   (a forma certa para um fluxo com começo e fim), cada etapa com uma
+   barra proporcional ao volume e setas marcando a direção real do
+   processo. O gargalo (a etapa com mais manuscritos parados antes da
+   publicação) mantém o único sinal de alerta: borda pulsante + selo
+   "GARGALO", sem inventar um segundo efeito por cima. */
 function slideFrameworkN8n() {
   const t = tv();
   if (!t) return escalonar(el("div", { class: "slide" }, vazio("Dados do framework não disponíveis.")));
@@ -962,11 +955,11 @@ function slideFrameworkN8n() {
     { id: "em_revisao", label: "Em Revisão", tom: "ambar" },
     { id: "aceito", label: "Aceito", tom: "bom" },
     { id: "publicado", label: "Publicado", tom: "verde" },
-    { id: "rejeitado_arquivado", label: "Rejeitado/Arquivado", tom: "alerta" },
   ];
+  const DESFECHO = { id: "rejeitado_arquivado", label: "Rejeitado/Arquivado", tom: "alerta" };
 
   const contagem = {};
-  FASES.forEach(f => { contagem[f.id] = 0; });
+  FASES.concat([DESFECHO]).forEach(f => { contagem[f.id] = 0; });
   artigos().forEach(function (a) {
     if (contagem.hasOwnProperty(a.status)) contagem[a.status]++;
     else if (a.status === "rejeitado" || a.status === "arquivado") contagem.rejeitado_arquivado++;
@@ -980,77 +973,45 @@ function slideFrameworkN8n() {
   /* Gargalo real: a etapa anterior à publicação com mais artigos parados
      -- nunca o desfecho (rejeitado/arquivado não é "onde o fluxo travou",
      é onde ele terminou). */
-  const antesDePublicar = FASES.filter(f => f.id !== "publicado" && f.id !== "rejeitado_arquivado");
+  const antesDePublicar = FASES.filter(f => f.id !== "publicado");
   const gargalo = antesDePublicar.reduce((pior, f) =>
     contagem[f.id] > (contagem[pior.id] || 0) ? f : pior, antesDePublicar[0]);
   const gargaloId = gargalo && contagem[gargalo.id] > 0 ? gargalo.id : null;
 
+  const maxFluxo = Math.max.apply(null, FASES.map(f => contagem[f.id])) || 1;
+
   const container = el("div", { class: "slide slide-framework-n8n" });
 
-  /* Achado ao vivo: com a caixa em 440x440, os rótulos quase horizontais
-     ("Submetido" à direita pura, "Publicado" à esquerda pura) e o mais
-     comprido ("Rejeitado/Arquivado") furavam a borda do viewBox e saíam
-     cortados -- SVG recorta por padrão o que passa da borda, e a margem
-     entre `rExt` e a borda (34px) nunca foi larga o bastante para texto
-     nenhum. A caixa cresce para 640x640 SEM mexer em `rInt`/`rExt`: o
-     hexágono continua do mesmo tamanho de sempre (mesmo raio, em
-     unidades absolutas), só ganha mais margem ao redor para o rótulo
-     caber -- ver o mesmo ajuste em `max-width` no CSS. */
-  const w = 640, h = 640, cx = w / 2, cy = h / 2, rInt = 78, rExt = 186, vao = 360 / FASES.length, gap = 2.6;
-  const svg = elSvg("svg", { viewBox: `0 0 ${w} ${h}`, class: "plot hexagono-framework" });
+  container.appendChild(el("div", { class: "fluxo-cabecalho" }, [
+    el("span", { class: "fluxo-total-numero", text: String(total) }),
+    el("span", { class: "fluxo-total-rotulo", text: "manuscritos em fluxo" }),
+  ]));
 
+  const trilha = el("div", { class: "fluxo-trilha" });
   FASES.forEach(function (fase, i) {
-    const a0 = i * vao + gap / 2, a1 = (i + 1) * vao - gap / 2, meio = (a0 + a1) / 2;
-    const pInt0 = pontoNoCirculo(cx, cy, rInt, a0), pExt0 = pontoNoCirculo(cx, cy, rExt, a0);
-    const pExt1 = pontoNoCirculo(cx, cy, rExt, a1), pInt1 = pontoNoCirculo(cx, cy, rInt, a1);
-    const d = `M ${pInt0.x} ${pInt0.y} L ${pExt0.x} ${pExt0.y} `
-      + `A ${rExt} ${rExt} 0 0 1 ${pExt1.x} ${pExt1.y} L ${pInt1.x} ${pInt1.y} `
-      + `A ${rInt} ${rInt} 0 0 0 ${pInt0.x} ${pInt0.y} Z`;
-    svg.appendChild(elSvg("path", {
-      d, fill: `var(${TOM_VAR[fase.tom]})`,
-      class: "fatia-hexagono" + (fase.id === gargaloId ? " gargalo" : ""),
-    }));
-
-    const pMeio = pontoNoCirculo(cx, cy, (rInt + rExt) / 2, meio);
-    svg.appendChild(elSvg("text", { x: pMeio.x, y: pMeio.y + 6, "text-anchor": "middle",
-      class: "hex-numero" }, String(contagem[fase.id] || 0)));
-
-    const pLabel = pontoNoCirculo(cx, cy, rExt + 22, meio);
-    const ancora = Math.abs(pLabel.x - cx) < 8 ? "middle" : (pLabel.x < cx ? "end" : "start");
-    svg.appendChild(elSvg("text", { x: pLabel.x, y: pLabel.y, "text-anchor": ancora,
-      class: "hex-rotulo" }, fase.label));
-
-    if (fase.id === gargaloId) {
-      const pFlag = pontoNoCirculo(cx, cy, rExt + 40, meio);
-      svg.appendChild(elSvg("text", { x: pFlag.x, y: pFlag.y, "text-anchor": ancora,
-        class: "hex-flag" }, "GARGALO"));
+    const n = contagem[fase.id] || 0;
+    const pct = Math.max(6, Math.round((n / maxFluxo) * 100));
+    trilha.appendChild(el("div", { class: "fluxo-etapa" + (fase.id === gargaloId ? " gargalo" : "") }, [
+      fase.id === gargaloId ? el("span", { class: "fluxo-flag", text: "GARGALO" }) : null,
+      el("span", { class: "fluxo-etapa-numero", text: String(n) }),
+      el("span", { class: "fluxo-etapa-rotulo", text: fase.label }),
+      el("div", { class: "fluxo-barra" }, [
+        el("div", { class: "fluxo-barra-preenchida",
+          style: "width:" + pct + "%; background: var(" + TOM_VAR[fase.tom] + ");" }),
+      ]),
+    ]));
+    if (i < FASES.length - 1) {
+      trilha.appendChild(el("span", { class: "fluxo-seta", "aria-hidden": "true", text: "→" }));
     }
   });
+  container.appendChild(trilha);
 
-  /* Pedido depois de ver a referência de novo: as pétalas soltas do
-     miolo, com um respiro visível entre elas -- não coladas (mesma
-     geometria de fatia de anel, só com o hub menor que `rInt`, então
-     sobra um anel vazio entre os dois). */
-  svg.appendChild(elSvg("circle", { cx, cy, r: rInt - 26, class: "hex-hub" }));
-  svg.appendChild(elSvg("text", { x: cx, y: cy - 6, "text-anchor": "middle", class: "hex-hub-numero" }, String(total)));
-  svg.appendChild(elSvg("text", { x: cx, y: cy + 16, "text-anchor": "middle", class: "hex-hub-rotulo" }, "em fluxo"));
-
-  const fig = document.createElement("figure");
-  fig.setAttribute("class", "chart");
-  fig.appendChild(svg);
-  container.appendChild(el("div", { class: "hexagono-caixa" }, [fig]));
-
-  /* Resumo textual, embaixo do hexágono -- o mesmo par de fatos que o
-     pipeline linear já mostrava. */
-  container.appendChild(el("div", { class: "resumo-workflow" }, [
-    el("div", { class: "resumo-item" }, [
-      el("span", { class: "resumo-label", text: "Total em fluxo:" }),
-      el("span", { class: "resumo-valor", text: String(total) }),
-    ]),
-    el("div", { class: "resumo-item" }, [
-      el("span", { class: "resumo-label", text: "Gargalo:" }),
-      el("span", { class: "resumo-valor",
-        text: gargaloId ? gargalo.label + " (" + contagem[gargaloId] + ")" : "nenhum" }),
+  const nDesfecho = contagem[DESFECHO.id] || 0;
+  container.appendChild(el("div", { class: "fluxo-desfecho" }, [
+    el("span", { class: "fluxo-desfecho-rotulo", text: "Desfecho fora do fluxo principal" }),
+    el("div", { class: "fluxo-desfecho-cartao" }, [
+      el("span", { class: "fluxo-desfecho-numero", text: String(nDesfecho) }),
+      el("span", { class: "fluxo-desfecho-texto", text: DESFECHO.label }),
     ]),
   ]));
 

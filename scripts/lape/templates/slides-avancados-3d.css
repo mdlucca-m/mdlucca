@@ -686,99 +686,165 @@
   background: var(--ink-muted);
 }
 
-/* ==================== FRAMEWORK N8N ==================== */
+/* ==================== FRAMEWORK N8N — FLUXO DE PRODUÇÃO ==================== */
 .slide-framework-n8n {
   display: flex;
   flex-direction: column;
-  gap: clamp(12px, 1.8vh, 24px);
-  padding: clamp(14px, 2vh, 28px);
+  gap: clamp(16px, 2.6vh, 32px);
+  padding: clamp(18px, 2.6vh, 34px) clamp(20px, 3vw, 44px);
   background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 40%, transparent), color-mix(in srgb, var(--accent) 5%, var(--surface)));
   min-height: 0;
   flex: 1;
 }
 
-/* Era um pipeline linear (círculos ligados por uma faixa) -- pedido
-   depois de ver a referência de um hexágono giratório de 6 pétalas: as
-   6 partes agora são os 6 estados reais do banco (as 5 fases do fluxo
-   principal mais rejeitado/arquivado, o desfecho que já existia à
-   parte), desenhadas como fatias de anel ao redor de um miolo central
-   com o total em fluxo. */
-.hexagono-caixa {
+.fluxo-cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 12px;
+}
+.fluxo-total-numero {
+  font-size: clamp(32px, 4.4vw, 56px);
+  font-weight: 800;
+  color: var(--ink);
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent-strong) 55%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+.fluxo-total-rotulo {
+  font-size: clamp(13px, 1.3vw, 17px);
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+/* Era um hexágono giratório (6 fatias de anel ao redor de um miolo) --
+   trocado por uma trilha horizontal de etapas: a mesma leitura "por
+   onde o manuscrito está passando", mas como sequência (começo e fim
+   reais), com setas marcando a direção do processo. */
+.fluxo-trilha {
   flex: 1;
   min-height: 0;
   display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(6px, 1.2vw, 14px);
+}
+
+.fluxo-etapa {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  padding: clamp(14px, 2vh, 22px) clamp(8px, 1.4vw, 16px);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px -14px rgba(0, 0, 0, .45);
+  transition: transform .2s ease, box-shadow .2s ease;
 }
-.hexagono-caixa figure.chart { width: 100%; height: 100%; max-width: 640px; margin: 0; }
-.hexagono-framework { width: 100%; height: 100%; }
-
-.fatia-hexagono { transition: opacity .2s ease; }
-.hexagono-framework:hover .fatia-hexagono { opacity: .82; }
-.hexagono-framework .fatia-hexagono:hover { opacity: 1; }
-
-/* Gargalo é a única fatia com um sinal de alerta -- e um só, não vários
-   empilhados: a borda pulsa em `--critical` por cima da própria cor da
-   fatia, sem mexer em mais nada. */
-.fatia-hexagono.gargalo {
-  stroke: var(--critical);
-  animation: pulsoHexagono 1.8s ease-in-out infinite;
-}
-@keyframes pulsoHexagono {
-  0%, 100% { stroke-width: 2px; stroke-opacity: .6; }
-  50%      { stroke-width: 5px; stroke-opacity: 1; }
+.fluxo-etapa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -14px rgba(0, 0, 0, .55);
 }
 
-.hex-numero {
-  font-size: 22px;
-  font-weight: 800;
-  fill: #fff;
-  font-variant-numeric: tabular-nums;
-  paint-order: stroke;
-  stroke: rgba(0, 0, 0, .35);
-  stroke-width: 3px;
+/* Gargalo é a única etapa com um sinal de alerta -- e um só, não vários
+   empilhados: a borda pulsa em `--critical` por cima do cartão, sem
+   mexer em mais nada. */
+.fluxo-etapa.gargalo {
+  border-color: var(--critical);
+  animation: pulsoFluxo 1.8s ease-in-out infinite;
 }
-.hex-rotulo {
-  font-size: 12.5px;
-  font-weight: 650;
-  fill: var(--ink-2);
+@keyframes pulsoFluxo {
+  0%, 100% { box-shadow: 0 8px 24px -14px rgba(0, 0, 0, .45), 0 0 0 1px var(--critical); }
+  50%      { box-shadow: 0 8px 24px -14px rgba(0, 0, 0, .45), 0 0 0 3px var(--critical); }
 }
-.hex-flag {
-  font-size: 10px;
+
+.fluxo-flag {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-size: 9.5px;
   font-weight: 800;
   letter-spacing: .06em;
-  fill: var(--critical);
+  color: #fff;
+  background: var(--critical);
+  padding: 2px 8px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, .5);
 }
-.hex-hub { fill: var(--surface); stroke: var(--border); stroke-width: 1px; }
-.hex-hub-numero { font-size: 34px; font-weight: 800; fill: var(--ink); text-anchor: middle; font-variant-numeric: tabular-nums; }
-.hex-hub-rotulo { font-size: 12px; font-weight: 650; fill: var(--ink-2); text-anchor: middle; }
 
-.resumo-workflow {
+.fluxo-etapa-numero {
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.fluxo-etapa-rotulo {
+  font-size: clamp(11px, 1vw, 13px);
+  font-weight: 650;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.fluxo-barra {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 70%, transparent);
+  overflow: hidden;
+}
+.fluxo-barra-preenchida {
+  height: 100%;
+  border-radius: 999px;
+  transition: width .4s ease;
+}
+
+.fluxo-seta {
   display: flex;
-  gap: clamp(20px, 4vw, 60px);
-  padding: clamp(10px, 1.5vh, 18px);
-  border-top: 1px solid var(--border);
-  justify-content: center;
-  flex-wrap: wrap;
+  align-items: center;
+  flex: 0 0 auto;
+  font-size: clamp(16px, 2vw, 26px);
+  color: var(--ink-muted);
 }
 
-.resumo-item {
+/* Rejeitado/arquivado nunca foi "o próximo passo depois de publicado" --
+   por isso fica fora da trilha sequencial, puxado por uma borda
+   tracejada, como o desfecho à parte que sempre foi. */
+.fluxo-desfecho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 18px);
+  padding-top: clamp(10px, 1.6vh, 18px);
+  border-top: 1px dashed var(--border);
+}
+.fluxo-desfecho-rotulo {
+  font-size: clamp(10.5px, 0.95vw, 12.5px);
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+.fluxo-desfecho-cartao {
   display: flex;
   align-items: baseline;
   gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, var(--border));
 }
-
-.resumo-label {
-  font-size: clamp(10px, 0.85vw, 12px);
-  color: var(--ink-2);
-  font-weight: 500;
-}
-
-.resumo-valor {
-  font-size: clamp(13px, 1.2vw, 18px);
-  color: var(--accent-strong);
-  font-weight: 700;
+.fluxo-desfecho-numero {
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 800;
+  color: var(--warning);
   font-variant-numeric: tabular-nums;
+}
+.fluxo-desfecho-texto {
+  font-size: clamp(11px, 1vw, 13px);
+  font-weight: 650;
+  color: var(--ink-2);
 }
 
 /* ==================== KPIs ANALÍTICOS 4K ==================== */
