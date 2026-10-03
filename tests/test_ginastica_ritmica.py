@@ -158,12 +158,17 @@ class TestSemeaduraDaBuscaPesquisada(BaseGinasticaRitmica):
 
     def test_nenhum_estudo_semeado_chuta_qualis_ou_fator_de_impacto(self):
         # o mesmo principio da Ana (ana.py): um numero chutado e pior que
-        # nenhum -- Qualis e fator de impacto so entram quando conferidos,
-        # e nesta busca nenhum foi
+        # nenhum. Qualis nunca foi conferido em nenhuma das tres rodadas de
+        # busca, e fica sempre de fora. Fator de impacto virou confiavel na
+        # terceira rodada -- veio da planilha real da propria revisao do
+        # Mateus (nao de uma leitura nossa), entao pode entrar, mas so como
+        # numero plausivel (nunca zero/negativo, o que indicaria campo
+        # mal copiado em vez de valor real).
         for estudo in ginastica_ritmica.ESTUDOS_SEMEADOS:
             with self.subTest(titulo=estudo["titulo"]):
                 self.assertNotIn("qualis", estudo)
-                self.assertNotIn("fator_impacto", estudo)
+                if "fator_impacto" in estudo:
+                    self.assertGreater(estudo["fator_impacto"], 0)
 
 
 class TestComandoRitmica(unittest.TestCase):
