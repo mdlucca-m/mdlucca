@@ -373,7 +373,151 @@ FORCA_VOLEI = {
     ],
 }
 
-FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI}
+
+# ════════════════════════════════════════════════════════════════════════════
+# ONDA 7 / 5 / 3 / 1 — a prescrição muda de SÉRIE para série
+# ════════════════════════════════════════════════════════════════════════════
+# Duas decisões que valem mais do que os números:
+#
+# O "1" é uma repetição a 90%, NÃO um teste de 1RM. Noventa por cento é a carga
+# de umas 4 repetições: fazer uma só deixa 3 de reserva. Oito máximos de verdade
+# num dia não é treino, é competição — e nenhum deles sairia bom depois do
+# terceiro, porque o que limita não é o músculo, é o sistema nervoso.
+#
+# O afundo para no 3. Unilateral com carga máxima apoia tudo num tornozelo e num
+# joelho, com o tronco livre: o ganho da última série não paga o risco dela.
+#
+# Por isso as colunas de carga desta ficha não são "1ª/2ª/3ª/4ª": cada uma diz
+# quantas repetições, a que percentual e com que pausa. É a prescrição inteira
+# no cabeçalho, e o corpo da tabela fica todo em branco para o atleta escrever.
+FORCA_ONDA = {
+    "arquivo": "ELASE-forca-onda-7-5-3-1.pdf",
+    "meta_titulo": "ELASE - Forca em onda 7/5/3/1",
+    "meta_assunto": "Oito exercicios em onda 7-5-3-1 com carga crescente e pausa proporcional",
+    "titulo": "Força em onda — 7 / 5 / 3 / 1",
+    "titulo_verso": "Como se faz uma onda",
+    "protocolo": "Oito exercícios &nbsp;&middot;&nbsp; 7, 5, 3 e 1 repetição "
+                 "&nbsp;&middot;&nbsp; carga sobe, pausa sobe com ela",
+    "rotulo_carga": "SEU 1RM",
+    "cab_meio": ["SÉRIES", "ENTRE EX.", "SEU 1RM"],
+    "escrever_de": 3,
+    "cab_series": [
+        "7 reps<br/>70%<br/>2 min",
+        "5 reps<br/>78%<br/>2,5 min",
+        "3 reps<br/>85%<br/>3 min",
+        "1 rep<br/>90%<br/>3,5 min",
+    ],
+    "abertura":
+        "<b>A carga sobe a cada série e a pausa sobe com ela</b> — está tudo no "
+        "cabeçalho da tabela, de 7 repetições a 70% com 2 minutos até "
+        "<b>1 repetição a 90% com 3 minutos e meio</b>. Encurtar a pausa não "
+        "economiza tempo: troca a série pesada por uma série cansada. E "
+        "<b>o “1” não é teste de máximo</b> — 90% é a carga de umas 4 "
+        "repetições, então sobram 3.",
+    "aquecimento_titulo": "Aquecimento — antes do primeiro exercício de cada padrão",
+    "aquecimento_nota": "A série de 7 a 70% já é a sua rampa dentro do exercício. "
+                        "Este aquecimento é o que vem antes da barra, e não deve cansar.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de tornozelo, quadril e ombro", "6 min", "a mesma do app"],
+        ["Bicicleta ou esteira, ritmo leve", "5 min", "até suar, sem cansar"],
+        ["Barra vazia e depois 55% da carga", "1 × 8 e 1 × 5",
+         "1 min entre elas"],
+    ],
+    "exercicios": [
+        ("Agachamento livre", "joelho — o mais neural, por isso abre a sessão",
+         "4", "3 min", ""),
+        ("Supino reto com barra", "empurrar horizontal", "4", "3 min", ""),
+        ("Levantamento terra", "dobra de quadril — lombar cansada? corte o 1",
+         "4", "3 min", ""),
+        ("Barra fixa com carga", "puxar vertical — não dá 7 com peso? use o puxador",
+         "4", "3 min", ""),
+        ("Desenvolvimento com barra", "empurrar vertical", "4", "3 min", ""),
+        ("Remada curvada com barra", "puxar horizontal — o contrapeso do supino",
+         "4", "3 min", ""),
+        ("Hip thrust", "extensão de quadril — o mais seguro da ficha a 90%",
+         "4", "3 min", ""),
+        ("Afundo com halteres", "unilateral — <b>PARA NO 3</b>, não faz o 1. Ver o verso",
+         "3", "3 min", ""),
+    ],
+    "nota_tabela":
+        "Escreva o seu <b>1RM</b> na coluna estreita e os quilos que realmente usou "
+        "nas quatro da direita. Não sabe o seu 1RM? O verso mostra como achar as "
+        "cargas sem ele.",
+    "caixa_duracao":
+        "<b>Duração prevista: 105 a 120 minutos</b> com o aquecimento — oito "
+        "exercícios com pausa cheia é uma sessão longa, e vale saber disso antes de "
+        "chegar na metade. <b>Se tiver menos de 90 minutos:</b> faça os cinco "
+        "primeiros com a onda inteira e os três últimos só até o 3. Corte a série, "
+        "nunca a pausa.",
+    "verso": [
+        ("h", "A onda, série por série"),
+        ("grade", ["SÉRIE", "REPS", "% 1RM", "PAUSA DEPOIS", "O QUE ESTA SÉRIE É"], [
+            ["1ª", "7", "70%", "2 min",
+             "rampa com volume — não deve ser difícil"],
+            ["2ª", "5", "78%", "2 min 30 s", "a carga começa a pesar"],
+            ["3ª", "3", "85%", "3 min", "a série que mais constrói força"],
+            ["4ª", "1", "90%", "3 min 30 s",
+             "a mais pesada do dia, com 3 repetições de reserva"],
+        ], [0.11, 0.1, 0.12, 0.2, 0.47],
+         [("BACKGROUND", (0, 3), (-1, 3), VERDE_CLARO),
+          ("BOX", (0, 3), (-1, 3), 1.1, VERDE)]),
+        ("espaco", 5),
+        ("pq", "Depois da 4ª série vêm <b>3 minutos</b> antes do exercício "
+               "seguinte. São 16 repetições por exercício, 128 na sessão."),
+        ("espaco", 7),
+        ("p", "<b>Intervalo proporcional é isto:</b> a pausa repõe o que a série "
+              "gastou, e a de 1 a 90% gasta muito mais sistema nervoso do que a de "
+              "7 a 70% — mesmo levando um sexto do tempo. Cortar pausa não encurta "
+              "o treino, muda o treino."),
+        ("espaco", 7),
+        ("caixa", "<b>O “1” é uma repetição a 90%, não um teste de 1RM.</b> "
+                  "Noventa por cento é a carga de umas 4 repetições: fazendo uma só, "
+                  "sobram 3. Oito máximos de verdade num dia não é treino, é "
+                  "competição — e nenhum sairia bom depois do terceiro. <b>Se a sua "
+                  "repetição sai tremendo ou com a técnica mudando, a carga passou de "
+                  "90%</b>: desça na semana que vem. Teste de máximo tem dia próprio, "
+                  "três exercícios no máximo e alguém observando.",
+         AMBAR_CLARO, AMBAR),
+        ("espaco", 8),
+        ("h", "Achar as cargas sem saber o seu 1RM"),
+        ("passos", [
+            "Comece pela <b>série de 3</b>: qual carga você faria 3 vezes com sobra "
+            "de umas 3 repetições? Essa é a 3ª série (85%).",
+            "A 1ª é essa carga <b>menos 15%</b>, a 2ª <b>menos 8%</b> e a 4ª é "
+            "<b>mais 5%</b>. Com 100 kg na de 3: 85, 92 e 105.",
+            "<b>Se a série de 7 for difícil, a conta inteira está alta</b> — desça "
+            "tudo 5 kg e siga. Ela é rampa, não é teste.",
+            "Anote os quatro. O seu 1RM é a carga da série de 3 <b>dividida por "
+            "0,85</b> — e dela sai a onda da semana que vem.",
+        ]),
+        ("espaco", 8),
+        ("h", "Os três exercícios com regra própria"),
+        ("notas", [
+            ("Afundo com halteres", "<b>Para no 3 — não faz a série de 1.</b> "
+             "Unilateral com carga máxima apoia o corpo num tornozelo e num joelho, "
+             "com o tronco livre: o ganho não paga o risco. São 7, 5 e 3 <b>em cada "
+             "perna</b>, começando pela mais fraca — e a perna boa para no número "
+             "que a fraca fez."),
+            ("Levantamento terra", "Vem depois do agachamento, com a lombar já "
+             "cansada. <b>Se na série de 3 a lombar arredondar ou a barra sair do "
+             "corpo, não faça a de 1.</b> Parar no 3 num dia pesado é decisão boa, "
+             "não desistência."),
+            ("Barra fixa com carga", "Não faz 7 com peso pendurado? Use o puxador "
+             "frente com os mesmos percentuais. Faz 7 sem peso mas não com? Onda com "
+             "o peso do corpo e menos repetições (5, 4, 3, 2). O que não serve é "
+             "trocar de padrão: ela e a remada são as únicas séries de puxar."),
+        ]),
+        ("espaco", 5),
+        ("caixa", "<b>Não repita esta sessão em dois dias seguidos.</b> Oito "
+                  "exercícios a 90% é carga neural alta: deixe <b>48 horas</b> antes "
+                  "de outra pesada; com jogo em menos de 48 h, faça a de potência."),
+        ("espaco", 4),
+    ],
+}
+
+FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
+          "onda": FORCA_ONDA}
 
 
 def main():

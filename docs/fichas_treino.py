@@ -16,7 +16,7 @@ primeira correção que eu fizesse em uma e esquecesse na outra.
 import sys
 
 from reportlab.lib import colors
-from reportlab.lib.enums import TA_LEFT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import mm
@@ -60,6 +60,8 @@ CEL_B = est("celb", fontName="Helvetica-Bold", fontSize=10, leading=12)
 CEL_PQ = est("celpq", fontSize=7.6, leading=9, textColor=CINZA)
 CAB = est("cab", fontName="Helvetica-Bold", fontSize=7.6, leading=9,
           textColor=colors.white)
+CAB_C = est("cabc", fontName="Helvetica-Bold", fontSize=7.6, leading=9.4,
+            textColor=colors.white, alignment=TA_CENTER)
 
 
 # ── Peças ───────────────────────────────────────────────────────────────────
@@ -130,14 +132,23 @@ def campos_identificacao():
     return t
 
 
-def tabela_sessao(exercicios, rotulo_carga):
+def tabela_sessao(exercicios, rotulo_carga, cab_series=None, cab_meio=None,
+                  escrever_de=4):
     """A tabela principal. Séries, reps e pausa vêm POR EXERCÍCIO: num treino de
-    potência eles mudam de linha para linha, e uniformizar seria mentir."""
-    cab = [Paragraph("EXERCÍCIO", CAB), Paragraph("SÉRIES", CAB),
-           Paragraph("PAUSA", CAB), Paragraph(rotulo_carga, CAB),
-           Paragraph("1ª", CAB), Paragraph("2ª", CAB),
-           Paragraph("3ª", CAB), Paragraph("4ª", CAB)]
-    dados = [cab]
+    potência eles mudam de linha para linha, e uniformizar seria mentir.
+
+    Numa onda (7/5/3/1) é o contrário: a prescrição muda de SÉRIE para série e é
+    igual em todos os exercícios. Por isso as quatro colunas de carga aceitam
+    cabeçalho próprio — elas passam a dizer quantas repetições, a que percentual
+    e com que pausa — e `escrever_de` move a divisória: tudo à direita dela é
+    campo em branco para o atleta preencher à mão.
+    """
+    rotulos = cab_series or ["1ª", "2ª", "3ª", "4ª"]
+    estilo_s = CAB_C if cab_series else CAB
+    meio = cab_meio or ["SÉRIES", "PAUSA", rotulo_carga]
+    dados = [[Paragraph("EXERCÍCIO", CAB)]
+             + [Paragraph(c, CAB) for c in meio]
+             + [Paragraph(r, estilo_s) for r in rotulos]]
     for i, (nome, padrao, serie, pausa, carga) in enumerate(exercicios, 1):
         dados.append([
             Paragraph("<b>%d. %s</b><br/><font size=7.6 color='#5A6672'>%s</font>"
@@ -148,15 +159,16 @@ def tabela_sessao(exercicios, rotulo_carga):
     # enquanto os nomes coubessem numa linha: nesta sessão eles são mais longos,
     # e o texto passou por cima da linha de baixo. O respiro mínimo vem do
     # padding, que dá altura de sobra para escrever a carga à mão.
+    d = escrever_de
     return tabela(dados, [206, 44, 38, 40, 47.75, 47.75, 47.75, 47.75], [
         ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-        ("BACKGROUND", (4, 1), (-1, -1), colors.HexColor("#FAFBFC")),
-        ("LINEAFTER", (3, 0), (3, -1), 1.1, LINHA_FORTE),
-        ("ROWBACKGROUNDS", (0, 1), (3, -1),
+        ("BACKGROUND", (d, 1), (-1, -1), colors.HexColor("#FAFBFC")),
+        ("LINEAFTER", (d - 1, 0), (d - 1, -1), 1.1, LINHA_FORTE),
+        ("ROWBACKGROUNDS", (0, 1), (d - 1, -1),
          [colors.white, colors.HexColor("#F4F7FA")]),
         ("TOPPADDING", (0, 1), (-1, -1), 6),
         ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-    ], altura=[16] + [None] * len(exercicios))
+    ], altura=[None if cab_series else 16] + [None] * len(exercicios))
 
 
 def campo_anotacao():
@@ -199,7 +211,9 @@ def montar(f):
     h.append(Spacer(1, 11))
 
     h.append(Paragraph("A sessão — anote o que você usou em cada série", H))
-    h.append(tabela_sessao(f["exercicios"], f["rotulo_carga"]))
+    h.append(tabela_sessao(f["exercicios"], f["rotulo_carga"],
+                           f.get("cab_series"), f.get("cab_meio"),
+                           f.get("escrever_de", 4)))
     h.append(Spacer(1, 7))
     h.append(Paragraph(f["nota_tabela"], PQ))
     h.append(Spacer(1, 8))
@@ -231,6 +245,17 @@ def montar(f):
                 h.append(KeepTogether([Paragraph(
                     "<b>%s.</b> %s" % (nome, texto),
                     est("nota", fontSize=9, leading=12, leftIndent=8, spaceAfter=6))]))
+        elif bloco[0] == "grade":
+            # Tabela de N colunas: ("grade", cabeçalho, linhas, frações, extra).
+            # A de três colunas abaixo nasceu antes e tem estilo próprio por
+            # linha; esta serve para qualquer forma — a onda precisa de cinco.
+            dados = [[Paragraph(c, CAB) for c in bloco[1]]]
+            for linha in bloco[2]:
+                dados.append([Paragraph(x, CEL) for x in linha])
+            h.append(tabela(dados, [LARGURA * fr for fr in bloco[3]],
+                            [("ROWBACKGROUNDS", (0, 1), (-1, -1),
+                              [colors.white, colors.HexColor("#F4F7FA")])]
+                            + list(bloco[4] if len(bloco) > 4 else [])))
         elif bloco[0] == "tabela":
             dados = [[Paragraph(c, CAB) for c in bloco[1]]]
             for linha in bloco[2]:
@@ -241,10 +266,13 @@ def montar(f):
                             [LARGURA * 0.38, LARGURA * 0.22, LARGURA * 0.40],
                             bloco[3] if len(bloco) > 3 else None))
 
+    # O rótulo "Como foi" e as linhas para escrever não se separam: o rótulo
+    # sozinho no pé de uma página e as linhas na seguinte é um campo que ninguém
+    # preenche.
     h.append(Paragraph("Depois do treino", H))
     h.append(Paragraph(DEPOIS_DO_TREINO, P))
     h.append(Spacer(1, 10))
-    h.append(campo_anotacao())
+    h.append(KeepTogether([campo_anotacao()]))
     return h
 
 
