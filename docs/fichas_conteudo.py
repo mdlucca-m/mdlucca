@@ -7,7 +7,8 @@
 
 import sys
 
-from fichas_treino import AMBAR, AMBAR_CLARO, VERDE, VERDE_CLARO, gerar
+from fichas_treino import (AMBAR, AMBAR_CLARO, VERDE, VERDE_CLARO, gerar,
+                           montar_registro)
 
 # ════════════════════════════════════════════════════════════════════════════
 # FORÇA PURA — 4 x 4, carga submáxima
@@ -648,8 +649,271 @@ POTENCIA_BARRA = {
     ],
 }
 
+
+# ════════════════════════════════════════════════════════════════════════════
+# REGISTRO DE CARGAS — uma folha por atleta, oito semanas
+# ════════════════════════════════════════════════════════════════════════════
+# Esta não é uma sessão: é o histórico. A ficha de treino diz o que fazer hoje;
+# esta diz o que ele fez nas últimas oito semanas, que é a única coisa capaz de
+# responder se ele está progredindo. Oito colunas porque oito semanas é um
+# bloco fechado do macrociclo — no fim delas há reteste, e a folha acaba junto.
+#
+# O que a folha NÃO pede: nada que não seja treino. Sem peso de ninguém a mais
+# do que o próprio atleta precisa, sem dado financeiro, sem nada que ele não
+# possa deixar em cima do banco da sala.
+CINZA_NOTA = "<br/><font size=7.3 color='#5A6672'>%s</font>"
+SEMANAS = ["SEM %d<br/>___/___" % i for i in range(1, 9)]
+
+REGISTRO = {
+    "arquivo": "ELASE-registro-de-cargas.pdf",
+    "layout": montar_registro,
+    "meta_titulo": "ELASE - Registro de cargas do atleta",
+    "meta_assunto": "Folha individual de cargas e testes, oito semanas",
+    "titulo": "Registro de cargas",
+    "titulo_verso": "O que fazer com estes números",
+    "protocolo": "Uma folha por atleta &nbsp;&middot;&nbsp; oito semanas "
+                 "&nbsp;&middot;&nbsp; cargas e testes no mesmo lugar",
+    "campos": ["Atleta", "Posição", "Início"],
+    "abertura":
+        "<b>Esta folha é sua e fica com você.</b> Escreva a <b>maior carga que "
+        "você completou com a técnica limpa</b> naquela semana — não a que você "
+        "tentou. Uma carga anotada errada para cima vira a sua referência do mês "
+        "seguinte, e aí o treino inteiro sai do lugar. <b>No fim das oito "
+        "semanas, mande uma foto desta folha para a comissão</b>: é com ela que "
+        "a sua progressão é comparada com a do elenco.",
+    "matrizes": [
+        {
+            "titulo": "Cargas — a maior que você completou na semana, em quilos",
+            "nota": "Deixe em branco a semana em que não treinou aquele "
+                    "exercício. Branco é informação; número inventado não é.",
+            "coluna_fixa": "1RM<br/>EST.",
+            "colunas": SEMANAS,
+            "grupos": [
+                ("FORÇA — a carga de trabalho, não o seu máximo", [
+                    "Agachamento livre",
+                    "Supino reto com barra",
+                    "Levantamento terra",
+                    "Stiff (terra romeno)",
+                    "Desenvolvimento com barra",
+                    "Remada curvada com barra",
+                    "Barra fixa com carga / puxador",
+                    "Hip thrust",
+                    "Afundo ou búlgaro" + CINZA_NOTA % "anote as DUAS pernas: E / D",
+                ]),
+                ("POTÊNCIA — carga leve; o número aqui serve para não subir demais", [
+                    "Agachamento dinâmico",
+                    "Terra dinâmico",
+                    "Push press",
+                    "Supino explosivo",
+                    "Remada explosiva",
+                ]),
+                ("O QUE FALTA — escreva o exercício na linha", [
+                    "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;",
+                ]),
+            ],
+        },
+    ],
+    "matrizes_verso": [
+        {
+            "titulo": "Testes — o que diz se a carga virou salto",
+            "nota": "Medidos pela comissão a cada oito semanas, sempre do mesmo "
+                    "jeito e de preferência no mesmo horário do dia.",
+            "cab_nome": "MEDIDA",
+            "larg_nome": 230,
+            "colunas": ["RETESTE 1<br/>___/___", "RETESTE 2<br/>___/___",
+                        "RETESTE 3<br/>___/___", "RETESTE 4<br/>___/___"],
+            "grupos": [
+                (None, [
+                    "Peso corporal (kg)",
+                    "Alcance parado (cm)",
+                    "Alcance de ataque (cm)",
+                    "Impulsão (cm)",
+                    "Salto vertical CMJ (cm)",
+                ]),
+            ],
+            "nota_abaixo":
+                "<b>Alcance parado:</b> em pé, braço estendido, sem salto. "
+                "<b>Alcance de ataque:</b> com aproximação, ponto mais alto "
+                "tocado. <b>Impulsão:</b> a diferença entre os dois — <b>é este o "
+                "número que diz se você está saltando mais</b>. <b>CMJ:</b> mãos "
+                "na cintura, sem passo.",
+        },
+    ],
+    "verso": [
+        ("h", "Quando subir a carga"),
+        ("passos", [
+            "Suba quando, na <b>última série prescrita</b>, ainda sobrariam 2 "
+            "repetições com técnica limpa — e só no exercício em que isso "
+            "aconteceu, não em todos de uma vez.",
+            "<b>Quanto:</b> 5 kg nos de perna (agachamento, terra, stiff, hip "
+            "thrust) e <b>2,5 kg</b> nos de braço (supino, desenvolvimento, "
+            "remada). Subir de 10 em 10 é como se perde a técnica.",
+            "<b>Duas sessões seguidas sem alcançar a carga da anterior não é "
+            "falta de vontade, é fadiga.</b> Desça 10%, refaça essa carga uma "
+            "semana e volte a subir dali.",
+            "<b>Nunca suba carga e volume na mesma semana.</b> Quando as duas "
+            "sobem juntas e algo dói, não há como saber qual das duas foi.",
+        ]),
+        ("espaco", 8),
+        ("h", "O 1RM estimado — para quem nunca fez teste de máximo"),
+        ("grade", ["REPETIÇÕES ATÉ PERTO DA FALHA", "MULTIPLIQUE A CARGA POR",
+                   "COM 100 KG DÁ"], [
+            ["3 repetições", "1,10", "110 kg"],
+            ["5 repetições", "1,17", "117 kg"],
+            ["7 repetições", "1,23", "123 kg"],
+        ], [0.45, 0.3, 0.25]),
+        ("espaco", 5),
+        ("pq", "<b>Só vale para uma série levada até perto da falha</b> — aquela em "
+               "que sobraria no máximo 1 repetição. Nas séries das fichas, que "
+               "param com 2 ou 3 de reserva, ela <b>superestima</b>. Não é motivo "
+               "para fazer máximo: é só uma referência para a coluna."),
+        ("espaco", 9),
+        ("h", "O que estes números dizem — e o que não dizem"),
+        ("notas", [
+            ("Carga subindo e salto parado", "Você ficou mais forte sem ficar mais "
+             "rápido — acontece muito. O que falta aí é velocidade, não mais carga: "
+             "é para isso que existem as fichas de potência e de pliometria."),
+            ("Carga parada por três semanas", "Antes de chamar de platô, olhe sono, "
+             "jogos e carga de quadra: força trava por fadiga muito mais vezes do "
+             "que por limite."),
+            ("Diferença entre as pernas", "No afundo e no búlgaro, anote os dois "
+             "lados. Diferença grande e persistente é um dos previsores de lesão "
+             "mais consistentes que existem, e só aparece se alguém escrever."),
+            ("Peso corporal caindo junto com as cargas", "Procure a comissão. Isso "
+             "não é resultado de treino e não se resolve treinando mais."),
+        ]),
+        ("espaco", 4),
+        ("caixa", "<b>Leve esta folha para a sala.</b> Carga que fica na memória "
+                  "vira a carga que a gente <i>acha</i> que levantou — e é ela que "
+                  "transforma “acho que melhorei” num número."),
+        ("espaco", 8),
+    ],
+}
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# PLIOMETRIA — a dose é o contato com o chão
+# ════════════════════════════════════════════════════════════════════════════
+# A unidade de dose aqui não é série nem repetição: é CONTATO COM O CHÃO. Por
+# isso a coluna da carga virou a coluna dos contatos, e o total (96) está na
+# folha. O atleta de vôlei já salta centenas de vezes por semana na quadra: a
+# pliometria entra por cima disso, e é somando os dois que a tendinopatia
+# patelar aparece.
+#
+# A sessão começa por ATERRISSAGEM e não por salto. Quem se machuca em
+# pliometria quase nunca se machuca subindo.
+PLIOMETRIA = {
+    "arquivo": "ELASE-pliometria.pdf",
+    "meta_titulo": "ELASE - Treino de pliometria",
+    "meta_assunto": "Pliometria para voleibol, 96 contatos, aterrissagem primeiro",
+    "titulo": "Pliometria",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Seis exercícios &nbsp;&middot;&nbsp; 96 contatos com o chão "
+                 "&nbsp;&middot;&nbsp; a aterrissagem vem antes do salto",
+    "rotulo_carga": "CONTATOS",
+    "cab_meio": ["SÉRIES", "PAUSA", "CONTATOS"],
+    "larguras": [192, 46, 38, 54],
+    "abertura":
+        "<b>Aqui a dose não é a carga: é o contato com o chão.</b> Cada vez que o "
+        "pé bate no chão é uma dose de impacto, e são <b>96 nesta sessão</b> — "
+        "somadas a todas as que você já dá na quadra. Por isso a ordem começa "
+        "pela <b>aterrissagem</b>: quem se machuca em pliometria quase nunca se "
+        "machuca subindo. <b>Aterrissagem silenciosa, joelho na linha do pé</b>, e "
+        "<b>quando o salto baixar ou a queda ficar barulhenta o exercício "
+        "acabou</b> — mesmo faltando série.",
+    "aquecimento_titulo": "Aquecimento — mais longo que o de sala, e não é opcional",
+    "aquecimento_nota": "Saltar com o tendão frio é a forma mais curta de começar "
+                        "uma tendinite. Esta parte leva 12 minutos e não se pula.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de tornozelo, quadril e ombro", "6 min", "a mesma do app"],
+        ["Corrida leve e deslocamentos laterais", "4 min", "até suar"],
+        ["Agachamento com o peso do corpo, subida rápida", "2 × 8", "sem salto"],
+        ["Saltinhos no lugar, bem baixos", "2 × 10", "o corpo entende o ritmo"],
+    ],
+    "exercicios": [
+        ("Aterrissagem do caixote (30 cm)", "desce do caixote e <b>TRAVA</b> — "
+         "não é salto, é freio", "3 × 5", "60 s", "15"),
+        ("Salto vertical com parada", "salta alto e aterrissa travado, 2 s parado",
+         "3 × 5", "90 s", "15"),
+        ("Saltinhos de tornozelo (pogo)", "joelho quase reto, contato curto no chão",
+         "3 × 10", "60 s", "30"),
+        ("Salto sobre barreiras (40 cm)", "pés juntos, o menor tempo possível no chão",
+         "3 × 4", "90 s", "12"),
+        ("Salto unilateral com parada", "4 em cada perna — aterrissa e segura 2 s",
+         "2 × 4 cada", "90 s", "16"),
+        ("Aproximação de ataque com salto", "3 passos e salto máximo, sem bola",
+         "4 × 2", "2 min", "8"),
+    ],
+    "nota_tabela":
+        "Nas colunas da direita escreva a <b>altura</b> que você usou (caixote, "
+        "barreira) e marque um <b>X</b> na série em que o salto baixou ou a "
+        "aterrissagem ficou barulhenta — e pare o exercício ali. Salto baixo "
+        "repetido não treina potência: treina impacto.",
+    "caixa_duracao":
+        "<b>Duração prevista: 45 a 55 minutos</b> com o aquecimento. É a sessão "
+        "mais curta do conjunto e a que mais exige qualidade: <b>pliometria não é "
+        "condicionamento</b>. Se você terminou ofegante e suado, fez de outro "
+        "jeito — a pausa estava curta e os saltos saíram baixos.",
+    "verso": [
+        ("h", "As quatro regras que valem acima dos números"),
+        ("passos", [
+            "<b>Aterrissagem silenciosa.</b> Barulho é impacto que a articulação "
+            "absorveu porque o músculo não absorveu. Caia com joelho e quadril "
+            "dobrando, na ponta do pé primeiro e o calcanhar descendo em seguida.",
+            "<b>Joelho na linha do pé.</b> Joelho caindo para dentro na aterrissagem "
+            "é o mecanismo clássico de lesão de ligamento. Se acontecer, pare a "
+            "série: não é questão de força de vontade, é de controle.",
+            "<b>Salto baixou, acabou.</b> A pliometria vive da altura e do tempo "
+            "curto no chão. Repetição baixa e pesada não é uma versão mais fácil do "
+            "exercício — é outro exercício, e esse outro só traz o impacto.",
+            "<b>Pausa inteira.</b> 60 a 90 segundos parecem muito para quem não "
+            "está ofegante. São exatamente o que permite o salto seguinte sair tão "
+            "alto quanto o anterior.",
+        ]),
+        ("espaco", 9),
+        ("h", "Onde esta sessão entra na semana"),
+        ("notas", [
+            ("Nunca no dia anterior ao jogo", "O cansaço da pliometria não aparece "
+             "no mesmo dia: aparece no seguinte, exatamente na perna que você "
+             "precisa para saltar."),
+            ("Nem no mesmo dia da sessão de força pesada", "E nem depois de um "
+             "treino de quadra com muito salto. Se o dia já teve salto, este treino "
+             "fica para outro — a quadra conta contatos igual."),
+            ("O melhor dia", "Começo da semana, com as pernas descansadas, "
+             "<b>antes</b> do treino técnico e não depois. Deixe <b>48 horas</b> "
+             "até a próxima sessão de pliometria."),
+        ]),
+        ("espaco", 9),
+        ("h", "Se faltar caixote, barreira ou piso"),
+        ("notas", [
+            ("Sem caixote", "Um degrau de arquibancada ou um banco firme de 30 a 40 "
+             "cm. O que não serve é qualquer coisa que deslize ou balance — e "
+             "altura maior não é melhor: acima de 40 cm o que aumenta é o impacto, "
+             "não o treino."),
+            ("Sem barreiras", "Cones, um elástico preso entre duas cadeiras, ou uma "
+             "linha no chão para saltar por cima de um lado para o outro. A altura "
+             "importa menos que o tempo curto no chão."),
+            ("O piso", "Madeira ou piso de quadra. Em <b>concreto cru, faça metade "
+             "dos contatos</b> — 96 saltos no cimento é onde a dor no tendão da "
+             "patela começa, e ela leva meses para ir embora."),
+        ]),
+        ("espaco", 8),
+        ("caixa", "<b>Dor no tendão logo abaixo da patela é o sinal de parar</b> — "
+                  "principalmente a que aparece no dia seguinte e some ao aquecer, "
+                  "que é a que engana. Avise a comissão antes de insistir: "
+                  "tendinopatia patelar é a lesão mais comum do voleibol e a mais "
+                  "lenta de resolver. E quando for evoluir a sessão, <b>aumente os "
+                  "contatos antes de aumentar a altura</b> — nesta ordem, nunca nas "
+                  "duas ao mesmo tempo.",
+         AMBAR_CLARO, AMBAR),
+        ("espaco", 8),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
-          "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA}
+          "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
+          "registro": REGISTRO, "pliometria": PLIOMETRIA}
 
 
 def main():

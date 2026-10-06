@@ -62,6 +62,8 @@ CAB = est("cab", fontName="Helvetica-Bold", fontSize=7.6, leading=9,
           textColor=colors.white)
 CAB_C = est("cabc", fontName="Helvetica-Bold", fontSize=7.6, leading=9.4,
             textColor=colors.white, alignment=TA_CENTER)
+CAB_GRUPO = est("cabg", fontName="Helvetica-Bold", fontSize=7.6, leading=9,
+                textColor=AZUL)
 
 
 # ── Peças ───────────────────────────────────────────────────────────────────
@@ -133,7 +135,7 @@ def campos_identificacao():
 
 
 def tabela_sessao(exercicios, rotulo_carga, cab_series=None, cab_meio=None,
-                  escrever_de=4):
+                  escrever_de=4, larguras=None):
     """A tabela principal. Séries, reps e pausa vêm POR EXERCÍCIO: num treino de
     potência eles mudam de linha para linha, e uniformizar seria mentir.
 
@@ -160,7 +162,12 @@ def tabela_sessao(exercicios, rotulo_carga, cab_series=None, cab_meio=None,
     # e o texto passou por cima da linha de baixo. O respiro mínimo vem do
     # padding, que dá altura de sobra para escrever a carga à mão.
     d = escrever_de
-    return tabela(dados, [206, 44, 38, 40, 47.75, 47.75, 47.75, 47.75], [
+    # As três primeiras larguras cabem os rótulos padrão. Um rótulo mais longo
+    # — "CONTATOS", na pliometria — pede largura própria, e a alternativa seria
+    # abreviar a palavra no cabeçalho, que é pior.
+    fixas = larguras or [206, 44, 38, 40]
+    sobra = (LARGURA - sum(fixas)) / 4
+    return tabela(dados, fixas + [sobra] * 4, [
         ("ALIGN", (1, 0), (-1, -1), "CENTER"),
         ("BACKGROUND", (d, 1), (-1, -1), colors.HexColor("#FAFBFC")),
         ("LINEAFTER", (d - 1, 0), (d - 1, -1), 1.1, LINHA_FORTE),
@@ -213,7 +220,7 @@ def montar(f):
     h.append(Paragraph("A sessão — anote o que você usou em cada série", H))
     h.append(tabela_sessao(f["exercicios"], f["rotulo_carga"],
                            f.get("cab_series"), f.get("cab_meio"),
-                           f.get("escrever_de", 4)))
+                           f.get("escrever_de", 4), f.get("larguras")))
     h.append(Spacer(1, 7))
     h.append(Paragraph(f["nota_tabela"], PQ))
     h.append(Spacer(1, 8))
@@ -223,7 +230,23 @@ def montar(f):
 
     cabecalho(h, f["titulo_verso"])
     h.append(Spacer(1, 10))
-    for bloco in f["verso"]:
+    blocos(h, f["verso"])
+
+    # O rótulo "Como foi" e as linhas para escrever não se separam: o rótulo
+    # sozinho no pé de uma página e as linhas na seguinte é um campo que ninguém
+    # preenche.
+    h.append(Paragraph("Depois do treino", H))
+    h.append(Paragraph(DEPOIS_DO_TREINO, P))
+    h.append(Spacer(1, 10))
+    h.append(KeepTogether([campo_anotacao()]))
+    return h
+
+
+def blocos(h, lista):
+    """Os blocos de texto do verso. Vive separado porque a ficha de registro usa
+    os mesmos — e um segundo renderizador divergiria do primeiro na primeira
+    correção que eu fizesse em um e esquecesse no outro."""
+    for bloco in lista:
         if bloco[0] == "h":
             h.append(Paragraph(bloco[1], H))
         elif bloco[0] == "p":
@@ -266,14 +289,101 @@ def montar(f):
                             [LARGURA * 0.38, LARGURA * 0.22, LARGURA * 0.40],
                             bloco[3] if len(bloco) > 3 else None))
 
-    # O rótulo "Como foi" e as linhas para escrever não se separam: o rótulo
-    # sozinho no pé de uma página e as linhas na seguinte é um campo que ninguém
-    # preenche.
-    h.append(Paragraph("Depois do treino", H))
-    h.append(Paragraph(DEPOIS_DO_TREINO, P))
+
+# ── Ficha de registro ───────────────────────────────────────────────────────
+# Uma folha por atleta, que não é uma sessão: é o histórico dele. A sessão diz o
+# que fazer hoje; esta diz o que ele fez nas últimas oito semanas, que é a única
+# coisa capaz de responder se está progredindo.
+def campos_atleta(rotulos):
+    larg = LARGURA / len(rotulos)
+    linha = []
+    for r in rotulos:
+        linha += [Paragraph("<b>%s</b>" % r, CEL_PQ), ""]
+    n = len(rotulos)
+    t = Table([linha], colWidths=[w for _ in range(n)
+                                  for w in (larg * 0.34, larg * 0.62)],
+              rowHeights=[20])
+    estilo = [("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
+              ("LEFTPADDING", (0, 0), (-1, -1), 0),
+              ("RIGHTPADDING", (0, 0), (-1, -1), 6)]
+    for i in range(n):
+        estilo.append(("LINEBELOW", (i * 2 + 1, 0), (i * 2 + 1, 0),
+                       0.8, LINHA_FORTE))
+    t.setStyle(TableStyle(estilo))
+    return t
+
+
+def tabela_matriz(m):
+    """Exercícios nas linhas, semanas nas colunas, tudo em branco para escrever.
+    Agrupada por tipo porque uma lista corrida de vinte exercícios é um lugar
+    onde ninguém acha o que procura. Com `coluna_fixa` vazia a tabela não tem a
+    coluna estreita do começo — a de testes não precisa dela."""
+    colunas, n = m["colunas"], len(m["colunas"])
+    fixa = m.get("coluna_fixa")
+    larg_nome = m.get("larg_nome", 152)
+    larg_fixa = m.get("larg_fixa", 40) if fixa else 0
+    cab = [Paragraph("EXERCÍCIO" if fixa else m.get("cab_nome", "MEDIDA"), CAB)]
+    if fixa:
+        cab.append(Paragraph(fixa, CAB_C))
+    dados = [cab + [Paragraph(c, CAB_C) for c in colunas]]
+    vazias = n + (1 if fixa else 0)
+    extra, i = [], 1
+    for titulo, linhas in m["grupos"]:
+        if titulo:
+            dados.append([Paragraph(titulo, CAB_GRUPO)] + [""] * vazias)
+            extra += [("SPAN", (0, i), (-1, i)),
+                      ("BACKGROUND", (0, i), (-1, i), AZUL_CLARO)]
+            i += 1
+        for nome in linhas:
+            dados.append([Paragraph(nome, CEL)] + [""] * vazias)
+            i += 1
+    larg = ([larg_nome] + ([larg_fixa] if fixa else [])
+            + [(LARGURA - larg_nome - larg_fixa) / n] * n)
+    # Altura AUTOMÁTICA, como na tabela da sessão. Fixar a linha cortava o nome
+    # de duas linhas pela metade e comia os "___/___" do cabeçalho; o espaço
+    # mínimo para escrever à mão vem do padding.
+    estilo = [("BACKGROUND", (1, 1), (-1, -1), colors.HexColor("#FAFBFC")),
+              ("LINEAFTER", (0, 0), (0, -1), 1.1, LINHA_FORTE),
+              ("LEFTPADDING", (0, 0), (-1, -1), 4),
+              ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+              ("TOPPADDING", (0, 1), (-1, -1), 3.5),
+              ("BOTTOMPADDING", (0, 1), (-1, -1), 3.5)]
+    if fixa:
+        estilo.append(("LINEAFTER", (1, 0), (1, -1), 1.1, LINHA_FORTE))
+    return tabela(dados, larg, extra + estilo)
+
+
+def montar_registro(f):
+    h = []
+    cabecalho(h, f["titulo"], f["protocolo"])
+    h.append(Spacer(1, 7))
+    h.append(campos_atleta(f["campos"]))
+    h.append(Spacer(1, 8))
+    h.append(caixa(f["abertura"]))
     h.append(Spacer(1, 10))
-    h.append(KeepTogether([campo_anotacao()]))
+
+    matrizes(h, f["matrizes"])
+    h.append(PageBreak())
+    cabecalho(h, f["titulo_verso"])
+    h.append(Spacer(1, 10))
+    matrizes(h, f.get("matrizes_verso", []))
+    blocos(h, f["verso"])
     return h
+
+
+def matrizes(h, lista):
+    """Uma tabela de registro partida entre duas páginas não serve para nada: o
+    atleta escreve a semana 6 numa folha e a 7 na outra. Cada uma vai inteira ou
+    vai para a página seguinte."""
+    for m in lista:
+        h.append(Paragraph(m["titulo"], H))
+        h.append(Paragraph(m["nota"], PQ))
+        h.append(Spacer(1, 4))
+        h.append(KeepTogether([tabela_matriz(m)]))
+        if m.get("nota_abaixo"):
+            h.append(Spacer(1, 5))
+            h.append(Paragraph(m["nota_abaixo"], PQ))
+        h.append(Spacer(1, 10))
 
 
 def gerar(f):
@@ -288,7 +398,7 @@ def gerar(f):
                               subject=f["meta_assunto"])
         quadro = Frame(MARGEM, 18 * mm, LARGURA, A4[1] - 32 * mm, id="q")
         doc.addPageTemplates([PageTemplate(id="pad", frames=[quadro], onPage=rodape)])
-        doc.build(montar(f))
+        doc.build(f.get("layout", montar)(f))
 
     # Duas passagens: a primeira só para SABER quantas páginas saíram. Prometer
     # "Página 1 de 2" numa folha de 3 é o tipo de detalhe que faz o resto
