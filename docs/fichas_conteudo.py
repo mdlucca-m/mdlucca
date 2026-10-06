@@ -516,8 +516,140 @@ FORCA_ONDA = {
     ],
 }
 
+
+# ════════════════════════════════════════════════════════════════════════════
+# POTÊNCIA NA BARRA — os levantamentos básicos levados pela velocidade
+# ════════════════════════════════════════════════════════════════════════════
+# Quatro exercícios vieram pedidos: supino, agachamento, stiff e terra. Três
+# observações que mudaram a prescrição e estão escritas na folha:
+#
+# O STIFF NÃO É EXERCÍCIO DE POTÊNCIA. É excêntrico por natureza — o que ele
+# treina é a descida, o freio. Ele fica, porque tem endereço no vôlei (é a
+# cadeia posterior que freia cada aterrissagem), mas entra por último, com carga
+# moderada e SEM a regra de velocidade dos outros cinco. Chamá-lo de potência
+# seria mentira de folha.
+#
+# TERRA E STIFF JUNTOS SÃO MUITO QUADRIL. Com o agachamento, três dos quatro
+# pedidos são dobra de quadril ou perna. Por isso os dois acrescentados vão para
+# cima: push press (potência acima da cabeça, que é onde o ataque acontece) e
+# remada curvada explosiva — sem ela a sessão teria supino e push press
+# empurrando e nada puxando.
+#
+# SÉRIE DE 3, NÃO DE 6. Potência é força vezes velocidade, e velocidade cai com
+# fadiga dentro da própria série. Série curta é o que mantém a última repetição
+# tão rápida quanto a primeira.
+POTENCIA_BARRA = {
+    "arquivo": "ELASE-potencia-na-barra.pdf",
+    "meta_titulo": "ELASE - Potencia na barra",
+    "meta_assunto": "Potencia com os levantamentos basicos, carga leve e velocidade",
+    "titulo": "Potência na barra",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Seis exercícios &nbsp;&middot;&nbsp; séries curtas "
+                 "&nbsp;&middot;&nbsp; a velocidade é a prescrição",
+    "rotulo_carga": "CARGA",
+    "abertura":
+        "<b>Hoje os levantamentos pesados saem leves e rápidos.</b> Potência é "
+        "força <i>vezes</i> velocidade, e a velocidade é a parte que falta — por "
+        "isso a carga é baixa de propósito. <b>Se você reconhecer a carga como "
+        "“pesada”, está errada.</b> Cada repetição sobe o mais rápido "
+        "que você conseguir, e <b>quando a barra desacelerar a série acabou</b>, "
+        "mesmo faltando repetição no papel. A exceção é o <b>stiff</b>, que fecha "
+        "a sessão e não é exercício de velocidade — o verso explica.",
+    "aquecimento_titulo": "Aquecimento — obrigatório antes da primeira barra",
+    "aquecimento_nota": "Carga leve não dispensa aquecimento: o que machuca aqui "
+                        "não é o peso, é a aceleração com o corpo frio.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de tornozelo, quadril e ombro", "6 min", "a mesma do app"],
+        ["Bicicleta ou esteira, ritmo leve", "5 min", "até suar, sem cansar"],
+        ["Agachamento só com o peso do corpo, subida rápida", "2 × 8",
+         "do fraco ao forte"],
+        ["Barra vazia no padrão de cada exercício", "1 × 5", "antes de pôr peso"],
+    ],
+    "exercicios": [
+        ("Agachamento dinâmico", "desce controlado, <b>sobe explodindo</b>",
+         "4 × 3", "2 min", "55%"),
+        ("Terra dinâmico", "cada repetição do chão, do zero — ver o verso",
+         "4 × 2", "2 min", "60%"),
+        ("Push press", "potência acima da cabeça: é onde o ataque acontece",
+         "4 × 3", "2 min", "55%"),
+        ("Supino explosivo", "empurrar rápido sem travar o cotovelo",
+         "4 × 3", "90 s", "45%"),
+        ("Remada curvada explosiva", "puxa rápido, solta devagar",
+         "4 × 5", "90 s", "50%"),
+        ("Stiff (terra romeno)", "<b>este não é de velocidade</b> — desce devagar",
+         "3 × 6", "90 s", "60%"),
+    ],
+    "nota_tabela":
+        "Anote a carga de cada exercício, em quilos. Se em alguma série a barra "
+        "saiu lenta, <b>pare o exercício ali</b> e marque um <b>X</b>: série lenta "
+        "não é para ser insistida, é a informação de que a sessão passou do ponto.",
+    "caixa_duracao":
+        "<b>Duração prevista: 65 a 75 minutos</b> com o aquecimento. São 82 "
+        "repetições — parece pouco perto de um treino de força, e é mesmo: aqui "
+        "o que conta não é quanto você fez, é a <b>qualidade de cada repetição</b>. "
+        "Se estiver muito mais rápido, a pausa não está sendo respeitada, e é ela "
+        "que garante que a quarta série saia tão rápida quanto a primeira.",
+    "verso": [
+        ("h", "A regra que vale acima de todos os números"),
+        ("p", "<b>A velocidade é a prescrição; a carga é só o meio de chegar "
+              "nela.</b> Sem 1RM lançado, a carga certa é a mais pesada com que a "
+              "subida ainda sai <b>visivelmente explosiva</b> — quando ela começa a "
+              "parecer só “forte”, está pesado demais e você desce 5 kg. "
+              "Vale para os cinco primeiros; o stiff tem regra própria."),
+        ("espaco", 8),
+        ("passos", [
+            "<b>Sobe rápido, desce controlado.</b> Descer solto não treina nada e "
+            "castiga a articulação.",
+            "<b>Não trave a articulação no fim.</b> No supino, no push press e na "
+            "remada, estalar o cotovelo é o único jeito de se machucar num treino "
+            "leve. Pare pouco antes da extensão completa.",
+            "<b>Pausa inteira, sempre.</b> Encurtar a pausa transforma potência em "
+            "cansaço — e as duas coisas parecem iguais no papel.",
+            "<b>Dormiu mal ou acordou com o corpo estranho?</b> Faça só o "
+            "agachamento, o supino e a remada, e avise a comissão. Isso não é "
+            "frescura: é informação que muda a escalação.",
+        ]),
+        ("espaco", 10),
+        ("h", "Os exercícios que precisam de explicação"),
+        ("notas", [
+            ("Terra dinâmico", "<b>Cada repetição começa do chão, do zero.</b> Nada "
+             "de descer e subir emendado: pousa a barra, solta a tensão, respira e "
+             "puxa de novo. Isso é o que treina a saída do chão — que é a parte "
+             "lenta do movimento — e é também o que protege a lombar, porque a "
+             "repetição emendada com a barra já cansada é onde a coluna arredonda. "
+             "São só 2 repetições por série justamente por isso."),
+            ("Stiff", "<b>Este não é exercício de potência e não entra na regra da "
+             "velocidade.</b> Ele é de descida: no vôlei a cadeia posterior trabalha "
+             "mais freando a aterrissagem do que empurrando o salto, e quem só "
+             "agacha fica forte para subir e despreparado para cair. Desça contando "
+             "<b>3 segundos</b>, barra rente à perna, joelho levemente solto; suba "
+             "em ritmo normal. Ele fecha a sessão porque cansa a posterior, e "
+             "posterior cansada estraga o terra se vier antes."),
+            ("Push press", "A barra sai com um <b>impulso de perna</b> — joelho "
+             "dobra uns 10 cm e estende rápido — e o braço termina o movimento. Não "
+             "é desenvolvimento lento com ajuda: é a perna jogando a barra para "
+             "cima. Glúteo e abdômen apertados; se a lombar arqueia, a carga está "
+             "alta demais."),
+            ("Terra e stiff na mesma sessão", "Não são repetidos. O terra é do chão "
+             "e treina a <b>saída</b>; o stiff tem a perna quase reta e treina a "
+             "<b>frenagem</b>, com a posterior esticada. Um é o acelerador, o outro "
+             "é o freio — e no vôlei o freio é o que falta na maioria."),
+        ]),
+        ("espaco", 8),
+        ("caixa", "<b>Esta sessão combina com dia de jogo melhor do que a de "
+                  "força</b> — carga leve e volume baixo não deixam resíduo. Ainda "
+                  "assim, em dia de jogo faça <b>metade das séries</b>, corte o "
+                  "stiff e termine pelo menos <b>6 horas antes do apito</b>. A "
+                  "pergunta que decide: você saiu da sala com vontade de fazer mais? "
+                  "Se saiu ofegante, foi longe demais.",
+         AMBAR_CLARO, AMBAR),
+        ("espaco", 6),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
-          "onda": FORCA_ONDA}
+          "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA}
 
 
 def main():
