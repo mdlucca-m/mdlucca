@@ -911,9 +911,150 @@ PLIOMETRIA = {
     ],
 }
 
+
+# ════════════════════════════════════════════════════════════════════════════
+# CONTRASTE — pesado e explosivo no mesmo par, separados pela pausa certa
+# ════════════════════════════════════════════════════════════════════════════
+# A série pesada deixa o sistema nervoso ligado por alguns minutos, e o salto
+# que vem depois sai mais alto do que sairia sozinho. A PAUSA ENTRE OS DOIS é a
+# prescrição inteira: cedo demais o atleta pega a fadiga em vez do efeito, tarde
+# demais o efeito já passou. Por isso ela ocupa a coluna da pausa com dois
+# valores diferentes — depois do pesado e depois do explosivo.
+#
+# Três decisões que não vieram pedidas:
+#
+# O STIFF ENTRA DEPOIS DO BLOCO DE SUPINO, não depois dos saltos. Carga alta com
+# intenção de velocidade numa dobra de quadril é o exercício de maior risco da
+# ficha, e posterior de coxa é o músculo que mais estira no esporte. Com o bloco
+# de supino no meio, as pernas chegam nele com 20 minutos de descanso.
+#
+# UMA PUXADA NO FIM. Supino, flexão e nada puxando é uma sessão inteira à frente
+# do corpo — exatamente o que tira a escápula de posição em quem ataca.
+#
+# O EFEITO DO CONTRASTE É INDIVIDUAL e maior em quem já é forte. A folha diz como
+# o atleta percebe se está funcionando, e o que fazer se nunca funcionar.
+CONTRASTE = {
+    "arquivo": "ELASE-treino-de-contraste.pdf",
+    "meta_titulo": "ELASE - Treino de contraste",
+    "meta_assunto": "Pares pesado + explosivo, stiff rapido e uma puxada de equilibrio",
+    "titulo": "Treino de contraste",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Dois pares pesado + explosivo &nbsp;&middot;&nbsp; stiff rápido "
+                 "&nbsp;&middot;&nbsp; a pausa entre os dois é a prescrição",
+    "rotulo_carga": "CARGA",
+    "numerar": False,
+    "larguras": [196, 44, 44, 40],
+    "abertura":
+        "<b>Cada par é um exercício pesado seguido de um explosivo.</b> A série "
+        "pesada deixa o sistema nervoso ligado por alguns minutos, e o salto que "
+        "vem depois sai mais alto do que sairia sozinho. <b>O que faz o método "
+        "funcionar é a pausa entre os dois:</b> cedo demais você pega a fadiga em "
+        "vez do efeito, tarde demais o efeito já passou. A coluna da pausa traz "
+        "dois valores — <b>3 min</b> depois do pesado, antes do explosivo, e "
+        "<b>2 min 30 s</b> depois do explosivo, antes de recomeçar o par.",
+    "aquecimento_titulo": "Aquecimento — e o salto de referência do dia",
+    "aquecimento_nota": "O último item não é aquecimento: é a sua régua. Guarde na "
+                        "cabeça como foi esse salto — é com ele que você compara "
+                        "os saltos de depois do isométrico.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de tornozelo, quadril e ombro", "6 min", "a mesma do app"],
+        ["Bicicleta ou esteira, ritmo leve", "5 min", "até suar, sem cansar"],
+        ["Barra vazia, 55% e 75% no padrão de cada par", "1 × 8, 5 e 3",
+         "1 min entre elas"],
+        ["<b>3 saltos verticais máximos</b>", "3 saltos", "a sua régua do dia"],
+    ],
+    "exercicios": [
+        ("1A. Isométrico na barra guiada",
+         "barra travada, joelho 100–120° — empurra 5 s com <b>tudo</b>",
+         "4 × 5 s", "3 min", "máx."),
+        ("1B. Agachamento com salto",
+         "intenção máxima em cada salto — barra leve ou só o corpo",
+         "4 × 4", "2,5 min", "20%"),
+        ("2A. Supino partindo do peito",
+         "a barra <b>para</b> no peito — nos pinos, ou 2 s com observador",
+         "4 × 3", "3 min", "88%"),
+        ("2B. Flexão explosiva", "as mãos saem do chão; se não saírem, a mais rápida",
+         "4 × 5", "2,5 min", "corpo"),
+        ("3. Stiff rápido", "carga alta, 3 repetições, <b>sobe com tudo</b> — "
+         "descida controlada", "4 × 3", "2,5 min", "80%"),
+        ("4. Remada curvada", "ACRESCENTADA — o contrapeso de supino e flexão",
+         "3 × 8", "90 s", "RIR 2"),
+    ],
+    "nota_tabela":
+        "Anote a carga de cada exercício. No <b>1B</b> e no <b>2B</b> marque "
+        "também se o salto (ou a flexão) saiu <b>melhor</b> ou <b>pior</b> que o "
+        "do aquecimento: é essa marca, e não a carga, que diz se o contraste "
+        "funcionou para você naquele dia.",
+    "caixa_duracao":
+        "<b>Duração prevista: 80 a 90 minutos</b> com o aquecimento — quase tudo "
+        "pausa, e aqui a pausa <b>é</b> o treino. <b>Se o tempo apertar, faça 3 "
+        "pares em vez de 4</b>; nunca encurte os 3 minutos entre o pesado e o "
+        "explosivo, que é o que separa isto de uma sessão de força comum.",
+    "verso": [
+        ("h", "Um par no relógio"),
+        ("grade", ["MOMENTO", "O QUE", "QUANTO", "POR QUÊ"], [
+            ["0:00", "Isométrico, empurrando com tudo", "5 s",
+             "liga o sistema nervoso"],
+            ["0:05", "<b>PAUSA</b>", "3 min",
+             "a fadiga some, o efeito fica — é a parte que faz funcionar"],
+            ["3:05", "Saltos, intenção máxima", "4 saltos",
+             "é aqui que o salto sai mais alto"],
+            ["3:15", "Pausa antes de recomeçar o par", "2,5 min",
+             "para o próximo isométrico sair inteiro"],
+        ], [0.11, 0.33, 0.13, 0.43],
+         [("BACKGROUND", (0, 2), (-1, 2), VERDE_CLARO),
+          ("BOX", (0, 2), (-1, 2), 1.1, VERDE)]),
+        ("espaco", 5),
+        ("pq", "Cada par leva uns <b>5 min 45 s</b>. Quatro pares, 23 minutos — e é "
+               "assim nos dois blocos."),
+        ("espaco", 8),
+        ("caixa", "<b>Como saber se o contraste está funcionando em você.</b> O "
+                  "salto depois do isométrico tem que parecer <b>melhor</b> que os "
+                  "3 saltos do aquecimento. Se parecer pior, a pausa foi curta — "
+                  "aumente para 4 ou 5 minutos na próxima série. <b>O efeito é "
+                  "individual e aparece mais em quem já é forte:</b> se depois de "
+                  "três sessões o salto nunca melhorar, avise a comissão. Para "
+                  "você o método não está pagando o tempo que custa, e esse tempo "
+                  "rende mais em outra coisa.", VERDE_CLARO, VERDE),
+        ("espaco", 8),
+        ("h", "Os exercícios, um a um"),
+        ("notas", [
+            ("Agachamento isométrico", "Barra travada na guiada com o <b>joelho "
+             "entre 100 e 120 graus</b> — perto da posição de onde o salto sai, não "
+             "lá no fundo. Empurre como se fosse arrancar a barra do lugar, 5 "
+             "segundos. Inspire antes e solte o ar no fim; não faça de cabeça baixa."),
+            ("Agachamento com salto", "Barra leve ou só o peso do corpo. <b>Se o "
+             "salto parecer mais baixo que o normal, tire a barra</b> — carga que "
+             "estraga o salto desmonta o método inteiro."),
+            ("Supino partindo do peito", "A barra <b>para</b> no peito e sai do "
+             "zero: isso tira o efeito elástico e treina a força de partida. Faça "
+             "<b>nos pinos do rack</b> na altura do peito, ou com 2 segundos parado "
+             "e <b>sempre com alguém observando</b>. A 88% e partindo do zero, "
+             "ninguém tira a barra de cima sozinho."),
+            ("Stiff rápido", "A 80% a barra não sai rápida de verdade — o que é "
+             "rápido é a <b>intenção</b>, e é ela que treina. A <b>descida continua "
+             "controlada</b>: stiff solto na descida é como se rompe posterior de "
+             "coxa. Ele vem depois do bloco de supino de propósito, para as pernas "
+             "chegarem nele com 20 minutos de descanso. Lombar arredondou, acabou."),
+            ("Remada curvada", "Não faz parte de nenhum par: está aí porque a "
+             "sessão tem supino, flexão e nada puxando. Três séries custam 5 "
+             "minutos e evitam que um dia inteiro de empurrar leve o ombro para a "
+             "frente — que é como a dor de ombro do atacante começa."),
+        ]),
+        ("espaco", 6),
+        ("caixa", "<b>Sessão neural pesada: 48 horas até a próxima pesada, e não na "
+                  "véspera de jogo.</b> O isométrico máximo e o supino a 88% cobram "
+                  "do sistema nervoso, e isso aparece no dia seguinte.",
+         AMBAR_CLARO, AMBAR),
+        ("espaco", 6),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
-          "registro": REGISTRO, "pliometria": PLIOMETRIA}
+          "registro": REGISTRO, "pliometria": PLIOMETRIA,
+          "contraste": CONTRASTE}
 
 
 def main():

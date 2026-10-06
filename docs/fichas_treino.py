@@ -135,7 +135,7 @@ def campos_identificacao():
 
 
 def tabela_sessao(exercicios, rotulo_carga, cab_series=None, cab_meio=None,
-                  escrever_de=4, larguras=None):
+                  escrever_de=4, larguras=None, numerar=True):
     """A tabela principal. Séries, reps e pausa vêm POR EXERCÍCIO: num treino de
     potência eles mudam de linha para linha, e uniformizar seria mentir.
 
@@ -151,10 +151,13 @@ def tabela_sessao(exercicios, rotulo_carga, cab_series=None, cab_meio=None,
     dados = [[Paragraph("EXERCÍCIO", CAB)]
              + [Paragraph(c, CAB) for c in meio]
              + [Paragraph(r, estilo_s) for r in rotulos]]
+    # A numeração é automática, menos quando a ficha traz rótulos próprios: no
+    # contraste os exercícios são 1A, 1B, 2A, 2B — o par é a informação, e
+    # numerar por cima disso dava "1. 1A.".
     for i, (nome, padrao, serie, pausa, carga) in enumerate(exercicios, 1):
         dados.append([
-            Paragraph("<b>%d. %s</b><br/><font size=7.6 color='#5A6672'>%s</font>"
-                      % (i, nome, padrao), CEL),
+            Paragraph("<b>%s%s</b><br/><font size=7.6 color='#5A6672'>%s</font>"
+                      % ("%d. " % i if numerar else "", nome, padrao), CEL),
             Paragraph("<b>%s</b>" % serie, CEL_B), Paragraph(pausa, CEL),
             Paragraph("<b>%s</b>" % carga, CEL), "", "", "", ""])
     # Altura AUTOMÁTICA nas linhas do corpo. Fixar em 30pt só era seguro
@@ -220,7 +223,8 @@ def montar(f):
     h.append(Paragraph("A sessão — anote o que você usou em cada série", H))
     h.append(tabela_sessao(f["exercicios"], f["rotulo_carga"],
                            f.get("cab_series"), f.get("cab_meio"),
-                           f.get("escrever_de", 4), f.get("larguras")))
+                           f.get("escrever_de", 4), f.get("larguras"),
+                           f.get("numerar", True)))
     h.append(Spacer(1, 7))
     h.append(Paragraph(f["nota_tabela"], PQ))
     h.append(Spacer(1, 8))
