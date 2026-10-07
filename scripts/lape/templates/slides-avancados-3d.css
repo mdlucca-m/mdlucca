@@ -568,7 +568,7 @@
 }
 
 .status-bolinha.ativo {
-  background: var(--bom);
+  background: var(--good);
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
 }
 
@@ -619,7 +619,7 @@
 
 .desde-pessoa {
   font-size: clamp(9px, 0.7vw, 11px);
-  color: var(--bom);
+  color: var(--good);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -679,11 +679,52 @@
 }
 
 .item-legenda .bolinha.verde {
-  background: var(--bom);
+  background: var(--good);
 }
 
 .item-legenda .bolinha.cinza {
   background: var(--ink-muted);
+}
+
+/* ==================== QUEM ESTÁ NO LAPE AGORA ==================== */
+.slide-presenca-mural {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2vh, 24px);
+  padding: clamp(16px, 2.2vh, 30px) clamp(18px, 2.4vw, 36px);
+}
+.presenca-cabecalho {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.presenca-titulo {
+  font-size: clamp(18px, 2.2vw, 30px);
+  font-weight: 800;
+  color: var(--good);
+}
+.presenca-leitura {
+  flex: none;
+  margin: 0;
+  font-size: clamp(11px, 1vw, 14px);
+  color: var(--ink-2);
+}
+.presenca-leitura b { color: var(--accent-strong); font-weight: 700; }
+.grade-presenca {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  /* largura fixa de coluna (não 1fr): poucas pessoas presentes não podem
+     esticar os cartões pela tela toda -- `justify-content: center` só
+     tem o que centralizar quando as colunas não preenchem o container
+     inteiro sozinhas. */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 168px));
+  justify-items: center;
+  justify-content: center;
+  align-content: center;
+  gap: clamp(10px, 1.4vw, 18px);
+  overflow: hidden;
 }
 
 /* ==================== FRAMEWORK N8N — FLUXO DE PRODUÇÃO ==================== */

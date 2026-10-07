@@ -152,12 +152,12 @@ body { background: var(--surface-sunken); }
    quando não há ninguém, em vez de mostrar "0 no laboratório" o dia todo. */
 .faixa-presenca { flex: none; display: flex; align-items: center; gap: clamp(10px, 1.4vw, 20px);
   flex-wrap: wrap; padding: clamp(8px, 1vh, 12px) clamp(12px, 1.1vw, 18px);
-  border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--bom) 35%, var(--border));
-  background: color-mix(in srgb, var(--bom) 7%, var(--surface)); }
+  border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--good) 35%, var(--border));
+  background: color-mix(in srgb, var(--good) 7%, var(--surface)); }
 .faixa-presenca-titulo { display: flex; align-items: center; gap: 8px;
-  font-size: clamp(11px, .9vw, 13px); font-weight: 700; color: var(--bom); white-space: nowrap; }
-.ponto-vivo { width: 9px; height: 9px; border-radius: 50%; background: var(--bom);
-  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--bom) 70%, transparent);
+  font-size: clamp(11px, .9vw, 13px); font-weight: 700; color: var(--good); white-space: nowrap; }
+.ponto-vivo { width: 9px; height: 9px; border-radius: 50%; background: var(--good);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--good) 70%, transparent);
   animation: pontoVivoPulso 1.6s ease-in-out infinite; }
 @keyframes pontoVivoPulso { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 .faixa-presenca-lista { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -165,7 +165,7 @@ body { background: var(--surface-sunken); }
   font-size: clamp(10.5px, .85vw, 12.5px); color: var(--ink-2);
   background: var(--surface-raised); border: 1px solid var(--border);
   border-radius: 999px; padding: 4px 10px 4px 8px; }
-.chip-ponto { width: 6px; height: 6px; border-radius: 50%; background: var(--bom); flex: none; }
+.chip-ponto { width: 6px; height: 6px; border-radius: 50%; background: var(--good); flex: none; }
 .pulso-neon-azul { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-strong) 55%, transparent),
     0 0 8px 1px color-mix(in srgb, var(--accent-strong) 45%, transparent);
   animation: pulsoNeonAzul 2.4s ease-in-out infinite; }
@@ -613,14 +613,14 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   border-radius: var(--radius); border: 2px solid var(--border);
   background: var(--grad-card), var(--surface);
   position: relative; overflow: hidden;
-  border-left-color: var(--bom);
+  border-left-color: var(--good);
   border-left-width: 5px;
 }
 @media (max-width: 900px) {
   .arvore-decisoes { grid-template-columns: 1fr; }
 }
-.nodo[data-status="ambar"] { border-left-color: var(--ambar); }
-.nodo[data-status="alerta"] { border-left-color: var(--alerta); }
+.nodo[data-status="ambar"] { border-left-color: var(--warning); }
+.nodo[data-status="alerta"] { border-left-color: var(--critical); }
 .nodo .dados { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .nodo .dados strong { font-size: clamp(12px, 1vw, calc(16px * var(--zoom, 1)));
   font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -635,10 +635,10 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   background: var(--grad-card), var(--surface);
   text-align: center; display: flex; flex-direction: column;
   gap: clamp(8px, 1.2vh, 14px); min-height: 0; justify-content: center; }
-.modulo[data-tipo="alerta"] { border-color: color-mix(in srgb, var(--alerta) 50%, transparent);
+.modulo[data-tipo="alerta"] { border-color: color-mix(in srgb, var(--critical) 50%, transparent);
   background: linear-gradient(135deg,
-    color-mix(in srgb, var(--alerta) 12%, var(--surface)),
-    color-mix(in srgb, var(--alerta) 6%, var(--surface))); }
+    color-mix(in srgb, var(--critical) 12%, var(--surface)),
+    color-mix(in srgb, var(--critical) 6%, var(--surface))); }
 .modulo[data-tipo="team"] { border-color: color-mix(in srgb, var(--series-5) 50%, transparent);
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--series-5) 12%, var(--surface)),
@@ -661,11 +661,11 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
   background: color-mix(in srgb, var(--series-4) calc(var(--intensidade) * 0.4), var(--surface));
   transition: all .3s ease; }
 .celula[data-status="quente"] { background: linear-gradient(135deg,
-  color-mix(in srgb, var(--bom) 60%, var(--surface)),
-  color-mix(in srgb, var(--bom) 30%, var(--surface))); }
+  color-mix(in srgb, var(--good) 60%, var(--surface)),
+  color-mix(in srgb, var(--good) 30%, var(--surface))); }
 .celula[data-status="morno"] { background: linear-gradient(135deg,
-  color-mix(in srgb, var(--ambar) 50%, var(--surface)),
-  color-mix(in srgb, var(--ambar) 20%, var(--surface))); }
+  color-mix(in srgb, var(--warning) 50%, var(--surface)),
+  color-mix(in srgb, var(--warning) 20%, var(--surface))); }
 .celula[data-status="frio"] { background: color-mix(in srgb, var(--surface-raised) 80%, transparent); }
 .celula .mes { font-size: clamp(10px, .78vw, calc(12px * var(--zoom, 1)));
   font-weight: 600; text-transform: uppercase; color: var(--ink-2); }
