@@ -444,15 +444,24 @@ def excluir_sessao(db: Database, member_id: int, ponto_id: int) -> dict[str, Any
 
     Mesma trava de `editar_sessao`: so sessao FECHADA se apaga por aqui --
     a aberta e a que o fluxo de bater ponto esta usando agora.
+
+    Devolve `entrada`/`saida` da sessão apagada mesmo quando `excluiu` é
+    falso (`None` nesse caso) -- é o que `route_ponto_excluir` grava no
+    log de auditoria antes do DELETE. Sem isso, uma sessão apagada por
+    engano (ou por qualquer motivo) não deixava rastro nenhum de quando
+    existiu nem do que tinha dentro -- a única pergunta que de fato
+    importa quando alguém pergunta "cadê minha sessão de tal dia".
     """
     linha = _sessao_da_pessoa(db, member_id, ponto_id)
     if linha is None:
-        return {"excluiu": False, "porque": "sessão não encontrada"}
+        return {"excluiu": False, "porque": "sessão não encontrada",
+                "entrada": None, "saida": None}
     if linha["saida"] is None:
-        return {"excluiu": False, "porque": "sessão em aberto não se apaga por aqui"}
+        return {"excluiu": False, "porque": "sessão em aberto não se apaga por aqui",
+                "entrada": linha["entrada"], "saida": None}
     db.execute("DELETE FROM ponto WHERE id = ?", (ponto_id,))
     db.conn.commit()
-    return {"excluiu": True}
+    return {"excluiu": True, "entrada": linha["entrada"], "saida": linha["saida"]}
 
 
 # ----------------------------------------------------------------------

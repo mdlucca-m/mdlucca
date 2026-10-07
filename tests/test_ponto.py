@@ -1208,6 +1208,66 @@ class TestRotasDoPonto(unittest.TestCase):
         _, depois = self.chamar("/api/ponto", self.bento)
         self.assertNotIn(ponto_id, [x["id"] for x in depois["historico"]])
 
+    def test_excluir_sessao_grava_no_log_de_auditoria(self):
+        # Uma exclusao de ponto sem rastro nenhum foi exatamente o que
+        # faltou pra responder "cade minha sessao" com algo melhor que
+        # "nao sei dizer" -- ver o comentario em route_ponto_excluir.
+        db = Database(self.db_path)
+        member_id = db.scalar("SELECT id FROM members WHERE full_name = 'Bento Lima'")
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida) VALUES (?, ?, ?)",
+            (member_id, f"{ontem} 09:00:00", f"{ontem} 10:00:00"))
+        db.conn.commit()
+        ponto_id = db.scalar(
+            "SELECT id FROM ponto WHERE member_id = ? AND saida = ?",
+            (member_id, f"{ontem} 10:00:00"))
+        antes = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        db.close()
+
+        status, excluido = self.chamar(
+            "/api/ponto/excluir", self.bento, "POST", {"ponto_id": ponto_id})
+        self.assertEqual(status, 200)
+        self.assertTrue(excluido["excluiu"])
+
+        db = Database(self.db_path)
+        depois = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        self.assertEqual(depois, antes + 1)
+        linha = db.dicts(
+            "SELECT entity_id, detail FROM audit_log WHERE action = 'ponto_excluir'"
+            " ORDER BY id DESC LIMIT 1")[0]
+        self.assertEqual(linha["entity_id"], str(ponto_id))
+        self.assertIn(f"{ontem} 09:00:00", linha["detail"])
+        self.assertIn(f"{ontem} 10:00:00", linha["detail"])
+        db.close()
+
+    def test_excluir_sessao_em_aberto_nao_grava_no_log(self):
+        # So a exclusao que de fato aconteceu entra no log -- uma tentativa
+        # recusada (sessao em aberto, ou de outra pessoa) nao e uma
+        # exclusao, e nao deve aparecer como se fosse.
+        db = Database(self.db_path)
+        member_id = db.scalar("SELECT id FROM members WHERE full_name = 'Bento Lima'")
+        db.execute(
+            "INSERT INTO ponto (member_id, entrada) VALUES (?, ?)",
+            (member_id, "2020-01-01 09:00:00"))
+        db.conn.commit()
+        ponto_id = db.scalar(
+            "SELECT id FROM ponto WHERE member_id = ? AND saida IS NULL", (member_id,))
+        antes = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        db.close()
+
+        status, resultado = self.chamar(
+            "/api/ponto/excluir", self.bento, "POST", {"ponto_id": ponto_id})
+        self.assertEqual(status, 200)
+        self.assertFalse(resultado["excluiu"])
+
+        db = Database(self.db_path)
+        depois = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        self.assertEqual(depois, antes)
+        db.execute("DELETE FROM ponto WHERE id = ?", (ponto_id,))
+        db.conn.commit()
+        db.close()
+
     def test_a_rota_lanca_uma_sessao_que_o_sistema_nao_chegou_a_abrir(self):
         # a classe compartilha o banco entre todos os testes (setUpClass,
         # não setUp) -- por isso a sessão lançada aqui é apagada no fim,

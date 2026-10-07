@@ -2344,12 +2344,24 @@ def route_ponto_editar(ctx: "Context") -> Any:
 
 def route_ponto_excluir(ctx: "Context") -> Any:
     """A própria pessoa apaga uma sessão duplicada ou errada — ver
-    `ponto.excluir_sessao`."""
+    `ponto.excluir_sessao`.
+
+    Grava no log de auditoria o que foi apagado (entrada/saída), não só
+    que algo foi apagado -- uma exclusão de ponto sem rastro nenhum foi
+    exatamente o que faltou para responder "cadê minha sessão" com uma
+    resposta melhor que "não sei dizer".
+    """
     corpo = ctx.body or {}
     ponto_id = to_int(corpo.get("ponto_id"))
     if not ponto_id:
         raise ApiError(400, "ponto_id é obrigatório")
-    return ponto.excluir_sessao(ctx.db, _eu(ctx), ponto_id)
+    user = ctx.user or {}
+    resultado = ponto.excluir_sessao(ctx.db, _eu(ctx), ponto_id)
+    if resultado.get("excluiu"):
+        auth.log(ctx.db, user.get("id"), user.get("login"), "ponto_excluir",
+                 "ponto", ponto_id,
+                 f"entrada={resultado.get('entrada')} saida={resultado.get('saida')}")
+    return resultado
 
 
 def _avisar_ponto(ctx: "Context", evento: str, detalhe: Any) -> None:
