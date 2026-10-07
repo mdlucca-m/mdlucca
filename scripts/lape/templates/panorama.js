@@ -941,6 +941,63 @@ function verLaboratorio(palco) {
       + "primeiro nível de hierarquia."));
   }
 
+  if (((D.linhas_no_tempo || {}).linhas || []).length) {
+    const lnt = D.linhas_no_tempo;
+    const anosLnt = lnt.janela.anos;
+    const comDado = lnt.linhas.filter(function (l) { return l.total > 0; });
+    const pontosDeInflexaoLnt = [];
+    comDado.forEach(function (l, si) {
+      (l.inflexoes || []).forEach(function (inf) {
+        const i = anosLnt.indexOf(inf.ano);
+        if (i >= 0) {
+          pontosDeInflexaoLnt.push({ serie: si, i: i, label: String(inf.ano),
+            title: l.linha + " · " + inf.ano + ": " + inf.leitura });
+        }
+      });
+    });
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "linhas", "Linhas de pesquisa no tempo",
+      "Artigos por ano, uma curva por linha — a mais alta é a que mais publica. "
+      + "Onde duas curvas se cruzam, uma passou a outra; os pontos marcados sobre "
+      + "as curvas são as inflexões, o momento em que cada linha parou de acelerar "
+      + "(não o pico — ali a curva já tinha virado).",
+      comDado.length
+        ? C.lines({
+            labels: anosLnt,
+            series: comDado.map(function (l) {
+              return { label: l.linha, values: l.suave, area: true }; }),
+            marks: pontosDeInflexaoLnt,
+            height: 340, file: "linhas-no-tempo",
+            table: {
+              cols: [{ k: "ano", label: "Ano" }].concat(comDado.map(function (l) {
+                return { k: l.linha, label: l.linha, num: true }; })),
+              rows: anosLnt.map(function (ano, i) {
+                const row = { ano: ano };
+                comDado.forEach(function (l) { row[l.linha] = (l.serie || [])[i]; });
+                return row;
+              }),
+            },
+          })
+        : el("p", { class: "hint", text: "Nenhuma linha com artigos no período." }))));
+
+    if ((lnt.cruzamentos || []).length) {
+      palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+        "conectar", "Cruzamentos entre linhas",
+        "Em que ano uma linha de pesquisa passou a outra em volume de publicação.",
+        el("table", { class: "dados" }, [
+          el("thead", {}, el("tr", {}, ["Ano", "Quem passou", "Quem foi passada"].map(
+            function (c) { return el("th", { text: c }); }))),
+          el("tbody", {}, lnt.cruzamentos.map(function (x) {
+            return el("tr", {}, [
+              el("td", { class: "num", text: String(x.ano_cheio) }),
+              el("td", { text: x.quem_subiu }),
+              el("td", { class: "hint", text: x.quem_desceu }),
+            ]);
+          })),
+        ]))));
+    }
+  }
+
   palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
     "rede", "Organograma do que se estuda",
     "Linha de pesquisa → variável → artigo. Clique para descer um nível.",

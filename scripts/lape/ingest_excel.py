@@ -872,6 +872,7 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
                 "journal": clean_text(row.get("journal")) or clean_text(row.get("submission_journal")),
                 "issn": clean_text(row.get("issn")),
                 "qualis": clean_text(row.get("qualis")),
+                "quartile": clean_text(row.get("quartile")),
                 "impact_factor": to_float(row.get("impact_factor")),
                 "doi": norm_doi(row.get("doi")),
                 "url": clean_text(row.get("url")),

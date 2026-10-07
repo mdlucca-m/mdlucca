@@ -2197,7 +2197,7 @@ def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
     """Os artigos com tudo o que a tabela de extracao precisa mostrar."""
     artigos = db.dicts(
         "SELECT id, internal_code, title, authors, lead_name, status, research_line,"
-        "       research_line_code, study_type, journal, qualis, impact_factor,"
+        "       research_line_code, study_type, journal, qualis, quartile, impact_factor,"
         "       year_published, started_on, first_submission_on, accepted_on,"
         "       published_on, doi, url, wos_id, scopus_id, pmid, pmc,"
         "       open_access, oa_status, oa_url,"
@@ -2762,6 +2762,7 @@ def payload_do_panorama(db, desde: int | None = None,
     dados = analise.panorama(db, desde=desde, ate=ate)
     return {
         "panorama": dados,
+        "linhas_no_tempo": analise.linhas_no_tempo(db, desde=desde, ate=ate),
         "incidencia": analise.incidencia(db, dados["janela"]["anos"]),
         "triangulacao": analise.triangulacao(db),
         "dendrograma": analise.dendrograma(db),
@@ -3890,7 +3891,8 @@ COLUNAS_EXTRACAO: tuple[tuple[str, str], ...] = (
     ("Variáveis secundárias", "variaveis_secundarias"),
     ("Nº de variáveis", "n_variaveis"), ("Linha de pesquisa", "research_line"),
     ("Situação", "status"), ("Tipo de estudo", "study_type"),
-    ("Periódico", "journal"), ("Qualis", "qualis"), ("Fator de impacto", "impact_factor"),
+    ("Periódico", "journal"), ("Qualis", "qualis"), ("Quartil", "quartile"),
+    ("Fator de impacto", "impact_factor"),
     ("Ano", "ano"), ("Início", "started_on"), ("1ª submissão", "first_submission_on"),
     ("Aceite", "accepted_on"), ("Publicação", "published_on"),
     ("Tentativas", "submission_attempts"), ("Recusas", "rejections"),

@@ -155,7 +155,7 @@ class TestRotaDoPanorama(BasePanorama):
         # viesse aqui, e a tela abriria vazia por um instante
         _, _, dados = self.buscar("/api/panorama", self.ana)
         for chave in ("incidencia", "prevalencia", "triangulacao", "projetos",
-                      "raio_x"):
+                      "raio_x", "linhas_no_tempo"):
             with self.subTest(chave=chave):
                 self.assertIn(chave, dados)
 
@@ -171,6 +171,129 @@ class TestRotaDoPanorama(BasePanorama):
             if not v["confiavel"]:
                 self.assertEqual(v["tendencia"], "sem série suficiente")
                 self.assertIsNotNone(v["porque"])
+
+
+class TestLinhasNoTempo(unittest.TestCase):
+    """analise.linhas_no_tempo: artigos por ano, por linha de pesquisa --
+    quem publica mais, inflexão (aceleração trocando de sinal) e
+    cruzamento (quando uma linha passa a outra em volume)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def artigos(self, linha, anos, **extra):
+        from lape import ingest_excel
+
+        linhas_ids = []
+        for i, ano in enumerate(anos):
+            registro = {"title": f"{linha} artigo {i}", "authors": "Fulano",
+                        "status": "Publicado", "year_published": ano,
+                        "research_line": linha}
+            registro.update(extra)
+            ingest_excel.ingest_articles(self.db, [registro])
+
+    def test_a_linha_com_mais_artigos_vem_primeiro(self):
+        self.artigos("Rítmica", [2022, 2023, 2023, 2024])
+        self.artigos("Envelhecimento", [2022])
+        from lape import analise
+        saida = analise.linhas_no_tempo(self.db, desde=2020, ate=2025)
+        self.assertEqual(saida["linhas"][0]["linha"], "Rítmica")
+        self.assertEqual(saida["linhas"][0]["total"], 4)
+        self.assertEqual(saida["linhas"][1]["total"], 1)
+
+    def test_uma_linha_subindo_e_outra_caindo_se_cruzam(self):
+        # Rítmica cresce ano a ano; Envelhecimento encolhe -- as duas
+        # começam longe e se cruzam no meio do período.
+        self.artigos("Rítmica", [2020] * 2 + [2021] * 3 + [2022] * 5
+                     + [2023] * 8 + [2024] * 10 + [2025] * 6)
+        self.artigos("Envelhecimento", [2020] * 8 + [2021] * 7 + [2022] * 5
+                     + [2023] * 3 + [2024] * 2 + [2025] * 1)
+        from lape import analise
+        saida = analise.linhas_no_tempo(self.db, desde=2015, ate=2025)
+        self.assertTrue(saida["cruzamentos"],
+                        "duas curvas que se invertem precisam de ao menos um cruzamento")
+        cruzamento = saida["cruzamentos"][0]
+        self.assertEqual({cruzamento["quem_subiu"], cruzamento["quem_desceu"]},
+                         {"Rítmica", "Envelhecimento"})
+        envelhecimento = next(l for l in saida["linhas"] if l["linha"] == "Envelhecimento")
+        self.assertEqual(envelhecimento["tendencia"], "caindo")
+        self.assertTrue(envelhecimento["inflexoes"],
+                        "uma curva que desacelera e depois alivia tem inflexão")
+
+    def test_artigo_sem_linha_entra_como_sem_linha_declarada(self):
+        from lape import ingest_excel, analise
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Órfão", "authors": "Fulano", "status": "Publicado",
+             "year_published": 2024}])
+        saida = analise.linhas_no_tempo(self.db, desde=2020, ate=2025)
+        nomes = [l["linha"] for l in saida["linhas"]]
+        self.assertIn("Sem linha declarada", nomes)
+
+    def test_rota_do_panorama_traz_linhas_no_tempo_com_anos_e_linhas(self):
+        from lape import ingest_excel
+
+        db_path = Path(self.tmp.name) / "t.sqlite"
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Com linha", "authors": "Fulano", "status": "Publicado",
+             "year_published": 2024, "research_line": "Rítmica"}])
+        auth.create_account(self.db, "Ana Souza", "ana2@udesc.br", "senhaforte123", role="admin")
+        self.db.conn.commit()
+        api.Handler.db_path = db_path
+        api.Handler.log_message = lambda *a, **k: None
+        server = ThreadingHTTPServer(("127.0.0.1", 0), api.Handler)
+        port = server.server_address[1]
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.shutdown)
+        self.addCleanup(server.server_close)
+        pedido = urllib.request.Request(
+            f"http://127.0.0.1:{port}/api/auth/login",
+            data=json.dumps({"login": "ana2@udesc.br", "senha": "senhaforte123"}).encode(),
+            headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(pedido, timeout=30) as r:
+            cookie = r.headers.get("Set-Cookie", "").split(";")[0]
+        pedido = urllib.request.Request(f"http://127.0.0.1:{port}/api/panorama")
+        pedido.add_header("Cookie", cookie)
+        with urllib.request.urlopen(pedido, timeout=30) as r:
+            dados = json.loads(r.read())
+        lnt = dados["linhas_no_tempo"]
+        self.assertIn("anos", lnt["janela"])
+        self.assertTrue(any(l["linha"] == "Rítmica" for l in lnt["linhas"]))
+
+
+class TestQuartilDoArtigo(unittest.TestCase):
+    """O quartil da revista (Q1-Q4) é campo livre, mesmo tratamento do
+    Qualis -- cadastro manual, sem validação de formato."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "t.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def test_quartil_e_gravado_e_lido_de_volta(self):
+        from lape import ingest_excel
+
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Artigo com quartil", "authors": "Fulana", "status": "Publicado",
+             "year_published": 2024, "journal": "Journal X", "quartile": "Q1"}])
+        linha = self.db.dicts(
+            "SELECT quartile FROM v_articles_full WHERE title = 'Artigo com quartil'")[0]
+        self.assertEqual(linha["quartile"], "Q1")
+
+    def test_quartil_em_branco_fica_nulo(self):
+        from lape import ingest_excel
+
+        ingest_excel.ingest_articles(self.db, [
+            {"title": "Artigo sem quartil", "authors": "Fulana", "status": "Publicado",
+             "year_published": 2024}])
+        linha = self.db.dicts(
+            "SELECT quartile FROM v_articles_full WHERE title = 'Artigo sem quartil'")[0]
+        self.assertIsNone(linha["quartile"])
 
 
 class TestMapaMundiServido(BasePanorama):

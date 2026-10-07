@@ -1239,6 +1239,7 @@ VIEWS.artigos = crudView({
     field("DOI", "DOI", "text", {from: "doi",
       hint: "Com DOI o sistema busca citações sozinho."}),
     field("Qualis", "Qualis", "text", {from: "qualis"}),
+    field("Quartil", "Quartil", "text", {from: "quartile", hint: "Q1, Q2, Q3 ou Q4"}),
     field("Fator de impacto", "Fator de impacto", "number",
       {step: "0.001", from: "impact_factor"}),
     field("Link", "Link", "text", {from: "url"}),
