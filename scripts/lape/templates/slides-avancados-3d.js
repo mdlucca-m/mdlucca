@@ -824,82 +824,110 @@ function slideOrganogramaMetodologico() {
     return escalonar(el("div", { class: "slide" }, vazio("Nenhuma pessoa do LAPE cadastrada.")));
   }
 
-  const container = el("div", { class: "slide slide-organograma-3d" });
-
+  /* Faixas por NÍVEL, não árvore recursiva. A árvore antiga pendurava
+     doutorandos, mestrandos e bolsistas sob o orientador, então uma mesma
+     coluna misturava os quatro níveis ("misturados e sem sentido", relato
+     do Mateus). Agora cada vínculo tem a sua faixa, de cima para baixo na
+     ordem de BALDES_ORGANOGRAMA; a relação de orientação não some -- vira
+     o agrupamento DENTRO da faixa ("orientados por X"). */
+  const container = el("div", { class: "slide slide-organograma-3d slide-organograma-niveis" });
   const porId = {};
   (org.people || []).forEach(function (p) { porId[p.id] = p; });
-  const filhosDe = {};
+
+  const orientadorDe = {};
   (org.edges || []).forEach(function (e) {
     if (e.kind !== "orientacao" && e.kind !== "coorientacao") return;
     if (!porId[e.from] || !porId[e.to]) return;
-    (filhosDe[e.from] = filhosDe[e.from] || []).push({ to: e.to, kind: e.kind });
-  });
-
-  /* UM SÓ `mostrados`, atravessando todos os baldes em ordem -- é o que
-     substitui o "replay" que cada slide separada fazia sozinha. Marcado
-     NA HORA em que o nó é desenhado (não só depois da árvore pronta):
-     coorientação bota duas arestas chegando na mesma pessoa, então duas
-     raízes do MESMO balde podem disputar o mesmo galho -- sem marcar
-     durante a descida, a segunda raiz desenhava o galho de novo, e a
-     pessoa aparecia duplicada na mesma seção. */
-  const mostrados = new Set();
-
-  const temOrientador = temOrientadorVisivel(org.people, org.edges);
-  function candidatosDoBalde(indice) {
-    return (org.people || []).filter(function (p) { return baldeDoRole(p.role) === indice; });
-  }
-
-  const secoes = [];
-  BALDES_ORGANOGRAMA.forEach(function (balde, indice) {
-    const locais = candidatosDoBalde(indice).filter(function (p) {
-      return !mostrados.has(p.id) && !temOrientador.has(p.id);
-    });
-    const raizes = [];
-    locais.forEach(function (p) {
-      const no = noArvore(p.id, 0, porId, filhosDe, mostrados);
-      if (no) raizes.push(no);
-    });
-    if (raizes.length) {
-      secoes.push(el("div", { class: "organograma-secao" }, [
-        el("h3", { class: "organograma-secao-titulo", text: balde.titulo }),
-        el("div", { class: "arvore-organograma" }, raizes),
-      ]));
+    if (!orientadorDe[e.to] || (e.kind === "orientacao" && orientadorDe[e.to].kind !== "orientacao")) {
+      orientadorDe[e.to] = { id: e.from, kind: e.kind };
     }
   });
 
-  if (!secoes.length) {
-    return escalonar(el("div", { class: "slide" }, vazio("Ninguém no organograma ainda.")));
-  }
+  const faixas = BALDES_ORGANOGRAMA.map(function () { return []; });
+  (org.people || []).forEach(function (p) { faixas[baldeDoRole(p.role)].push(p); });
 
-  /* Ordem alfabética, de dentro do PRÓPRIO organograma -- não do grafo de
-     "Linhas de Pesquisa 3D", que filtra quem não tem produção e por isso
-     deixaria de fora uma linha com gente mas sem artigo ainda. */
   const linhasOrdenadas = Array.from(new Set(
     (org.people || []).map(function (p) { return p.research_line; }).filter(Boolean)
   )).sort();
 
-  const legendaTemas = el("div", { class: "legenda-ponto legenda-temas", style: "display:none" });
-  function desenharLegendaTemas() {
-    legendaTemas.innerHTML = "";
-    linhasOrdenadas.forEach(function (nome, idx) {
-      legendaTemas.appendChild(el("div", { class: "item-legenda" }, [
-        el("div", { class: "bolinha", style: `background:var(--series-${(idx % 8) + 1})` }),
-        el("span", { text: nome }),
-      ]));
-    });
-    if ((org.people || []).some(function (p) { return !p.research_line; })) {
-      legendaTemas.appendChild(el("div", { class: "item-legenda" }, [
-        el("div", { class: "bolinha", style: "background:var(--ink-muted)" }),
-        el("span", { text: "Sem linha declarada" }),
-      ]));
-    }
-  }
-  desenharLegendaTemas();
+  const ordemNome = function (a, b) { return String(a.full_name).localeCompare(String(b.full_name), "pt"); };
+  const total = (org.people || []).length;
+  const presentes = (org.people || []).filter(function (p) { return p.ativo_agora; }).length;
+  const comOrientador = (org.people || []).filter(function (p) { return orientadorDe[p.id]; }).length;
+
+  container.appendChild(el("div", { class: "org-resumo" }, [
+    el("span", { class: "org-total-item" }, [el("b", { text: String(total) }), " pessoas"]),
+    el("span", { class: "org-total-item" }, [el("b", { text: String(presentes) }), " presentes agora"]),
+    el("span", { class: "org-total-item" }, [el("b", { text: String(comOrientador) }), " com orientação registrada"]),
+  ]));
 
   const alternador = el("div", { class: "alternador-cor-organograma" }, [
-    el("button", { class: "botao-modo-cor ativo", "data-modo": "hierarquia" }, [el("span", { text: "Por hierarquia" })]),
+    el("button", { class: "botao-modo-cor ativo", "data-modo": "hierarquia" }, [el("span", { text: "Por nível" })]),
     el("button", { class: "botao-modo-cor", "data-modo": "tema" }, [el("span", { text: "Por linha de pesquisa" })]),
   ]);
+  container.appendChild(alternador);
+
+  const legendaTemas = el("div", { class: "legenda-ponto legenda-temas", style: "display:none" });
+  linhasOrdenadas.forEach(function (nome, idx) {
+    legendaTemas.appendChild(el("div", { class: "item-legenda" }, [
+      el("div", { class: "bolinha", style: `background:var(--series-${(idx % 8) + 1})` }),
+      el("span", { text: nome }),
+    ]));
+  });
+  if ((org.people || []).some(function (p) { return !p.research_line; })) {
+    legendaTemas.appendChild(el("div", { class: "item-legenda" }, [
+      el("div", { class: "bolinha", style: "background:var(--ink-muted)" }),
+      el("span", { text: "Sem linha declarada" }),
+    ]));
+  }
+
+  const trilha = el("div", { class: "org-niveis" });
+  faixas.forEach(function (membros, indice) {
+    if (!membros.length) return;
+    const tom = NIVEL_COR[indice % NIVEL_COR.length];
+    /* grupos por orientador; quem não tem orientador registrado (ou cujo
+       orientador não está na lista) fica num grupo próprio, nunca solto */
+    const grupos = new Map();
+    membros.slice().sort(ordemNome).forEach(function (p) {
+      const o = orientadorDe[p.id];
+      const chave = o && porId[o.id] ? o.id : "_sem";
+      if (!grupos.has(chave)) grupos.set(chave, []);
+      grupos.get(chave).push(p);
+    });
+    const ordemGrupos = Array.from(grupos.keys()).sort(function (x, y) {
+      if (x === "_sem") return 1;
+      if (y === "_sem") return -1;
+      return ordemNome(porId[x], porId[y]);
+    });
+    const nPresentes = membros.filter(function (p) { return p.ativo_agora; }).length;
+    const nArtigos = membros.reduce(function (n, p) { return n + (p.n_articles || 0); }, 0);
+
+    const corpo = el("div", { class: "org-nivel-corpo" });
+    const soUmGrupoSemOrientador = ordemGrupos.length === 1 && ordemGrupos[0] === "_sem";
+    ordemGrupos.forEach(function (chave) {
+      const pessoasDoGrupo = grupos.get(chave);
+      const rotulo = chave === "_sem"
+        ? (indice === 0 ? "" : "Sem orientador registrado")
+        : "Orientados por " + cortar(porId[chave].full_name, 28);
+      const grupo = el("div", { class: "org-grupo" }, [
+        (rotulo && !soUmGrupoSemOrientador) ? el("div", { class: "org-grupo-rotulo", text: rotulo }) : null,
+        el("div", { class: "org-grupo-cartoes" }, pessoasDoGrupo.map(function (p) { return cartaoPessoa(p, indice); })),
+      ]);
+      corpo.appendChild(grupo);
+    });
+
+    trilha.appendChild(el("section", { class: "org-nivel", "data-tom": tom }, [
+      el("header", { class: "org-nivel-cab" }, [
+        el("h3", { class: "org-nivel-titulo", text: BALDES_ORGANOGRAMA[indice].titulo }),
+        el("span", { class: "org-nivel-contagem", text: String(membros.length) }),
+        el("span", { class: "org-nivel-meta", text: nPresentes + " presente(s) · " + nArtigos + " artigo(s)" }),
+      ]),
+      corpo,
+    ]));
+  });
+  container.appendChild(trilha);
+  container.appendChild(legendaTemas);
+
   Array.prototype.forEach.call(alternador.querySelectorAll("button"), function (botao) {
     botao.onclick = function () {
       const modo = botao.dataset.modo;
@@ -910,10 +938,6 @@ function slideOrganogramaMetodologico() {
       legendaTemas.style.display = modo === "tema" ? "" : "none";
     };
   });
-  container.appendChild(alternador);
-
-  secoes.forEach(function (secao) { container.appendChild(secao); });
-  container.appendChild(legendaTemas);
 
   container.appendChild(el("div", { class: "legenda-ponto" }, [
     el("div", { class: "item-legenda" }, [el("div", { class: "bolinha verde" }), el("span", { text: "Presente agora" })]),
@@ -995,16 +1019,75 @@ function slideFrameworkN8n() {
       fase.id === gargaloId ? el("span", { class: "fluxo-flag", text: "GARGALO" }) : null,
       el("span", { class: "fluxo-etapa-numero", text: String(n) }),
       el("span", { class: "fluxo-etapa-rotulo", text: fase.label }),
+      el("span", { class: "fluxo-etapa-pct", text: Math.round(100 * n / total) + "% do total" }),
       el("div", { class: "fluxo-barra" }, [
         el("div", { class: "fluxo-barra-preenchida",
           style: "width:" + pct + "%; background: var(" + TOM_VAR[fase.tom] + ");" }),
       ]),
     ]));
     if (i < FASES.length - 1) {
-      trilha.appendChild(el("span", { class: "fluxo-seta", "aria-hidden": "true", text: "→" }));
+      const prox = contagem[FASES[i + 1].id] || 0;
+      /* razão entre ESTOQUES de etapas vizinhas -- não é taxa de conversão
+         (não segue a mesma coorte), por isso o rótulo diz "×" e não "%" */
+      const razao = n > 0 ? (prox / n).toFixed(1).replace(".", ",") + "×" : "—";
+      trilha.appendChild(el("span", { class: "fluxo-seta", "aria-hidden": "true" }, [
+        el("span", { class: "fluxo-seta-razao", text: razao }),
+        el("span", { text: "→" }),
+      ]));
     }
   });
   container.appendChild(trilha);
+
+  /* Leitura analítica: quem está parado, onde, e como cada linha de
+     pesquisa se distribui pelas fases (mesmos status do banco). */
+  const emAndamento = FASES.filter(f => f.id !== "publicado")
+    .reduce((n, f) => n + (contagem[f.id] || 0), 0);
+  const fechados = (contagem.publicado || 0) + (contagem[DESFECHO.id] || 0);
+  const pctPub = Math.round(100 * (contagem.publicado || 0) / total);
+  const leitura = [];
+  if (gargaloId) {
+    leitura.push(el("li", {}, [el("b", { text: contagem[gargaloId] + " manuscrito(s)" }),
+      " parados em ", el("b", { text: gargalo.label }), " (" + Math.round(100 * contagem[gargaloId] / total) + "% do fluxo)"]));
+  }
+  leitura.push(el("li", {}, [el("b", { text: String(emAndamento) }), " ainda em andamento · ",
+    el("b", { text: pctPub + "%" }), " já publicados · ", el("b", { text: String(fechados) }), " com desfecho fechado"]));
+
+  const porLinha = new Map();
+  artigos().forEach(function (a) {
+    const nome = a.research_line || "Sem linha";
+    if (!porLinha.has(nome)) porLinha.set(nome, { nome: nome, total: 0 });
+    const reg = porLinha.get(nome);
+    const fase = contagem.hasOwnProperty(a.status) ? a.status
+      : ((a.status === "rejeitado" || a.status === "arquivado") ? DESFECHO.id : null);
+    if (!fase) return;
+    reg[fase] = (reg[fase] || 0) + 1;
+    reg.total++;
+  });
+  const linhas = Array.from(porLinha.values()).sort((x, y) => y.total - x.total).slice(0, 6);
+  const maiorLinha = Math.max.apply(null, linhas.map(l => l.total).concat([1]));
+  const corFase = id => id === DESFECHO.id ? "var(--critical)" : "var(" + TOM_VAR[FASES.find(f => f.id === id).tom] + ")";
+  if (linhas.length) {
+    container.appendChild(el("div", { class: "fluxo-analise" }, [
+      el("ul", { class: "fluxo-leitura" }, leitura),
+      el("div", { class: "fluxo-linhas" }, [
+        el("div", { class: "fluxo-linhas-titulo", text: "Onde cada linha de pesquisa está no fluxo" }),
+      ].concat(linhas.map(function (l) {
+        return el("div", { class: "fluxo-linha" }, [
+          el("span", { class: "fluxo-linha-nome", text: cortar(l.nome, 34) }),
+          el("div", { class: "fluxo-linha-barra", style: "width:" + Math.max(8, Math.round(100 * l.total / maiorLinha)) + "%" },
+            FASES.concat([DESFECHO]).filter(f => l[f.id]).map(function (f) {
+              return el("div", { title: f.label + ": " + l[f.id],
+                style: "flex:" + l[f.id] + ";background:" + corFase(f.id), text: String(l[f.id]) });
+            })),
+          el("span", { class: "fluxo-linha-total", text: String(l.total) }),
+        ]);
+      })).concat([
+        el("div", { class: "fluxo-linhas-legenda" }, FASES.concat([DESFECHO]).map(function (f) {
+          return el("span", {}, [el("i", { style: "background:" + corFase(f.id) }), f.label]);
+        })),
+      ])),
+    ]));
+  }
 
   const nDesfecho = contagem[DESFECHO.id] || 0;
   container.appendChild(el("div", { class: "fluxo-desfecho" }, [
