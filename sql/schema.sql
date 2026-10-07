@@ -1479,3 +1479,17 @@ CREATE TABLE IF NOT EXISTS ginastica_ritmica_estudos (
 );
 CREATE INDEX IF NOT EXISTS idx_ginastica_ritmica_estudos_ano
   ON ginastica_ritmica_estudos(ano_publicacao);
+
+/* ==========================================================================
+   Apresentacao "Humor na Ginastica Ritmica e Esportes Esteticos" -- aba
+   PRIVADA, pedido do Mateus: "crie essa apresentacao no painel do lape
+   somente para quem eu autorizar". Mesmo desenho da tabela de acesso da
+   ginastica ritmica (ver acima): uma LISTA de convidados, nao nomes fixos
+   no codigo, mantida pela propria coordenacao; `user_role = 'admin'`
+   sempre ve (ver apresentacao_humor.py).
+   ========================================================================== */
+CREATE TABLE IF NOT EXISTS apresentacao_humor_acesso (
+  member_id     INTEGER PRIMARY KEY REFERENCES members(id) ON DELETE CASCADE,
+  concedido_por INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  concedido_em  TEXT NOT NULL DEFAULT (datetime('now'))
+);

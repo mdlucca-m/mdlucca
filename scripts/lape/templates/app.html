@@ -333,6 +333,55 @@ table.matriz td.celula{text-align:center;font-variant-numeric:tabular-nums}
   .card.etapa{width:100%}
   .etapa-baixo{flex-direction:column;align-items:stretch}
 }
+
+/* ---- Apresentação "Humor na Ginástica Rítmica" (aba privada) ---- */
+.apresentacao-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
+.apresentacao-nav .pontos{display:flex;gap:6px}
+.apresentacao-ponto{width:7px;height:7px;border-radius:50%;background:var(--border-strong)}
+.apresentacao-ponto.on{background:var(--accent)}
+.card.apresentacao-slide{min-height:420px;display:flex;flex-direction:column;gap:16px}
+.card.apresentacao-slide.tom-escuro{background:var(--ink);color:#fff;border-color:transparent}
+.card.apresentacao-slide.tom-escuro .texto{color:color-mix(in srgb,#fff 70%,transparent)}
+.apresentacao-eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.apresentacao-slide h2{margin:0;font-size:26px}
+.apresentacao-slide .texto{color:var(--ink-2);font-size:14px;line-height:1.5;max-width:640px}
+.apresentacao-achado-topo{display:flex;align-items:center;gap:14px}
+.apresentacao-achado-badge{width:44px;height:44px;border-radius:50%;background:var(--accent);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;
+  font-size:16px;flex:none}
+.apresentacao-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.apresentacao-cartao{border:1px solid var(--border);border-radius:10px;padding:14px;
+  display:flex;flex-direction:column;gap:4px}
+.apresentacao-cartao.destaque{border-color:var(--accent-strong);background:var(--accent-wash)}
+.apresentacao-cartao small{color:var(--ink-2);font-size:12px}
+.apresentacao-funil{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.apresentacao-passo{flex:1 1 140px;border:1px solid var(--border);border-radius:10px;
+  padding:16px;text-align:center;display:flex;flex-direction:column;gap:6px}
+.apresentacao-passo.destaque{border-color:var(--accent-strong);background:var(--accent-wash)}
+.apresentacao-passo .num{font-size:32px;font-weight:800;color:var(--ink)}
+.apresentacao-passo small{color:var(--ink-2);font-size:11.5px}
+.apresentacao-raiz{align-self:center;border:1px solid var(--border-strong);border-radius:10px;
+  padding:10px 18px;font-weight:700;background:var(--surface-raised)}
+.apresentacao-galho{border-top:2px solid var(--border-strong);padding-top:14px;display:flex;
+  gap:10px;flex-wrap:wrap;justify-content:center}
+.apresentacao-folha{border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;min-width:110px}
+.apresentacao-folha .n{width:34px;height:34px;border-radius:50%;background:var(--accent);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.apresentacao-folha small{font-size:11.5px;text-align:center;color:var(--ink-2)}
+.apresentacao-clusters{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.apresentacao-cluster{border-top:2px solid var(--border-strong);padding-top:14px;
+  display:flex;flex-direction:column;align-items:center;gap:10px}
+.apresentacao-cluster-titulo{border:1px solid var(--accent-strong);background:var(--accent-wash);
+  border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;text-align:center}
+.apresentacao-slide ul{margin:0;padding-left:0;list-style:none;display:flex;
+  flex-direction:column;gap:8px}
+.apresentacao-slide ul li{font-size:13.5px;line-height:1.5;color:var(--ink-2);
+  padding-left:16px;position:relative}
+.apresentacao-slide ul li::before{content:"";position:absolute;left:0;top:7px;width:6px;
+  height:6px;border-radius:50%;background:var(--accent)}
+.apresentacao-slide ul li b{color:var(--ink)}
+.card.apresentacao-slide.tom-escuro ul li b{color:#fff}
 </style>
 </head>
 <body>
@@ -1746,6 +1795,177 @@ VIEWS.ritmica = {
   },
 };
 
+/* ---------------------------------------------------------------------- */
+/* Apresentação "Humor na Ginástica Rítmica" -- aba PRIVADA               */
+/*                                                                        */
+/* Pedido do Mateus: "crie essa apresentação no painel do lape somente   */
+/* para quem eu autorizar". Mesmo padrão de VIEWS.ritmica (ver comentário */
+/* ali): a lista de quem vê é dados (ME.acesso_apresentacao_humor, vindo  */
+/* de /api/auth/me -- ver boot() no fim do arquivo), não nomes fixos no   */
+/* código, e o conteúdo dos slides só chega pela API: quem não tem acesso */
+/* recebe 404 de /api/apresentacao-humor, então não há nada aqui para     */
+/* "vazar" lendo o JS da página, só o esqueleto da tela (igual a ritmica). */
+function montarSlideApresentacao(slide){
+  const escuro = slide.tipo === "capa" || slide.tipo === "fechamento";
+  const corpo = h("div", {class: "card apresentacao-slide" + (escuro ? " tom-escuro" : "")});
+  if (slide.eyebrow) corpo.appendChild(h("p", {class: "apresentacao-eyebrow", text: slide.eyebrow}));
+  if (slide.indice) corpo.appendChild(h("p", {class: "apresentacao-eyebrow",
+    text: "Achados por tema · " + slide.indice}));
+  const cabecalho = h("div", {class: "apresentacao-achado-topo"});
+  if (slide.n != null){
+    cabecalho.appendChild(h("div", {class: "apresentacao-achado-badge", text: String(slide.n)}));
+  }
+  cabecalho.appendChild(h("h2", {text: slide.titulo}));
+  corpo.appendChild(cabecalho);
+  if (slide.subtitulo) corpo.appendChild(h("p", {class: "texto", text: slide.subtitulo}));
+  if (slide.texto) corpo.appendChild(h("p", {class: "texto", text: slide.texto}));
+
+  if (slide.tipo === "topicos"){
+    corpo.appendChild(h("div", {class: "apresentacao-grade"}, (slide.itens || []).map(function (item, i){
+      return h("div", {class: "apresentacao-cartao"}, [
+        h("b", {text: String(i + 1).padStart(2, "0")}), h("small", {text: item}),
+      ]);
+    })));
+  }
+  if (slide.tipo === "grade"){
+    corpo.appendChild(h("div", {class: "apresentacao-grade"}, (slide.cartoes || []).map(function (c){
+      return h("div", {class: "apresentacao-cartao" + (c.destaque ? " destaque" : "")}, [
+        h("b", {text: c.titulo}), h("small", {text: c.nota}),
+      ]);
+    })));
+  }
+  if (slide.tipo === "funil"){
+    corpo.appendChild(h("div", {class: "apresentacao-funil"}, (slide.passos || []).map(function (p){
+      return h("div", {class: "apresentacao-passo" + (p.destaque ? " destaque" : "")}, [
+        h("span", {class: "num", text: p.numero}), h("small", {text: p.legenda}),
+      ]);
+    })));
+  }
+  if (slide.tipo === "arvore"){
+    corpo.appendChild(h("div", {class: "apresentacao-raiz", text: slide.raiz}));
+    corpo.appendChild(h("div", {class: "apresentacao-galho"}, (slide.folhas || []).map(function (f){
+      return h("div", {class: "apresentacao-folha"}, [
+        h("span", {class: "n", text: String(f.n)}), h("small", {text: f.rotulo}),
+      ]);
+    })));
+  }
+  if (slide.tipo === "dendrograma"){
+    corpo.appendChild(h("div", {class: "apresentacao-raiz", text: slide.raiz}));
+    corpo.appendChild(h("div", {class: "apresentacao-clusters"}, (slide.clusters || []).map(function (c){
+      return h("div", {class: "apresentacao-cluster"}, [
+        h("div", {class: "apresentacao-cluster-titulo", text: c.n + " estudos — " + c.rotulo}),
+        h("div", {class: "apresentacao-galho"}, (c.folhas || []).map(function (f){
+          return h("div", {class: "apresentacao-folha"}, [
+            h("span", {class: "n", text: String(f.n)}), h("small", {text: f.rotulo}),
+          ]);
+        })),
+      ]);
+    })));
+  }
+  if (slide.tipo === "achado"){
+    corpo.appendChild(h("ul", {}, (slide.itens || []).map(function (texto){
+      return h("li", {text: texto});
+    })));
+  }
+  if (slide.nota) corpo.appendChild(h("p", {class: "hint", text: slide.nota}));
+  return corpo;
+}
+
+VIEWS.apresentacao = {
+  label: "Humor na Ginástica Rítmica", group: "Laboratório",
+  async render(){
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("apresentacao", "Humor na Ginástica Rítmica"));
+    VIEW.appendChild(h("p", {class: "view", text:
+      "Aba privada: só quem tem acesso concedido vê esta apresentação."}));
+
+    /* ---- quem tem acesso ---- */
+    const acesso = await api("/api/apresentacao-humor/acesso");
+    const casaAcesso = h("div", {class: "card sec"});
+    casaAcesso.appendChild(h("h3", {style: "margin-bottom:8px", text: "Quem tem acesso"}));
+    const listaAcesso = h("div", {style: "display:flex;flex-direction:column;gap:6px;margin-bottom:12px"});
+    function repintarAcesso(itens){
+      listaAcesso.innerHTML = "";
+      if (!itens.length){
+        listaAcesso.appendChild(h("p", {class: "hint",
+          text: "Ninguém foi autorizado ainda — além de quem é admin, que sempre vê."}));
+        return;
+      }
+      itens.forEach(function (p){
+        const remover = h("button", {class: "ghost", text: "Remover"});
+        remover.onclick = async function (){
+          if (!confirm("Tirar o acesso de “" + p.full_name + "”?")) return;
+          remover.disabled = true;
+          try {
+            await api("/api/apresentacao-humor/acesso/" + p.id, "DELETE");
+            toast("Acesso removido.");
+            await VIEWS.apresentacao.render();
+          } catch (e){ toast(e.message, "erro"); remover.disabled = false; }
+        };
+        listaAcesso.appendChild(h("div", {class: "acao-ponto"}, [
+          h("span", {text: p.full_name}), remover,
+        ]));
+      });
+    }
+    repintarAcesso(acesso.items);
+    casaAcesso.appendChild(listaAcesso);
+
+    const equipe = await api("/api/equipe");
+    const jaTem = new Set(acesso.items.map(function (p){ return p.id; }));
+    const disponiveis = equipe.items.filter(function (p){ return !jaTem.has(p.id); });
+    if (disponiveis.length){
+      const select = h("select", {}, disponiveis.map(function (p){
+        return h("option", {value: String(p.id), text: p.full_name}); }));
+      const conceder = h("button", {class: "ghost", text: "Autorizar"});
+      conceder.onclick = async function (){
+        conceder.disabled = true;
+        try {
+          await api("/api/apresentacao-humor/acesso", "POST", {member_id: select.value});
+          toast("Acesso concedido.");
+          await VIEWS.apresentacao.render();
+        } catch (e){ toast(e.message, "erro"); conceder.disabled = false; }
+      };
+      casaAcesso.appendChild(h("div", {class: "acao-ponto"}, [select, conceder]));
+    }
+    VIEW.appendChild(casaAcesso);
+
+    /* ---- apresentação ---- */
+    const dados = await api("/api/apresentacao-humor");
+    const slides = dados.slides || [];
+    if (!slides.length){
+      VIEW.appendChild(h("div", {class: "card"}, h("div", {class: "empty",
+        text: "Sem slides cadastrados."})));
+      return;
+    }
+    let indice = 0;
+    const palco = h("div", {});
+    const contador = h("span", {class: "hint"});
+    const pontos = h("div", {class: "pontos"}, slides.map(function (_, i){
+      return h("span", {class: "apresentacao-ponto" + (i === 0 ? " on" : "")});
+    }));
+    const anterior = h("button", {class: "ghost", text: "← Anterior"});
+    const proxima = h("button", {class: "ghost", text: "Próxima →"});
+    function mostrar(i){
+      indice = Math.max(0, Math.min(slides.length - 1, i));
+      palco.innerHTML = "";
+      palco.appendChild(montarSlideApresentacao(slides[indice]));
+      contador.textContent = "Slide " + (indice + 1) + " de " + slides.length;
+      anterior.disabled = indice === 0;
+      proxima.disabled = indice === slides.length - 1;
+      Array.from(pontos.children).forEach(function (p, i2){ p.classList.toggle("on", i2 === indice); });
+    }
+    anterior.onclick = function (){ mostrar(indice - 1); };
+    proxima.onclick = function (){ mostrar(indice + 1); };
+    const meio = h("div", {style: "display:flex;flex-direction:column;align-items:center;gap:6px"},
+      [contador, pontos]);
+    VIEW.appendChild(h("div", {class: "sec"}, [
+      h("div", {class: "apresentacao-nav"}, [anterior, meio, proxima]),
+      palco,
+    ]));
+    mostrar(0);
+  },
+};
+
 VIEWS.eventos = crudView({
   id: "eventos", entity: "events", label: "Atividades e reuniões", group: "Laboratório",
   lead: "Reuniões, coletas, defesas, congressos e cursos. Alimentam o calendário e o mapa do painel.",
@@ -3051,7 +3271,7 @@ const ICONE = {
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
   caminho: "processo",
   linhas: "linhas", biblioteca: "livro", eventos: "calendario", ana: "explorar",
-  senha: "qualidade", admin: "dados", ritmica: "ginastica",
+  senha: "qualidade", admin: "dados", ritmica: "ginastica", apresentacao: "achado",
 };
 
 /* ==================================================================== */
@@ -4679,6 +4899,9 @@ document.getElementById("sair").addEventListener("click", async function (){
   /* A aba só entra no menu de quem tem acesso concedido -- ver o
      comentário em VIEWS.ritmica. Quem não tem nem vê que ela existe. */
   if (ME.acesso_ginastica_ritmica) ORDER.splice(ORDER.indexOf("admin"), 0, "ritmica");
+  /* Mesma lógica para a apresentação "Humor na Ginástica Rítmica" --
+     ver o comentário em VIEWS.apresentacao. Quem não tem nem vê que ela existe. */
+  if (ME.acesso_apresentacao_humor) ORDER.splice(ORDER.indexOf("admin"), 0, "apresentacao");
   await loadLookups();
   buildMenu();
   await show(location.hash.replace("#", "") || (ME.must_change_password ? "senha" : "perfil"));

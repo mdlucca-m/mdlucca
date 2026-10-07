@@ -256,10 +256,13 @@ def route_logout(ctx: "Context") -> Any:
 def route_me(ctx: "Context") -> Any:
     if ctx.user is None:
         raise ApiError(401, "nao autenticado")
-    from . import ginastica_ritmica
+    from . import apresentacao_humor, ginastica_ritmica
 
-    return {**ctx.user, "acesso_ginastica_ritmica": ginastica_ritmica.tem_acesso(
-        ctx.db, ctx.user.get("id"), ctx.user.get("user_role"))}
+    return {**ctx.user,
+            "acesso_ginastica_ritmica": ginastica_ritmica.tem_acesso(
+                ctx.db, ctx.user.get("id"), ctx.user.get("user_role")),
+            "acesso_apresentacao_humor": apresentacao_humor.tem_acesso(
+                ctx.db, ctx.user.get("id"), ctx.user.get("user_role"))}
 
 
 def route_change_password(ctx: "Context") -> Any:
@@ -3074,6 +3077,63 @@ def route_ginastica_ritmica_revogar(ctx: "Context", alvo_id: str) -> Any:
 
 
 # ----------------------------------------------------------------------
+# Apresentacao "Humor na Ginastica Ritmica" -- aba PRIVADA (ver
+# apresentacao_humor.py); mesmo padrao da ginastica ritmica acima.
+# ----------------------------------------------------------------------
+def _acesso_apresentacao_humor(ctx: "Context") -> dict[str, Any]:
+    """Confere o acesso e devolve quem pediu.
+
+    404, e nao 403: uma aba de verdade privada nao confirma nem que
+    existe para quem nao foi convidado.
+    """
+    from . import apresentacao_humor
+
+    user = auth.require(ctx.user, "integrante")
+    if not apresentacao_humor.tem_acesso(ctx.db, user.get("id"), user.get("user_role")):
+        raise ApiError(404, "não encontrado")
+    return user
+
+
+def route_apresentacao_humor(ctx: "Context") -> Any:
+    from . import apresentacao_humor
+
+    _acesso_apresentacao_humor(ctx)
+    return {"slides": apresentacao_humor.listar_slides()}
+
+
+def route_apresentacao_humor_acesso(ctx: "Context") -> Any:
+    from . import apresentacao_humor
+
+    _acesso_apresentacao_humor(ctx)
+    return {"items": apresentacao_humor.quem_tem_acesso(ctx.db)}
+
+
+def route_apresentacao_humor_conceder(ctx: "Context") -> Any:
+    from . import apresentacao_humor
+
+    user = _acesso_apresentacao_humor(ctx)
+    alvo = to_int((ctx.body or {}).get("member_id"))
+    if not alvo:
+        raise ApiError(400, "member_id é obrigatório")
+    if not ctx.db.scalar("SELECT 1 FROM members WHERE id = ?", (alvo,)):
+        raise ApiError(404, "esse integrante não existe")
+    apresentacao_humor.conceder(ctx.db, alvo, user.get("id"))
+    auth.log(ctx.db, user["id"], user.get("login"), "apresentacao_humor_conceder",
+             "members", alvo)
+    return {"items": apresentacao_humor.quem_tem_acesso(ctx.db)}
+
+
+def route_apresentacao_humor_revogar(ctx: "Context", alvo_id: str) -> Any:
+    from . import apresentacao_humor
+
+    user = _acesso_apresentacao_humor(ctx)
+    apresentacao_humor.revogar(ctx.db, to_int(alvo_id) or -1)
+    auth.log(ctx.db, user["id"], user.get("login"), "apresentacao_humor_revogar",
+             "members", to_int(alvo_id))
+    return {"items": apresentacao_humor.quem_tem_acesso(ctx.db)}
+
+
+# ----------------------------------------------------------------------
 # Tabela de rotas: (metodo, padrao, funcao, perfil minimo | None = publico)
 # ----------------------------------------------------------------------
 ROUTES: list[tuple[str, str, Callable, str | None]] = [
@@ -3206,6 +3266,12 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
      route_ginastica_ritmica_conceder, "integrante"),
     ("DELETE", r"^/api/ginastica-ritmica/acesso/(?P<alvo_id>\d+)/?$",
      route_ginastica_ritmica_revogar, "integrante"),
+    ("GET", r"^/api/apresentacao-humor/?$", route_apresentacao_humor, "integrante"),
+    ("GET", r"^/api/apresentacao-humor/acesso/?$", route_apresentacao_humor_acesso, "integrante"),
+    ("POST", r"^/api/apresentacao-humor/acesso/?$",
+     route_apresentacao_humor_conceder, "integrante"),
+    ("DELETE", r"^/api/apresentacao-humor/acesso/(?P<alvo_id>\d+)/?$",
+     route_apresentacao_humor_revogar, "integrante"),
     ("GET", r"^/api/revisoes/?$", route_reviews, "leitura"),
     ("POST", r"^/api/revisoes/?$", route_review_create, "coordenacao"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/?$", route_review_detail, "leitura"),
