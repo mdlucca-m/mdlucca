@@ -2859,6 +2859,30 @@ def route_tv(ctx: "Context") -> Any:
     return tv.para_a_tv(ctx.db)
 
 
+def route_mural_dados(ctx: "Context") -> Any:
+    """O payload inteiro do mural (overview, artigos, pessoas, projetos,
+    agenda, publicações e as telas da parede), pronto pro mural rebuscar
+    sozinho quando `/api/stream` avisa de uma mudança.
+
+    Mesma liberação pública de `route_tv`, e pelo mesmo motivo: o mural
+    é uma TV ligada sozinha na sala, sem ninguém pra logar.
+
+    Faltava isto -- o mural só reconferia `/api/tv` a cada poucos
+    segundos (o resto do payload era lido uma vez só, na hora que a
+    página abriu, e nunca mais). Uma pessoa cadastrada ou corrigida (um
+    "juntar fichas" na Auditoria de identidade, por exemplo) só aparecia
+    certa na parede depois de alguém recarregar a página à mão.
+    """
+    from . import tv
+
+    payload = metrics.build_payload(ctx.db, com_dados_da_coordenacao=False)
+    try:
+        payload["tv"] = tv.para_a_tv(ctx.db)
+    except Exception:
+        payload["tv"] = None
+    return payload
+
+
 def route_mural_chegadas(ctx: "Context") -> Any:
     """Quem acabou de bater entrada, para o mural acender um cartão de
     boas-vindas -- só novidade desde o `desde_id` que o painel já viu.
@@ -3264,6 +3288,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
     ("GET", r"^/api/caminho/?$", route_caminho, "leitura"),
     ("GET", r"^/api/tv/?$", route_tv, "leitura"),
+    ("GET", r"^/api/mural/dados/?$", route_mural_dados, "leitura"),
     ("GET", r"^/api/mural/chegadas/?$", route_mural_chegadas, "leitura"),
     ("GET", r"^/api/buscar/?$", route_buscar, "leitura"),
     ("GET", r"^/api/rotina/?$", route_rotina, "leitura"),

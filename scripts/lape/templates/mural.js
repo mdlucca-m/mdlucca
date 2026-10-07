@@ -2164,7 +2164,7 @@ function ciclo() {
   }).filter(Boolean);
   return escolhidos.length ? escolhidos : disponiveis;
 }
-const ROTEIRO = ciclo();   /* o ciclo de partida; `refazerRoteiro` o troca quando a TV chega */
+const ROTEIRO = ciclo();   /* o ciclo de partida; `recarregarTudo` o refaz a cada mudança */
 
 /* ==========================================================================
    Motor: quem troca a tela
@@ -2501,6 +2501,13 @@ async function atualizarValoresAoVivo() {
     const resposta = await fetch("/api/tv", { credentials: "same-origin" });
     if (!resposta.ok) return;
     D.tv = await resposta.json();
+    // As telas `tv: true` só entram no ciclo depois que `D.tv` chega -- sem
+    // isto, quem abriu o mural antes da TV responder nunca via essas telas
+    // até alguém recarregar a página à mão, mesmo com o dado já disponível.
+    ROTEIRO.length = 0;
+    ciclo().forEach(function (s) { ROTEIRO.push(s); });
+    if (atual >= ROTEIRO.length) atual = 0;
+    desenharControles();
     atualizarConstelacaoAoVivo();
     const resumo = D.tv && D.tv.citacoes && D.tv.citacoes.resumo;
     if (!resumo) return;
@@ -2527,6 +2534,43 @@ async function atualizarValoresAoVivo() {
 function cicloAoVivo() {
   verificarChegadas();
   atualizarValoresAoVivo();
+}
+
+/* ------------------------------------------------- rebusca o payload inteiro
+   `/api/tv` (acima) só reconfere as telas que a parede acrescenta; o resto
+   do payload (visão geral, artigos, pessoas, projetos, agenda, publicações)
+   era lido uma vez só, na hora em que a página abriu, e nunca mais -- uma
+   pessoa cadastrada ou corrigida (um "juntar fichas" na Auditoria de
+   identidade, por exemplo) só aparecia certa na parede depois de alguém
+   recarregar a página à mão. Mesmo padrão do painel/panorama: `/api/stream`
+   avisa, uma espera curta junta a rajada (importação de planilha dispara
+   vários eventos de uma vez) numa recarga só, e só o slide corrente é
+   redesenhado -- ver o aviso no topo do arquivo. */
+let fonteDeEventos = null;
+let recargaMarcada = null;
+
+function ligarAoVivo() {
+  if (typeof EventSource === "undefined") return;
+  try { fonteDeEventos = new EventSource("/api/stream"); } catch (e) { return; }
+  fonteDeEventos.addEventListener("mudanca", function () {
+    clearTimeout(recargaMarcada);
+    recargaMarcada = setTimeout(recarregarTudo, 1200);
+  });
+  /* o EventSource reconecta sozinho (retry: 5000 no stream) -- nenhum
+     tratamento extra de erro precisa acontecer aqui */
+}
+
+async function recarregarTudo() {
+  try {
+    const resposta = await fetch("/api/mural/dados", { credentials: "same-origin" });
+    if (!resposta.ok) return;
+    D = await resposta.json();
+    ROTEIRO.length = 0;
+    ciclo().forEach(function (s) { ROTEIRO.push(s); });
+    if (atual >= ROTEIRO.length) atual = 0;
+    desenharControles();
+    desenhar(atual);
+  } catch (e) { /* mantém o último dado bom na tela; o EventSource tenta de novo sozinho */ }
 }
 
 /* ---------------------------------------------------------------- arranque */
@@ -2559,6 +2603,7 @@ function comecar() {
   setInterval(relogio, 15000);
   cicloAoVivo();
   setInterval(cicloAoVivo, 12000);
+  ligarAoVivo();
   aplicarPaleta(paletaEscolhida());
   const seguir = document.getElementById("seguir");
   if (seguir) {

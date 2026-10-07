@@ -351,6 +351,23 @@ class TestARotaEOMural(unittest.TestCase):
         self.assertIn("const ROTEIRO", html)
         self.assertNotIn('"tv":', html.split("__DATA__")[0] if "__DATA__" in html else "")
 
+    def test_mural_dados_exige_sessao(self):
+        status, _, _ = self.buscar("/api/mural/dados", seguir=False)
+        self.assertEqual(status, 401)
+
+    def test_mural_dados_traz_o_payload_inteiro_com_a_tv_embutida(self):
+        """A rota que o mural rebusca sozinho quando `/api/stream` avisa de
+        uma mudança -- não só `tv` (já coberto por /api/tv), mas o resto do
+        payload (artigos, pessoas, projetos, agenda) que antes só era lido
+        uma vez, na hora em que a página do mural abria."""
+        status, corpo, _ = self.buscar("/api/mural/dados", cookie=self.entrar())
+        self.assertEqual(status, 200)
+        d = json.loads(corpo)
+        for chave in ("overview", "articles", "researchers", "projects", "agenda", "tv"):
+            self.assertIn(chave, d)
+        self.assertEqual(d["articles"][0]["title"], "Um publicado")
+        self.assertEqual(d["tv"]["noticias"]["publicados"][0]["titulo"], "Um publicado")
+
 
 class TestOMuralNaTv(unittest.TestCase):
 
@@ -386,6 +403,36 @@ class TestOMuralNaTv(unittest.TestCase):
         self.assertIn("ROTEIRO.splice.apply(ROTEIRO, [0, ROTEIRO.length].concat(ciclo()))", trecho)
         # a TV que falha não derruba o painel: fica a última boa
         self.assertIn("return D.tv || null;", trecho)
+
+    def test_o_roteiro_tambem_e_refeito_a_cada_poll_de_tv(self):
+        # Mesmo gap do teste acima, resolvido pelo poll de 12s já existente
+        # (`atualizarValoresAoVivo`) em vez de uma função `rebuscar()`
+        # separada: sem isto, uma tela `tv: true` só entrava no ciclo depois
+        # de alguém recarregar a página à mão, mesmo com o dado já
+        # disponível no servidor.
+        trecho = self.js[self.js.index("async function atualizarValoresAoVivo()"):]
+        trecho = trecho[:trecho.index("\n}\n")]
+        self.assertIn("ROTEIRO.length = 0", trecho)
+        self.assertIn("ciclo().forEach(function (s) { ROTEIRO.push(s); })", trecho)
+
+    def test_mural_reconecta_ao_vivo_pelo_stream_do_painel(self):
+        # Mesma rota que o painel e o panorama usam (/api/stream) -- um
+        # cadastro feito na Área do integrante (artigo, ficha mesclada em
+        # "Juntar fichas" etc.) avisa o mural sem precisar recarregar a
+        # página à mão. EventSource reconecta sozinho; não precisa de
+        # tratamento de erro manual aqui.
+        self.assertIn('new EventSource("/api/stream")', self.js)
+        trecho = self.js[self.js.index("function ligarAoVivo()"):]
+        trecho = trecho[:trecho.index("\n}\n")]
+        self.assertIn('addEventListener("mudanca"', trecho)
+        self.assertIn("setTimeout(recarregarTudo", trecho)
+
+    def test_recarregar_tudo_rebusca_o_payload_inteiro_e_redesenha(self):
+        trecho = self.js[self.js.index("async function recarregarTudo()"):]
+        trecho = trecho[:trecho.index("\n}\n")]
+        self.assertIn('fetch("/api/mural/dados"', trecho)
+        self.assertIn("ROTEIRO.length = 0", trecho)
+        self.assertIn("desenhar(atual)", trecho)
 
     def test_a_fita_ganha_as_noticias_com_a_data(self):
         self.assertIn("noticiasDaTv().forEach", self.js)
