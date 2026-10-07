@@ -1,0 +1,42 @@
+{
+  "_aviso": "Reconstruidas a partir da descricao do metodo (blocos de termos). Confira contra as strings do material suplementar antes de usar numa busca que va ser relatada.",
+  "blocos": {
+    "handebol": ["handball", "team handball", "beach handball", "wheelchair handball", "handebol", "balonmano", "andebol"],
+    "humor": ["mood", "mood state", "mood states", "affect", "affective", "emotion", "humor", "estado de humor", "estados de humor", "estado de animo", "afeto"],
+    "instrumentos": ["POMS", "Profile of Mood States", "BRUMS", "Brunel Mood Scale", "PANAS", "Positive and Negative Affect", "Feeling Scale", "Self-Assessment Manikin"],
+    "dimensoes": ["vigor", "fatigue", "tension", "anger", "depression", "confusion", "total mood disturbance"],
+    "atleta": ["athlete", "athletes", "player", "players", "sport", "sports"],
+    "revisao": ["systematic review", "scoping review", "meta-analysis", "review"],
+    "ansiedade_estresse": ["anxiety", "stress", "competitive anxiety", "ansiedade", "estresse", "ansiedad", "estres"],
+    "motivacao": ["motivation", "self-efficacy", "motivational climate", "goal orientation", "motivacao", "autoeficacia", "motivacion"],
+    "habilidades_mentais": ["mental skills", "psychological skills", "coping", "mental toughness", "imagery", "resilience", "habilidades mentais", "enfrentamento", "afrontamiento"],
+    "sono_recuperacao": ["sleep", "well-being", "wellbeing", "recovery", "fatigue", "sono", "bem-estar", "recuperacao", "sueno", "recuperacion"],
+    "burnout_saude_mental": ["burnout", "mental health", "depression", "psychological distress", "saude mental", "salud mental"],
+    "contexto": ["training", "competition", "match", "season", "treinamento", "competicao", "entrenamiento", "competicion"]
+  },
+  "revisoes": {
+    "humor": {
+      "nome": "Estados de humor em atletas de handebol (revisao sistematica)",
+      "estrategias": [
+        {"id": "S1", "nome": "mestra: handebol x humor", "and": [["handebol"], ["humor"]]},
+        {"id": "S2", "nome": "handebol x instrumentos", "and": [["handebol"], ["instrumentos"]]},
+        {"id": "S3", "nome": "handebol x dimensoes do perfil de humor", "and": [["handebol"], ["dimensoes"]]},
+        {"id": "S4", "nome": "construto sem bloco de handebol, em atletas", "and": [["humor", "instrumentos"], ["atleta"], ["handebol"]]},
+        {"id": "S5", "nome": "revisoes sobre handebol", "and": [["handebol"], ["revisao"]]}
+      ]
+    },
+    "mapeamento": {
+      "nome": "Variaveis psicologicas no treinamento e na competicao do handebol (revisao de mapeamento)",
+      "estrategias": [
+        {"id": "M1", "nome": "mestra: handebol x seis familias x contexto", "and": [["handebol"], ["humor", "ansiedade_estresse", "motivacao", "habilidades_mentais", "sono_recuperacao", "burnout_saude_mental"], ["contexto"]]},
+        {"id": "M2", "nome": "humor e afeto", "and": [["handebol"], ["humor", "instrumentos"]]},
+        {"id": "M3", "nome": "ansiedade e estresse", "and": [["handebol"], ["ansiedade_estresse"]]},
+        {"id": "M4", "nome": "motivacao e autoeficacia", "and": [["handebol"], ["motivacao"]]},
+        {"id": "M5", "nome": "habilidades mentais e enfrentamento", "and": [["handebol"], ["habilidades_mentais"]]},
+        {"id": "M6", "nome": "sono, bem-estar e recuperacao", "and": [["handebol"], ["sono_recuperacao"]]},
+        {"id": "M7", "nome": "burnout e saude mental", "and": [["handebol"], ["burnout_saude_mental"]]},
+        {"id": "M8", "nome": "revisoes sobre handebol e psicologia", "and": [["handebol"], ["revisao"], ["humor", "ansiedade_estresse", "motivacao", "habilidades_mentais", "sono_recuperacao", "burnout_saude_mental"]]}
+      ]
+    }
+  }
+}
