@@ -1383,6 +1383,95 @@ function slideSazonalidade() {
   ]));
 }
 
+/* Pedido explícito: uma tela só de "análises", juntando o que antes
+   estava espalhado em três lâminas raramente vistas (Comparações --
+   que nem chegou a entrar no ciclo -- Alertas e Padrões anuais) mais a
+   saúde da rotina automática, que não tinha tela nenhuma até aqui.
+   Mesmo padrão das outras: `linha-kpi` com o resumo em números,
+   `painel-duplo` com a leitura em frases de cada lado. */
+function slideAnalises() {
+  const t = tv();
+  const comp = t && t.comparacoes, saz = t && t.sazonalidade,
+    ale = t && t.alertas, health = t && t.health;
+  if (!comp && !saz && !ale && !health) {
+    return escalonar(el("div", { class: "slide" }, vazio("Análises ainda não calculadas.")));
+  }
+
+  const mesNome = comp
+    ? ["—", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"][comp.mes_atual] || "—"
+    : "—";
+  function deltaStatus(n) { return n === 0 ? "neutro" : (n > 0 ? "bom" : "alerta"); }
+
+  const linha = el("div", { class: "linha-kpi" }, [
+    comp ? tile({ nome: "Publicações " + mesNome, valor: comp.publicacoes.agora, icone: "publicacao", serie: 2,
+      pastilha: deltaStatus(comp.publicacoes.delta),
+      pe: (comp.publicacoes.delta >= 0 ? "+" : "") + comp.publicacoes.delta + " vs. mês anterior" }) : null,
+    comp ? tile({ nome: "Taxa de aceite anual", valor: comp.taxa_aceite_anual + "%", icone: "porcentagem", serie: 7,
+      pastilha: comp.taxa_aceite_anual > 50 ? "bom" : "ambar", pe: "aprovação total do ano" }) : null,
+    ale ? tile({ nome: "Aceites últimos 7d", valor: ale.aceites_ultimos_7d, icone: "aceito", serie: 4, pastilha: "bom",
+      pe: "manuscritos aceitos recentemente" }) : null,
+    saz && saz.picos_publicacao[0] ? tile({ nome: "Mês de pico", valor: saz.picos_publicacao[0].mes, icone: "calendario",
+      serie: 3, pastilha: "bom", pe: fmt(saz.picos_publicacao[0].n) + " publicação(ões)" }) : null,
+    ale ? tile({ nome: "Dias sem submissão", valor: ale.dias_sem_submissao !== null ? ale.dias_sem_submissao : "—",
+      icone: "relogio", serie: 6, pastilha: ale.dias_sem_submissao && ale.dias_sem_submissao > 14 ? "alerta" : "neutro",
+      pe: "última tentativa de publicação" }) : null,
+    health ? tile({ nome: "Rotina automática",
+      valor: health.tarefas_total ? health.tarefas_ok + "/" + health.tarefas_total : "—",
+      icone: health.ligada ? "automacao" : "aviso", serie: 5,
+      pastilha: health.ligada && health.tarefas_ok === health.tarefas_total ? "bom" : "ambar",
+      pe: health.ligada ? "tarefas sem erro" : "rotina desligada" }) : null,
+  ].filter(Boolean));
+
+  const comparativos = [];
+  if (comp) {
+    comparativos.push({ icone: "publicacao", tom: "bom", forte: "Publicações em " + mesNome + ":",
+      resto: comp.publicacoes.agora + (comp.publicacoes.delta !== 0
+        ? " (" + (comp.publicacoes.delta > 0 ? "+" : "") + comp.publicacoes.delta + " vs. mês anterior)" : "") });
+    comparativos.push({ icone: "aceito", tom: "bom", forte: "Aceites em " + mesNome + ":",
+      resto: comp.aceites.agora + (comp.aceites.delta !== 0
+        ? " (" + (comp.aceites.delta > 0 ? "+" : "") + comp.aceites.delta + ")" : "") });
+  }
+  if (ale && ale.revistas_em_processo.length) {
+    comparativos.push({ icone: "revista", tom: "neutro", forte: "Revistas em processo:",
+      resto: ale.revistas_em_processo.slice(0, 3).join(", ")
+        + (ale.revistas_em_processo.length > 3 ? " e mais" : "") });
+  }
+  if (ale && ale.dias_sem_submissao && ale.dias_sem_submissao > 14) {
+    comparativos.push({ icone: "alerta", tom: "alerta", forte: "Sem submissões há " + ale.dias_sem_submissao + " dias",
+      resto: "considerar novos artigos para revisão e envio." });
+  }
+
+  const padroes = [];
+  if (saz && saz.picos_publicacao.length) {
+    padroes.push({ icone: "calendario", tom: "bom", forte: "Sazonalidade de publicações:",
+      resto: "picos em " + saz.picos_publicacao.slice(0, 3)
+        .map(function (p) { return p.mes + " (" + p.n + ")"; }).join(", ") });
+  }
+  if (saz && saz.picos_aceite.length) {
+    padroes.push({ icone: "aceito", tom: "neutro", forte: "Sazonalidade de aceites:",
+      resto: "picos em " + saz.picos_aceite.slice(0, 3)
+        .map(function (p) { return p.mes + " (" + p.n + ")"; }).join(", ") });
+  }
+  if (health) {
+    padroes.push({ icone: health.ligada ? "automacao" : "aviso", tom: health.ligada ? "neutro" : "alerta",
+      forte: "Rotina automática:",
+      resto: health.ligada
+        ? health.tarefas_ok + " de " + health.tarefas_total + " tarefa(s) sem erro, "
+          + health.proximos_em_horas + " verificação(ões) prevista(s) em breve"
+        : "desligada no momento" });
+  }
+
+  return escalonar(el("div", { class: "slide" }, [
+    linha,
+    el("div", { class: "painel-duplo igual" }, [
+      quadro("Comparado ao mês anterior", "subida",
+        comparativos.length ? frases(comparativos) : vazio("Sem comparação disponível."), "métricas e alertas recentes"),
+      quadro("Padrões & automação", "calendario",
+        padroes.length ? frases(padroes) : vazio("Nenhum padrão detectado."), "sazonalidade e saúde da rotina"),
+    ]),
+  ]));
+}
+
 function slidePareto() {
   const t = tv();
   const linhas = (t && t.linhas || []).filter(function (l) { return (l.artigos || 0) > 0; });
@@ -1709,6 +1798,11 @@ function slideAcervos() {
 const SLIDES = [
   { id: "agora", titulo: "Agora no laboratório", icone: "painel", montar: slideAgora,
     apresenta: "Os números de hoje: publicados, em produção, em avaliação, aceitos, citações e a equipe — e a produção ano a ano." },
+  /* Pedido explícito: trazer "quem está no LAPE ao vivo" para dentro do
+     mural como tela própria -- antes só existia a faixinha pequena
+     dentro de "Agora no laboratório". */
+  { id: "presenca", titulo: "Quem está no LAPE agora", icone: "pessoas", montar: slidePresencaAoVivo, tv: true,
+    apresenta: "Quem bateu ponto e ainda está no laboratório, com há quanto tempo e em que atividade." },
   { id: "bancada", titulo: "Na bancada", icone: "experimento", montar: slideBancada,
     apresenta: "O que está sendo medido agora: coletas em andamento, participantes e instrumentos." },
   { id: "citados", titulo: "Citações e produção por área", icone: "citacao", montar: slideCitados,
@@ -1732,11 +1826,19 @@ const SLIDES = [
     apresenta: "Aceites recentes, revistas em processo, e dias desde a última submissão." },
   { id: "sazonalidade", titulo: "Padrões anuais", icone: "calendario", montar: slideSazonalidade, tv: true, emRotacao: false,
     apresenta: "Sazonalidade detectada: meses de pico para publicações e aceites." },
+  /* Pedido explícito: uma tela de "análises", juntando num só lugar o
+     que Comparações/Alertas/Padrões anuais (acima, fora do ciclo) e a
+     saúde da rotina automática (que não tinha tela nenhuma) diziam
+     espalhado. */
+  { id: "analises", titulo: "Análises", icone: "subida", montar: slideAnalises, tv: true,
+    apresenta: "Comparado ao mês anterior, os meses de pico do ano e a saúde da rotina automática — a leitura rápida dos indicadores." },
   { id: "pareto", titulo: "Análise Pareto", icone: "subida", montar: slidePareto, tv: true, emRotacao: false,
     apresenta: "Regra 80/20: onde o maior impacto vem de menos esforço. Linha vermelha marca o ponto crítico." },
   { id: "sunburst", titulo: "Colaboração global", icone: "mapa", montar: slideSunburst, tv: true, emRotacao: false,
     apresenta: "Hierarquia radial mostrando os 6 países principais com maior número de artigos colaborativos." },
-  { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true, emRotacao: false,
+  /* Pedido explícito: incluir de volta a árvore de decisões no ciclo
+     automático -- estava pronta, mas fora da lista enxuta de segunda. */
+  { id: "arvore", titulo: "Árvore de Pesquisa", icone: "linhas", montar: slideArvoreDecisoes, tv: true,
     apresenta: "Ramificações crescentes: cada linha de pesquisa como um galho, com produtividade e taxa de publicação." },
   { id: "sankey", titulo: "Fluxo de Publicação", icone: "processo", montar: slideSankey, tv: true, emRotacao: false,
     apresenta: "Funil da escrita à publicação: quantos artigos estão em cada uma das cinco fases, e que fração passa de uma para a próxima." },

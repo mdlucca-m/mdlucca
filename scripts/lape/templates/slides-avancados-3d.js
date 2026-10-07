@@ -947,6 +947,48 @@ function slideOrganogramaMetodologico() {
   return escalonar(container);
 }
 
+/* ==================== QUEM ESTÁ NO LAPE AGORA ==================== */
+/* Pedido explícito: trazer "quem está no LAPE ao vivo" para dentro do
+   mural como tela própria. O dado e o cartão já existiam -- a faixinha
+   dentro de "Agora no laboratório" (`faixaPresenca()`, mural.js) e os
+   pontinhos verdes do organograma (`cartaoPessoa` logo acima) -- só
+   faltava uma tela cheia, só de quem está presente agora, grande o
+   bastante para ler do corredor sem precisar achar a faixa pequena no
+   meio de outra tela. Reaproveita `cartaoPessoa` por inteiro: mesmo
+   cartão, mesma bolinha pulsante, zero CSS novo de pessoa. */
+function slidePresencaAoVivo() {
+  const t = tv();
+  const todos = (t && t.organograma && t.organograma.people) || [];
+  const presentes = todos.filter(function (p) { return p.ativo_agora; });
+  if (!presentes.length) {
+    return escalonar(el("div", { class: "slide" }, vazio("Ninguém no LAPE agora.")));
+  }
+
+  const container = el("div", { class: "slide slide-presenca-mural" });
+
+  /* `linhaMaisPresente` já existe em mural.js (mesmo cálculo que a
+     faixa de "Agora no laboratório" usa) -- script separado, mesmo
+     escopo global da página, nada para duplicar aqui. */
+  const destaque = linhaMaisPresente(presentes);
+  container.appendChild(el("div", { class: "presenca-cabecalho" }, [
+    el("span", { class: "ponto-vivo" }),
+    el("span", { class: "presenca-titulo",
+      text: presentes.length + (presentes.length === 1 ? " pessoa no LAPE agora" : " pessoas no LAPE agora") }),
+  ]));
+  if (destaque.n >= 2) {
+    container.appendChild(el("p", { class: "presenca-leitura" }, [
+      el("span", {
+        html: destaque.n + " de " + presentes.length + " presentes são da linha <b>" + destaque.nome + "</b>",
+      }),
+    ]));
+  }
+
+  container.appendChild(el("div", { class: "grade-presenca" },
+    presentes.map(function (p, i) { return cartaoPessoa(p, i); })));
+
+  return escalonar(container);
+}
+
 /* ==================== FRAMEWORK DE PESQUISA (PIPELINE REAL) ==================== */
 /* O mesmo mapa tom -> variável de cor que `.cartao-pessoa[data-tom=...]`
    usa no CSS -- aqui reaproveitado para colorir cada etapa do fluxo. */
