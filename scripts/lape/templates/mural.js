@@ -401,20 +401,21 @@ function slideAgora() {
         { unidade: "publicação(ões)" })
     : vazio("Sem histórico de publicação ainda.");
 
-  /* Funil líquido: as mesmas 4 etapas dos cartões acima (Em produção, Em
-     avaliação, Aceitos, Publicados) -- achado ao vivo: agrupar "em
-     avaliação" e "aceitos" numa etapa só ("com o periódico") escondia a
-     informação que os próprios cartões já mostram separada, e dava a
-     impressão de que o funil "perdeu" dado. Publicados enche o tanque em
-     relação ao acervo inteiro (não em relação ao topo do funil -- ver
-     funilLiquido). */
+  /* Funil em camadas 3D: as mesmas 4 etapas dos cartões acima (Em produção,
+     Em avaliação, Aceitos, Publicados), uma lâmina por etapa, com a
+     participação de cada uma no acervo, o volume relativo à etapa
+     anterior (razão entre estoques, não taxa de conversão) e a síntese
+     de saídas sem publicação -- ver ChartsEnhanced.funilCamadas. Cores
+     novas por pedido: violeta, azul, ciano e dourado. */
   const funil = recorte.n_in_progress || recorte.n_submitted || recorte.n_accepted || recorte.n_published
-    ? ChartsEnhanced.funilLiquido([
-      { nome: "Em produção", valor: recorte.n_in_progress, cor: "var(--series-3)" },
-      { nome: "Em avaliação", valor: recorte.n_submitted, cor: "var(--series-4)" },
-      { nome: "Aceitos", valor: recorte.n_accepted, cor: "var(--series-2)" },
-      { nome: "Publicados", valor: recorte.n_published, total: arts.length, cor: "var(--good)" },
-    ])
+    ? ChartsEnhanced.funilCamadas([
+      { nome: "Em produção", valor: recorte.n_in_progress, cor: "#8b5cf6" },
+      { nome: "Em avaliação", valor: recorte.n_submitted, cor: "#3b82f6" },
+      { nome: "Aceitos", valor: recorte.n_accepted, cor: "#06b6d4" },
+      { nome: "Publicados", valor: recorte.n_published, cor: "#f5a524" },
+    ], { total: arts.length, desfechos: arts.filter(function (a) {
+      return a.status === "rejeitado" || a.status === "arquivado"; }).length,
+      rotuloDesfechos: "rejeitado(s)/arquivado(s)" })
     : vazio("Sem artigos cadastrados.");
   const desfechos = arts.filter(function (a) {
     return a.status === "rejeitado" || a.status === "arquivado";
