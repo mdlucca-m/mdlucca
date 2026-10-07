@@ -1207,3 +1207,53 @@
   .card-holo { transition: opacity .3s ease; }
   .card-holo::before { animation: none; }
 }
+
+/* ---- Organograma por níveis ---- */
+.slide-organograma-niveis { gap: clamp(8px, 1.2vh, 14px); }
+.org-resumo { display: flex; justify-content: center; gap: clamp(14px, 2.4vw, 36px); flex-wrap: wrap;
+  color: var(--ink-2); font-size: clamp(12px, 1.2vw, 17px); }
+.org-resumo b { color: var(--ink); font-size: 1.5em; font-variant-numeric: tabular-nums; margin-right: 4px; }
+.org-niveis { display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 14px); }
+.org-nivel { --cor: var(--accent); border: 1px solid var(--border); border-left: 5px solid var(--cor);
+  border-radius: var(--radius-sm); background: color-mix(in srgb, var(--cor) 5%, var(--surface));
+  padding: clamp(8px, 1.2vh, 14px) clamp(10px, 1.4vw, 20px); }
+.org-nivel[data-tom="violeta"] { --cor: var(--series-7); }
+.org-nivel[data-tom="laranja"] { --cor: var(--series-2); }
+.org-nivel[data-tom="bom"]     { --cor: var(--good); }
+.org-nivel[data-tom="azul"]    { --cor: var(--series-1); }
+.org-nivel-cab { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.org-nivel-titulo { margin: 0; font-size: clamp(14px, 1.4vw, 21px); font-weight: 800; color: var(--cor); }
+.org-nivel-contagem { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--surface-raised); border-radius: 999px; padding: 1px 12px; }
+.org-nivel-meta { color: var(--ink-muted); font-size: clamp(11px, 1vw, 14px); }
+.org-nivel-corpo { display: flex; flex-wrap: wrap; gap: clamp(10px, 1.4vw, 22px) clamp(16px, 2.4vw, 36px); }
+.org-grupo { display: flex; flex-direction: column; gap: 6px; }
+.org-grupo-rotulo { font-size: clamp(10.5px, .9vw, 13px); font-weight: 650; color: var(--ink-muted);
+  border-bottom: 1px dashed var(--border-strong); padding-bottom: 2px; }
+.org-grupo-cartoes { display: flex; flex-wrap: wrap; gap: clamp(6px, .8vw, 12px); }
+
+/* ---- Framework analítico ---- */
+.fluxo-etapa-pct { font-size: clamp(10px, .9vw, 13px); color: var(--ink-muted); }
+.fluxo-seta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.fluxo-seta-razao { font-size: clamp(10px, .85vw, 12.5px); color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.fluxo-analise { display: grid; grid-template-columns: minmax(200px, 30%) 1fr; gap: clamp(12px, 2vw, 28px); align-items: start; }
+.fluxo-leitura { margin: 0; padding-left: 1.1em; display: grid; gap: 8px; color: var(--ink-2); font-size: clamp(12px, 1.15vw, 16px); }
+.fluxo-leitura b { color: var(--ink); }
+.fluxo-linhas { display: grid; gap: 6px; }
+.fluxo-linhas-titulo { font-weight: 700; color: var(--ink-2); font-size: clamp(12px, 1.1vw, 15px); }
+.fluxo-linha { display: grid; grid-template-columns: minmax(120px, 28%) 1fr 32px; gap: 10px; align-items: center; }
+.fluxo-linha-nome { font-size: clamp(11px, 1vw, 14px); color: var(--ink-2); }
+.fluxo-linha-barra { display: flex; height: clamp(16px, 2.2vh, 24px); border-radius: 6px; overflow: hidden; }
+.fluxo-linha-barra > div { display: flex; align-items: center; justify-content: center; color: #fff;
+  font-size: 11px; font-weight: 800; min-width: 14px; }
+.fluxo-linha-total { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+.fluxo-linhas-legenda { display: flex; gap: 14px; flex-wrap: wrap; font-size: clamp(10px, .9vw, 13px); color: var(--ink-muted); }
+.fluxo-linhas-legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; }
+.org-nivel .cartao-pessoa { width: clamp(100px, 8.4vw, 136px); padding: 8px 8px 12px; gap: 3px; }
+.org-nivel .cartao-pessoa .nome-pessoa { font-size: clamp(11px, .95vw, 14px); line-height: 1.15; }
+.org-nivel .cartao-pessoa .vinculo-pessoa { font-size: clamp(8px, .65vw, 10px); }
+.slide-framework-n8n .fluxo-trilha { flex: 0 1 clamp(170px, 26vh, 280px); }
+.org-nivel:not(:last-child) .cartao-pessoa .vinculo-pessoa { display: none; }
+.slide-organograma-niveis .alternador-cor-organograma { margin: -4px 0; }
+.org-nivel { padding: clamp(6px, .9vh, 10px) clamp(10px, 1.4vw, 20px); }
+.org-nivel-cab { margin-bottom: 4px; }

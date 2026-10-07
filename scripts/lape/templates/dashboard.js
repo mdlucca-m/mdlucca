@@ -4367,6 +4367,205 @@ view("aceites", "Aceites", "Métricas internas",
     })));
   });
 
+
+/* ==========================================================================
+   Quatro telas novas: leituras automáticas, Qualis e impacto, desenhos e
+   idiomas, gargalos e fila. Só leem `D.articles` (já filtrado por
+   `articles()`), então respondem a ano, linha e integrante como o resto.
+   ========================================================================== */
+function diasDesde(iso) {
+  if (!iso) return null;
+  const d = new Date(String(iso).slice(0, 10) + "T00:00:00");
+  return isNaN(d) ? null : Math.round((Date.now() - d.getTime()) / 86400000);
+}
+function pctDe(parte, todo) { return todo ? Math.round(100 * parte / todo) : 0; }
+const ORDEM_QUALIS_PAINEL = ["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4", "C"];
+const ESPERA_LONGA_PAINEL = 120;
+
+view("leituras", "Leituras automáticas", "",
+  "O que os números dizem, escrito por extenso: ritmo, qualidade, tempo, fila e o que falta preencher.",
+  function (host) {
+    const arts = articles();
+    if (!arts.length) { host.appendChild(card("Sem artigos neste recorte", null, el("p", { class: "empty", text: "Mude os filtros acima." }))); return; }
+    const pub = arts.filter(function (a) { return a.status === "publicado"; });
+    const prod = arts.filter(function (a) { return a.status === "em_producao"; });
+    const fila = arts.filter(function (a) { return a.status === "submetido" || a.status === "em_revisao"; });
+    const aceitos = arts.filter(function (a) { return a.status === "aceito"; });
+    const ano = new Date().getFullYear();
+    const noAno = pub.filter(function (a) { return Number(a.year_published) === ano; }).length;
+    const noAnterior = pub.filter(function (a) { return Number(a.year_published) === ano - 1; }).length;
+    const comQualis = pub.filter(function (a) { return a.qualis; });
+    const altos = comQualis.filter(function (a) { return /^A[1-4]$/i.test(a.qualis); }).length;
+    const fi = median(pub.map(function (a) { return a.impact_factor; }).filter(function (v) { return v > 0; }));
+    const totalDias = median(arts.map(function (a) { return a.days_start_to_publication; }));
+    const completos = arts.filter(function (a) { return a.started_on && a.first_submission_on && a.accepted_on && a.published_on; });
+    const entre = function (a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); };
+    const etapas = completos.length ? [
+      { nome: "escrita", v: median(completos.map(function (a) { return entre(a.started_on, a.first_submission_on); })) },
+      { nome: "revisão por pares", v: median(completos.map(function (a) { return entre(a.first_submission_on, a.accepted_on); })) },
+      { nome: "produção editorial", v: median(completos.map(function (a) { return entre(a.accepted_on, a.published_on); })) },
+    ].sort(function (x, y) { return y.v - x.v; }) : [];
+    const parados = fila.map(function (a) { return { a: a, d: diasDesde(a.last_submitted_on || a.first_submission_on) }; })
+      .filter(function (x) { return x.d !== null && x.d >= ESPERA_LONGA_PAINEL; })
+      .sort(function (x, y) { return y.d - x.d; });
+    const porLinha = counter(arts, "research_line");
+    const cit = pub.reduce(function (n, a) { return n + bestCitations(a); }, 0);
+    const maisCitado = pub.slice().sort(function (a, b) { return bestCitations(b) - bestCitations(a); })[0];
+    const rej = arts.reduce(function (n, a) { return n + (a.rejections || 0); }, 0);
+
+    const frases = [];
+    frases.push(leituraDe({ sinal: "parado", forte: arts.length + " artigos no recorte:",
+      texto: pub.length + " publicados (" + pctDe(pub.length, arts.length) + "%), " + prod.length + " em produção, "
+        + fila.length + " com o periódico e " + aceitos.length + " aceitos." }));
+    if (noAno || noAnterior) {
+      const delta = noAno - noAnterior;
+      frases.push(leituraDe({ sinal: delta > 0 ? "sobe" : (delta < 0 ? "desce" : "parado"), forte: noAno + " publicados em " + ano + ",",
+        texto: "contra " + noAnterior + " em " + (ano - 1) + (delta ? " (" + (delta > 0 ? "+" : "") + delta + ")" : "") + "." }));
+    }
+    if (comQualis.length) {
+      frases.push(leituraDe({ sinal: altos / comQualis.length >= .5 ? "sobe" : "parado", forte: pctDe(altos, comQualis.length) + "% em Qualis A",
+        texto: "entre os " + comQualis.length + " publicados com Qualis informado" + (fi ? "; fator de impacto mediano " + String(fi).replace(".", ",") : "") + "." }));
+    }
+    if (totalDias) {
+      frases.push(leituraDe({ sinal: "parado", forte: "Mediana de " + dur(totalDias) + " do início à publicação.",
+        texto: etapas.length ? "A etapa mais longa é a " + etapas[0].nome + " (mediana " + dur(etapas[0].v) + ", nos " + completos.length + " artigos com as quatro datas)." : "" }));
+    }
+    if (fila.length) {
+      frases.push(leituraDe({ sinal: parados.length ? "desce" : "sobe", forte: parados.length ? parados.length + " sem resposta há mais de " + ESPERA_LONGA_PAINEL + " dias." : "Fila em dia.",
+        texto: parados.length ? "O mais antigo espera há " + dur(parados[0].d) + ": " + cut(parados[0].a.title, 70) + "." : "Nenhum manuscrito passou de " + ESPERA_LONGA_PAINEL + " dias com o periódico." }));
+    }
+    if (porLinha.length > 1) {
+      frases.push(leituraDe({ sinal: "parado", forte: "Maior carteira: " + cut(porLinha[0].label, 40) + ",",
+        texto: porLinha[0].value + " de " + arts.length + " artigos (" + pctDe(porLinha[0].value, arts.length) + "%)." }));
+    }
+    if (cit) {
+      frases.push(leituraDe({ sinal: "sobe", forte: cit + " citações",
+        texto: "no total (melhor fonte por artigo)" + (maisCitado && bestCitations(maisCitado) ? "; a mais citada tem " + bestCitations(maisCitado) + ": " + cut(maisCitado.title, 60) : "") + "." }));
+    }
+    if (rej) {
+      frases.push(leituraDe({ sinal: "desce", forte: rej + " rejeição(ões) no histórico,", texto: "ou " + (rej / Math.max(1, arts.length)).toFixed(2).replace(".", ",") + " por artigo." }));
+    }
+    host.appendChild(card("O que os números dizem", "Frases geradas a partir dos filtros acima.", el("div", { class: "leituras" }, frases)));
+
+    const lacunas = [
+      { k: "Qualis", n: pub.filter(function (a) { return !a.qualis; }).length, de: pub.length, pq: "publicados sem Qualis" },
+      { k: "DOI", n: pub.filter(function (a) { return !a.doi; }).length, de: pub.length, pq: "publicados sem DOI" },
+      { k: "Tipo de estudo", n: arts.filter(function (a) { return !a.study_type; }).length, de: arts.length, pq: "artigos sem tipo de estudo" },
+      { k: "Idioma", n: arts.filter(function (a) { return !a.language; }).length, de: arts.length, pq: "artigos sem idioma" },
+      { k: "Linha de pesquisa", n: arts.filter(function (a) { return !a.research_line; }).length, de: arts.length, pq: "artigos sem linha" },
+      { k: "Datas do ciclo", n: pub.filter(function (a) { return !(a.started_on && a.first_submission_on && a.accepted_on && a.published_on); }).length, de: pub.length, pq: "publicados sem as quatro datas" },
+    ].filter(function (x) { return x.de > 0; });
+    host.appendChild(el("div", { style: "margin-top:16px" }, card("O que falta preencher",
+      "Cada lacuna esconde uma parte das telas de análise; a barra mostra o tamanho dela.",
+      C.bars({ items: lacunas.map(function (x) { return { label: x.k + " — " + x.pq, value: x.n }; }).sort(function (a, b) { return b.value - a.value; }),
+        unit: "artigo(s)", labelWidth: 300, rowH: 30, mono: true, file: "lacunas" }))));
+  });
+
+view("qualis", "Qualis e impacto", "Produção",
+  "Em que estratos Qualis o laboratório publica, com fator de impacto, citações e as revistas que mais acolhem.",
+  function (host) {
+    const pub = articles().filter(function (a) { return a.status === "publicado"; });
+    const comQ = pub.filter(function (a) { return a.qualis; });
+    const altos = comQ.filter(function (a) { return /^A[1-4]$/i.test(a.qualis); }).length;
+    const fi = median(pub.map(function (a) { return a.impact_factor; }).filter(function (v) { return v > 0; }));
+    const comDoi = pub.filter(function (a) { return a.doi; }).length;
+    host.appendChild(el("div", { class: "grid g4" }, [
+      kpi({ label: "Publicados", icon: "producao", value: pub.length, foot: comQ.length + " com Qualis informado" }),
+      kpi({ label: "Em Qualis A", icon: "aceite", value: comQ.length ? pctDe(altos, comQ.length) + "%" : "—", foot: altos + " em A1–A4" }),
+      kpi({ label: "Fator de impacto", icon: "citacao", value: fi ? String(fi).replace(".", ",") : "—", foot: "mediana dos periódicos" }),
+      kpi({ label: "Com DOI", icon: "achado", value: pub.length ? pctDe(comDoi, pub.length) + "%" : "—", foot: comDoi + " localizáveis" }),
+    ]));
+    const cont = new Map();
+    pub.forEach(function (a) { const q = String(a.qualis || "").toUpperCase() || "sem Qualis"; cont.set(q, (cont.get(q) || 0) + 1); });
+    const chaves = ORDEM_QUALIS_PAINEL.filter(function (q) { return cont.has(q); })
+      .concat(Array.from(cont.keys()).filter(function (q) { return ORDEM_QUALIS_PAINEL.indexOf(q) < 0; }));
+    host.appendChild(el("div", { style: "margin-top:16px" }, card("Publicações por estrato", "Do mais alto (A1) ao mais baixo; “sem Qualis” é dado a cadastrar, não estrato.",
+      chaves.length ? C.columns({ labels: chaves, series: [{ label: "Publicados", values: chaves.map(function (q) { return cont.get(q); }) }],
+        mono: true, height: 260, caption: null, file: "qualis" }) : el("p", { class: "empty", text: "Nenhum artigo publicado neste recorte." }))));
+    const revistas = new Map();
+    pub.forEach(function (a) {
+      const r = a.journal || "Não informada";
+      const x = revistas.get(r) || { journal: r, n: 0, qualis: a.qualis || "", fi: a.impact_factor || null, cit: 0 };
+      x.n += 1; x.cit += bestCitations(a); if (!x.qualis && a.qualis) x.qualis = a.qualis; revistas.set(r, x);
+    });
+    host.appendChild(el("div", { style: "margin-top:16px" }, dataTable({
+      title: "Revistas", file: "revistas-qualis", sortKey: "n",
+      cols: [{ k: "journal", label: "Revista", wide: true }, { k: "qualis", label: "Qualis" },
+        { k: "fi", label: "Fator de impacto", num: true, render: function (r) { return r.fi ? String(r.fi).replace(".", ",") : "—"; } },
+        { k: "n", label: "Artigos", num: true }, { k: "cit", label: "Citações", num: true }],
+      rows: Array.from(revistas.values()), emptyMessage: "Nenhuma revista cadastrada.",
+    })));
+  });
+
+const IDIOMAS_PAINEL = { pt: "Português", "pt-br": "Português", en: "Inglês", es: "Espanhol", fr: "Francês" };
+view("desenhos", "Desenhos e idiomas", "Produção",
+  "Como se pesquisa (tipo de estudo) e em que língua se escreve, por ano e no acervo todo.",
+  function (host) {
+    const arts = articles();
+    const tipos = counter(arts, function (a) { return a.study_type || "Não informado"; });
+    const idiomas = counter(arts, function (a) {
+      const k = String(a.language || "").trim().toLowerCase(); return k ? (IDIOMAS_PAINEL[k] || k) : "Não informado"; });
+    const semTipo = arts.filter(function (a) { return !a.study_type; }).length;
+    const ingles = arts.filter(function (a) { return /^en/i.test(String(a.language || "")); }).length;
+    const comIdioma = arts.filter(function (a) { return a.language; }).length;
+    host.appendChild(el("div", { class: "grid g3" }, [
+      kpi({ label: "Desenhos distintos", icon: "experimento", value: tipos.filter(function (t) { return t.label !== "Não informado"; }).length, foot: "tipos de estudo no recorte" }),
+      kpi({ label: "Sem tipo informado", icon: "aviso", tone: semTipo ? "warn" : null, value: semTipo, foot: pctDe(semTipo, arts.length) + "% dos artigos" }),
+      kpi({ label: "Em inglês", icon: "mapa", value: comIdioma ? pctDe(ingles, comIdioma) + "%" : "—", foot: "dos artigos com idioma informado" }),
+    ]));
+    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+      card("Tipo de estudo", null, C.bars({ items: topN(tipos, 8), unit: "artigo(s)", labelWidth: 220, rowH: 30, file: "tipos-de-estudo" })),
+      card("Idioma", null, C.bars({ items: topN(idiomas, 6), unit: "artigo(s)", labelWidth: 140, rowH: 34, file: "idiomas" })),
+    ]));
+    const anos = Array.from(new Set(arts.map(function (a) { return a.year_published; }).filter(Boolean))).sort();
+    const classes = ["Inglês", "Português", "Espanhol"];
+    if (anos.length > 1) {
+      host.appendChild(el("div", { style: "margin-top:16px" }, card("Idioma por ano de publicação", "Publicados com idioma informado.",
+        C.columns({ labels: anos.map(String), series: classes.map(function (cl) {
+          return { label: cl, values: anos.map(function (y) {
+            return arts.filter(function (a) { return a.year_published === y && (IDIOMAS_PAINEL[String(a.language || "").toLowerCase()] === cl); }).length; }) }; }),
+          height: 240, caption: null, file: "idioma-por-ano" }))));
+    }
+  });
+
+view("gargalos", "Gargalos e fila", "Métricas internas",
+  "Onde o fluxo acumula: o estoque em cada etapa, quem espera há mais tempo e quanto da carteira passa de primeira.",
+  function (host) {
+    const arts = articles();
+    const n = function (st) { return arts.filter(function (a) { return st.indexOf(a.status) >= 0; }).length; };
+    const etapas = [
+      { label: "Em produção", value: n(["em_producao"]) }, { label: "Com o periódico", value: n(["submetido", "em_revisao"]) },
+      { label: "Aceitos", value: n(["aceito"]) }, { label: "Publicados", value: n(["publicado"]) },
+    ];
+    const fila = arts.filter(function (a) { return a.status === "submetido" || a.status === "em_revisao"; })
+      .map(function (a) { return Object.assign({}, a, { espera: diasDesde(a.last_submitted_on || a.first_submission_on) }); });
+    const longos = fila.filter(function (a) { return a.espera !== null && a.espera >= ESPERA_LONGA_PAINEL; });
+    const concluidos = arts.filter(function (a) { return a.status === "publicado" || a.status === "aceito"; });
+    const deprimeira = concluidos.filter(function (a) { return (a.submission_attempts || 0) <= 1; }).length;
+    const ativos = etapas[0].value + etapas[1].value + etapas[2].value;
+    host.appendChild(el("div", { class: "grid g4" }, [
+      kpi({ label: "Em andamento", icon: "processo", value: ativos, foot: pctDe(ativos, arts.length) + "% do acervo" }),
+      kpi({ label: "Parados no periódico", icon: "relogio", tone: longos.length ? "warn" : null, value: longos.length, foot: "mais de " + ESPERA_LONGA_PAINEL + " dias sem resposta" }),
+      kpi({ label: "Passam de primeira", icon: "aceite", value: concluidos.length ? pctDe(deprimeira, concluidos.length) + "%" : "—", foot: "aceitos/publicados com uma só submissão" }),
+      kpi({ label: "Etapa vazia", icon: "aviso", value: etapas.filter(function (e) { return !e.value; }).map(function (e) { return e.label; }).join(", ") || "nenhuma", foot: "estoque zerado agora" }),
+    ]));
+    host.appendChild(el("div", { class: "grid g2", style: "margin-top:16px" }, [
+      card("Estoque por etapa", "Quantos artigos há em cada status hoje. É estoque, não coorte: não dá para ler como taxa de conversão.",
+        C.bars({ items: etapas, unit: "artigo(s)", labelWidth: 130, rowH: 46, file: "estoque-por-etapa" })),
+      card("Fila por linha de pesquisa", "Artigos ainda em andamento (produção, periódico ou aceitos).",
+        C.bars({ items: counter(arts.filter(function (a) { return a.status !== "publicado" && a.status !== "rejeitado" && a.status !== "arquivado"; }), "research_line"),
+          unit: "artigo(s)", labelWidth: 220, rowH: 34, file: "fila-por-linha" })),
+    ]));
+    host.appendChild(el("div", { style: "margin-top:16px" }, dataTable({
+      title: "Quem espera há mais tempo", file: "fila-do-periodico", sortKey: "espera",
+      cols: [{ k: "title", label: "Artigo", wide: true }, { k: "journal", label: "Periódico" },
+        { k: "status", label: "Status", render: function (r) { return STATUS_LABEL[r.status] || r.status; } },
+        { k: "espera", label: "Espera", num: true, render: function (r) { return r.espera === null ? "—" : dur(r.espera); } },
+        { k: "submission_attempts", label: "Tentativas", num: true }],
+      rows: fila, emptyMessage: "Nada com o periódico neste momento.",
+    })));
+  });
+
 view("calendario", "Calendário", "Espaço-temporal",
   "Reuniões, coletas, defesas e eventos científicos do laboratório.", function (host) {
     const ag = D.agenda;
@@ -7519,14 +7718,14 @@ function formularioSimples(oQue, campos, rota) {
    leitura siga o assunto e não a estrutura do menu. */
 const SECTIONS = [
   { id: "geral", label: "Visão geral", icon: "painel",
-    views: ["resumo", "historia", "visao", "metas", "explorar"] },
+    views: ["resumo", "leituras", "historia", "visao", "metas", "explorar"] },
   { id: "producao", label: "Produção", icon: "producao",
-    views: ["producao", "submetidos", "publicacoes", "citacoes", "calculo"] },
+    views: ["producao", "submetidos", "publicacoes", "qualis", "desenhos", "citacoes", "calculo"] },
   { id: "pessoas", label: "Pessoas", icon: "pessoas",
     views: ["pesquisadores", "organograma", "formacao", "equipe", "rede", "linhas",
       "projetos", "sustenta"] },
   { id: "processo", label: "Processo", icon: "processo",
-    views: ["tempos", "submissoes", "aceites", "fomento", "caminho"] },
+    views: ["tempos", "gargalos", "submissoes", "aceites", "fomento", "caminho"] },
   { id: "espaco", label: "Espaço-tempo", icon: "espaco",
     views: ["calendario", "temporal", "espacial"] },
   { id: "dados", label: "Dados", icon: "dados",
@@ -7557,6 +7756,7 @@ const VIEW_ICON = {
   confiabilidade: "qualidade",
   correlacoes: "rede", ano_bancada: "calendario", relatorios: "livro", exportar: "baixar",
   bancada_admin: "processo", caminho: "processo",
+  leituras: "achado", qualis: "qualidade", desenhos: "experimento", gargalos: "relogio",
 };
 /* Telas que não respondem a filtro nenhum. A barra some nelas: seletor de
    ano, de linha e de integrante em cima de uma página que não muda com
@@ -7572,7 +7772,11 @@ const SEM_FILTROS = ["historia", "formacao", "coleta", "monitoramento",
 
 /* atalhos entre sub-abas de seções diferentes — a ponte que o menu não faz */
 const RELATED = {
-  resumo: ["historia", "metas", "visao"],
+  resumo: ["leituras", "historia", "metas"],
+  leituras: ["resumo", "gargalos", "qualis"],
+  qualis: ["publicacoes", "citacoes", "desenhos"],
+  desenhos: ["qualis", "publicacoes", "linhas"],
+  gargalos: ["tempos", "submetidos", "submissoes"],
   historia: ["resumo", "linhas", "pesquisadores"],
   visao: ["metas", "explorar", "publicacoes"],
   metas: ["visao", "publicacoes", "tempos"],
@@ -7588,7 +7792,7 @@ const RELATED = {
   rede: ["equipe", "linhas", "projetos"],
   linhas: ["projetos", "publicacoes", "equipe"],
   projetos: ["linhas", "pesquisadores", "producao"],
-  tempos: ["submissoes", "aceites", "producao"],
+  tempos: ["gargalos", "submissoes", "aceites"],
   submissoes: ["tempos", "aceites", "submetidos"],
   aceites: ["publicacoes", "tempos", "submissoes"],
   calendario: ["temporal", "espacial", "projetos"],

@@ -887,11 +887,172 @@ const ChartsEnhanced = (function () {
     return fig;
   }
 
+  /* Funil em camadas 3D (isométrico) -- substitui o funil líquido no mural.
+     Referência enviada: lâminas empilhadas com chamadas dos dois lados.
+     Cada etapa é uma lâmina cuja LARGURA acompanha a raiz do volume (a raiz
+     deixa uma etapa de 8 legível ao lado de uma de 121); a altura é fixa
+     e não carrega dado. O que há de analítico:
+       - à esquerda, nome + participação da etapa no acervo inteiro;
+       - à direita, o volume em relação à etapa anterior -- é razão entre
+         ESTOQUES de hoje (quantos há em cada status), não taxa de conversão
+         de uma coorte, e o rótulo diz isso em vez de fingir o contrário;
+       - etapa vazia ganha contorno tracejado e a marca "vazio": numa fila
+         de revisão, uma etapa zerada é o dado mais importante da tela;
+       - faixa de síntese embaixo: pipeline ativo, publicados no acervo e
+         saídas sem publicação (rejeitados/arquivados, que não entram nas
+         lâminas).
+     `etapas` = [{nome, valor, cor?}], na ordem do fluxo; `opts` =
+     {total, desfechos, rotuloDesfechos}. `total` é o acervo inteiro
+     (padrão: soma das etapas + desfechos). */
+  function funilCamadas(etapas, opts) {
+    if (!etapas || etapas.length < 2) return null;
+    opts = opts || {};
+    const fmtN = function (v) {
+      return typeof v === "number" ? v.toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : String(v);
+    };
+    const pct = function (v) {
+      return (v * 100).toLocaleString("pt-BR", { maximumFractionDigits: v < 0.1 ? 1 : 0 }) + "%";
+    };
+    const PALETA = ["#8b5cf6", "#3b82f6", "#06b6d4", "#f5a524", "#ec4899", "#22c55e"];
+    function rgb(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+    function tom(hex, f) {  // f<1 escurece, f>1 clareia (em direção ao branco)
+      const c = rgb(hex).map(function (v) {
+        return Math.round(f <= 1 ? v * f : v + (255 - v) * (f - 1));
+      });
+      return "rgb(" + c.join(",") + ")";
+    }
+    const desfechos = opts.desfechos || 0;
+    const soma = etapas.reduce(function (a, e) { return a + (e.valor || 0); }, 0);
+    const total = Math.max(1, opts.total || (soma + desfechos));
+    const maior = Math.max(1, ...etapas.map(function (e) { return e.valor || 0; }));
+
+    const W = 660, H = 676, cx = 350;
+    const largMax = 300, largMin = 120, esp = 24, topoY = 24, passo = 112;
+    const lamina = function (v) {
+      return largMin + (largMax - largMin) * Math.sqrt(Math.max(0, v || 0) / maior);
+    };
+
+    const fig = document.createElement("figure");
+    fig.setAttribute("class", "chart");
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.setAttribute("class", "plot funil-camadas");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Funil da produção: " + etapas.map(function (e) {
+      return e.nome + " " + fmtN(e.valor || 0); }).join(", "));
+
+    const estilo = document.createElementNS(NS, "style");
+    estilo.textContent =
+      ".fc-lamina{animation:fc-sobe .6s cubic-bezier(.2,.8,.2,1) both}" +
+      "@keyframes fc-sobe{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}" +
+      "@media (prefers-reduced-motion:reduce){.fc-lamina{animation:none}}";
+    svg.appendChild(estilo);
+
+    function no(nome, attrs, texto) {
+      const e = document.createElementNS(NS, nome);
+      Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
+      if (texto !== undefined) e.textContent = texto;
+      return e;
+    }
+    const defs = no("defs");
+    svg.appendChild(defs);
+
+    // sombra elíptica sob a pilha, como no modelo
+    svg.appendChild(no("ellipse", { cx: cx, cy: topoY + passo * (etapas.length - 1) + lamina(etapas[etapas.length - 1].valor) * 0.5 + esp + 8,
+      rx: lamina(etapas[etapas.length - 1].valor) * 0.62, ry: 11, fill: "#000", opacity: ".22" }));
+
+    const geom = etapas.map(function (e, i) {
+      const w = lamina(e.valor), d = w * 0.5, y = topoY + i * passo;
+      return { e: e, w: w, d: d, y: y, cor: e.cor || PALETA[i % PALETA.length], vazio: !(e.valor > 0) };
+    });
+
+    // de baixo para cima: a lâmina de cima cobre a borda da de baixo
+    geom.slice().reverse().forEach(function (g, k) {
+      const i = geom.length - 1 - k;
+      const e = g.e, c = g.cor, w = g.w, d = g.d, y = g.y;
+      const grupo = no("g", { class: "fc-lamina", style: "animation-delay:" + (k * 90) + "ms" });
+      const dica = no("title", {}, e.nome + ": " + fmtN(e.valor || 0) + " artigo(s), " +
+        pct((e.valor || 0) / total) + " do acervo");
+      grupo.appendChild(dica);
+      const topo = [[cx, y], [cx + w / 2, y + d / 2], [cx, y + d], [cx - w / 2, y + d / 2]];
+      const esq = [[cx - w / 2, y + d / 2], [cx, y + d], [cx, y + d + esp], [cx - w / 2, y + d / 2 + esp]];
+      const dir = [[cx + w / 2, y + d / 2], [cx, y + d], [cx, y + d + esp], [cx + w / 2, y + d / 2 + esp]];
+      const pts = function (a) { return a.map(function (p) { return p.join(","); }).join(" "); };
+      const idGrad = "fc-g" + i + "-" + Math.random().toString(36).slice(2, 7);
+      const grad = no("linearGradient", { id: idGrad, x1: "0", y1: "0", x2: "1", y2: "1" });
+      grad.appendChild(no("stop", { offset: "0", "stop-color": tom(c, 1.28) }));
+      grad.appendChild(no("stop", { offset: "1", "stop-color": tom(c, 0.96) }));
+      defs.appendChild(grad);
+      const opac = g.vazio ? ".38" : "1";
+      grupo.appendChild(no("polygon", { points: pts(esq), fill: tom(c, 0.62), opacity: opac }));
+      grupo.appendChild(no("polygon", { points: pts(dir), fill: tom(c, 0.78), opacity: opac }));
+      const face = no("polygon", { points: pts(topo), fill: "url(#" + idGrad + ")", opacity: opac });
+      if (g.vazio) { face.setAttribute("stroke", c); face.setAttribute("stroke-dasharray", "5 4"); face.setAttribute("stroke-width", "1.6"); }
+      grupo.appendChild(face);
+      // brilho na aresta frontal-esquerda
+      grupo.appendChild(no("polyline", { points: [topo[3], topo[2], topo[1]].map(function (p) { return p.join(","); }).join(" "),
+        fill: "none", stroke: "rgba(255,255,255,.55)", "stroke-width": "1.2", opacity: opac }));
+      // número na face de cima
+      grupo.appendChild(no("text", { x: cx, y: y + d / 2 + 9, "text-anchor": "middle", "font-size": 28,
+        "font-weight": 800, fill: "#fff", style: "text-shadow:0 2px 4px rgba(0,0,0,.45)" }, fmtN(e.valor || 0)));
+      svg.appendChild(grupo);
+
+      // chamada esquerda: ponto na quina, linha até a coluna de texto
+      const ym = y + d / 2 + esp / 2, xq = cx - w / 2;
+      grupo.appendChild(no("line", { x1: 196, y1: ym, x2: xq, y2: ym, stroke: c, "stroke-width": 1.4, "stroke-dasharray": "2 4", "stroke-linecap": "round" }));
+      grupo.appendChild(no("circle", { cx: xq, cy: ym, r: 4.5, fill: c, stroke: "var(--surface)", "stroke-width": 2 }));
+      grupo.appendChild(no("text", { x: 16, y: ym - 12, "font-size": 15, "font-weight": 800, fill: "var(--ink)" }, e.nome));
+      grupo.appendChild(no("text", { x: 16, y: ym + 10, "font-size": 20, "font-weight": 800, fill: c }, pct((e.valor || 0) / total)));
+      grupo.appendChild(no("text", { x: 16, y: ym + 28, "font-size": 11.5, fill: "var(--ink-muted)" }, "do acervo (" + fmtN(total) + ")"));
+
+      // chamada direita: volume relativo à etapa anterior
+      const xd = cx + w / 2, xt = 520;
+      grupo.appendChild(no("line", { x1: xd, y1: ym, x2: xt - 8, y2: ym, stroke: "var(--ink-muted)", "stroke-width": 1, "stroke-dasharray": "2 4", opacity: ".7" }));
+      if (i === 0) {
+        grupo.appendChild(no("text", { x: xt, y: ym - 2, "font-size": 12, "font-weight": 700, fill: "var(--ink-2)" }, "entrada"));
+        grupo.appendChild(no("text", { x: xt, y: ym + 14, "font-size": 11, fill: "var(--ink-muted)" }, "início do fluxo"));
+      } else {
+        const ant = geom[i - 1].e.valor || 0, rel = ant > 0 ? (e.valor || 0) / ant : null;
+        const alerta = g.vazio;
+        grupo.appendChild(no("text", { x: xt, y: ym - 2, "font-size": 17, "font-weight": 800,
+          fill: alerta ? "var(--critical, #d03b3b)" : "var(--ink)" }, alerta ? "vazio" : (rel === null ? "sem base" : pct(rel))));
+        grupo.appendChild(no("text", { x: xt, y: ym + 14, "font-size": 11, fill: "var(--ink-muted)" },
+          (rel === null ? "etapa anterior vazia" : "do volume de " + geom[i - 1].e.nome.toLowerCase())));
+      }
+    });
+
+    // faixa de síntese
+    const ativos = etapas.slice(0, -1).reduce(function (a, e) { return a + (e.valor || 0); }, 0);
+    const ult = etapas[etapas.length - 1];
+    const fechados = (ult.valor || 0) + desfechos;
+    const faixa = [
+      { v: fmtN(ativos), r: "no pipeline ativo", s: pct(ativos / total) + " do acervo" },
+      { v: fmtN(ult.valor || 0), r: ult.nome.toLowerCase(), s: pct((ult.valor || 0) / total) + " do acervo" },
+      { v: fechados > 0 ? pct((ult.valor || 0) / fechados) : "—", r: "dos desfechos fechados",
+        s: fmtN(desfechos) + " " + (opts.rotuloDesfechos || "sem publicação") },
+    ];
+    const yF = H - 84, larg = (W - 32) / faixa.length;
+    svg.appendChild(no("line", { x1: 16, x2: W - 16, y1: yF - 12, y2: yF - 12, stroke: "var(--border-strong, rgba(255,255,255,.2))", "stroke-width": 1 }));
+    faixa.forEach(function (f, k) {
+      const x = 16 + k * larg;
+      svg.appendChild(no("text", { x: x, y: yF + 22, "font-size": 30, "font-weight": 800, fill: etapas[Math.min(k, etapas.length - 1)] && k === 1 ? (ult.cor || PALETA[etapas.length - 1]) : "var(--ink)" }, f.v));
+      svg.appendChild(no("text", { x: x, y: yF + 42, "font-size": 12.5, "font-weight": 700, fill: "var(--ink-2)" }, f.r));
+      svg.appendChild(no("text", { x: x, y: yF + 58, "font-size": 11, fill: "var(--ink-muted)" }, f.s));
+    });
+
+    fig.appendChild(svg);
+    return fig;
+  }
+
   return {
     ternario,
     pareto,
     sunburst,
     funilLiquido,
+    funilCamadas,
     gaugeDiagnostico,
     globoNeon,
     colunasIsometricas,

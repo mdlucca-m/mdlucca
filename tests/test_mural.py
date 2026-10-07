@@ -1663,6 +1663,58 @@ class TestFunilLiquidoDaProducao(unittest.TestCase):
         self.assertIn("112", resultado["textos"])
 
 
+class TestFunilEmCamadasDaProducao(unittest.TestCase):
+    """`ChartsEnhanced.funilCamadas` -- o funil em lâminas 3D do mural.
+    Reaproveita o DOM falso do teste do funil líquido. O que importa aqui é
+    o que a leitura analítica promete: cada etapa aparece, a participação é
+    contra o acervo inteiro, a etapa vazia é marcada (não escondida) e a
+    razão com a etapa anterior não finge ser taxa de conversão."""
+
+    DOM_SHIM = TestFunilLiquidoDaProducao.DOM_SHIM
+
+    ETAPAS = [{"nome": "Em produção", "valor": 26}, {"nome": "Em avaliação", "valor": 8},
+              {"nome": "Aceitos", "valor": 0}, {"nome": "Publicados", "valor": 121}]
+
+    def _camadas(self, etapas, opts=None):
+        texto = (TEMPLATES / "charts-enhanced.js").read_text(encoding="utf-8")
+        inicio = texto.index("const ChartsEnhanced")
+        fim = texto.index("\n})();", inicio) + len("\n})();")
+        script = (self.DOM_SHIM + "\n" + texto[inicio:fim]
+                  + f"\nconst fig = ChartsEnhanced.funilCamadas({json.dumps(etapas)}, {json.dumps(opts or {})});"
+                  + "\nif (fig === null) { process.stdout.write(JSON.stringify(null)); } else {"
+                  + "\nconst svg = fig.kids[0];"
+                  + "\nprocess.stdout.write(JSON.stringify({figClasse: fig.attrs.class,"
+                  + " svgClasse: svg.attrs.class,"
+                  + " textos: todos(fig, 'text').map(function (t) { return t.textContent; }),"
+                  + " laminas: todos(fig, 'g').filter(function (g) { return g.attrs.class === 'fc-lamina'; }).length }));}")
+        return _roda(script)
+
+    def test_menos_de_duas_etapas_nao_desenha_nada(self):
+        self.assertIsNone(self._camadas([{"nome": "A", "valor": 1}]))
+
+    def test_classes_que_o_css_do_quadro_espera(self):
+        r = self._camadas(self.ETAPAS, {"total": 158, "desfechos": 3})
+        self.assertEqual(r["figClasse"], "chart")
+        self.assertEqual(r["svgClasse"], "plot funil-camadas")
+        self.assertEqual(r["laminas"], 4)
+
+    def test_valores_e_participacao_contra_o_acervo_inteiro(self):
+        r = self._camadas(self.ETAPAS, {"total": 158, "desfechos": 3})
+        for esperado in ("26", "8", "121", "16%", "77%"):
+            self.assertIn(esperado, r["textos"])
+
+    def test_etapa_vazia_e_marcada_e_a_seguinte_fica_sem_base(self):
+        r = self._camadas(self.ETAPAS, {"total": 158, "desfechos": 3})
+        self.assertIn("vazio", r["textos"])
+        self.assertIn("sem base", r["textos"])
+
+    def test_sintese_conta_desfechos_fechados(self):
+        # 121 publicados de 121 + 3 saídas = 97,6% -> "98%"
+        r = self._camadas(self.ETAPAS, {"total": 158, "desfechos": 3})
+        self.assertIn("98%", r["textos"])
+        self.assertIn("34", r["textos"])  # 26 + 8 + 0 no pipeline ativo
+
+
 class TestColunasIsometricas(unittest.TestCase):
     """`ChartsEnhanced.colunasIsometricas` -- as colunas do gráfico
     "Publicações por ano" viraram cubo com linha de chamada, pedido

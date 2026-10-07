@@ -319,7 +319,7 @@ function prazos() {
 }
 
 function linhaDePauta(item) {
-  const tom = item.dias === null ? "alerta" : tomDoPrazo(item.dias);
+  const tom = item.tom || (item.dias === null ? "alerta" : tomDoPrazo(item.dias));
   const li = el("li", {}, [
     el("div", { class: "quando" }, [
       el("b", { text: dia(item.data) }), el("small", { text: mesCurto(item.data) }),
@@ -401,20 +401,21 @@ function slideAgora() {
         { unidade: "publicação(ões)" })
     : vazio("Sem histórico de publicação ainda.");
 
-  /* Funil líquido: as mesmas 4 etapas dos cartões acima (Em produção, Em
-     avaliação, Aceitos, Publicados) -- achado ao vivo: agrupar "em
-     avaliação" e "aceitos" numa etapa só ("com o periódico") escondia a
-     informação que os próprios cartões já mostram separada, e dava a
-     impressão de que o funil "perdeu" dado. Publicados enche o tanque em
-     relação ao acervo inteiro (não em relação ao topo do funil -- ver
-     funilLiquido). */
+  /* Funil em camadas 3D: as mesmas 4 etapas dos cartões acima (Em produção,
+     Em avaliação, Aceitos, Publicados), uma lâmina por etapa, com a
+     participação de cada uma no acervo, o volume relativo à etapa
+     anterior (razão entre estoques, não taxa de conversão) e a síntese
+     de saídas sem publicação -- ver ChartsEnhanced.funilCamadas. Cores
+     novas por pedido: violeta, azul, ciano e dourado. */
   const funil = recorte.n_in_progress || recorte.n_submitted || recorte.n_accepted || recorte.n_published
-    ? ChartsEnhanced.funilLiquido([
-      { nome: "Em produção", valor: recorte.n_in_progress, cor: "var(--series-3)" },
-      { nome: "Em avaliação", valor: recorte.n_submitted, cor: "var(--series-4)" },
-      { nome: "Aceitos", valor: recorte.n_accepted, cor: "var(--series-2)" },
-      { nome: "Publicados", valor: recorte.n_published, total: arts.length, cor: "var(--good)" },
-    ])
+    ? ChartsEnhanced.funilCamadas([
+      { nome: "Em produção", valor: recorte.n_in_progress, cor: "#8b5cf6" },
+      { nome: "Em avaliação", valor: recorte.n_submitted, cor: "#3b82f6" },
+      { nome: "Aceitos", valor: recorte.n_accepted, cor: "#06b6d4" },
+      { nome: "Publicados", valor: recorte.n_published, cor: "#f5a524" },
+    ], { total: arts.length, desfechos: arts.filter(function (a) {
+      return a.status === "rejeitado" || a.status === "arquivado"; }).length,
+      rotuloDesfechos: "rejeitado(s)/arquivado(s)" })
     : vazio("Sem artigos cadastrados.");
   const desfechos = arts.filter(function (a) {
     return a.status === "rejeitado" || a.status === "arquivado";
@@ -1686,6 +1687,7 @@ function slideAcervos() {
   ]));
 }
 
+
 /* A ordem é a de quem passa na frente da tela: primeiro o retrato de agora,
    depois o que está na mão de alguém (em produção, submetido), depois o que
    já rendeu -- citações e a produção por área, na mesma tela --, depois o
@@ -1764,7 +1766,254 @@ const SLIDES = [
     apresenta: "4 métricas centrais em grande escala: taxa de aceite, dias até publicação, citações/artigo, produtividade equipe." },
   { id: "citacoes-bases", titulo: "Citações em Tempo Real", icone: "citacao", montar: slideCitacoesBases, tv: true, emRotacao: false,
     apresenta: "Citações sincronizadas com OpenAlex (e Scopus/Web of Science quando configuradas): total, média por linha de pesquisa e os artigos mais citados." },
+  /* Telas novas do ciclo (portal): estão na rotação; para tirar uma do ciclo
+     sem apagar, ponha `emRotacao: false` -- `?slides=id` continua chegando nela. */
+  { id: "qualis", titulo: "Qualidade dos periódicos", icone: "citacao", montar: slideQualis,
+    apresenta: "Onde o laboratório publica: estratos Qualis, fator de impacto mediano e quanto do acervo tem DOI." },
+  { id: "desenhos", titulo: "Desenhos e idiomas", icone: "experimento", montar: slideDesenhos,
+    apresenta: "Como se pesquisa e em que língua se escreve: tipos de estudo e idioma dos artigos do acervo." },
+  { id: "tempos", titulo: "Tempo do processo", icone: "relogio", montar: slideTempos,
+    apresenta: "Quanto leva cada etapa até a publicação, quantas tentativas e quais artigos mais demoraram." },
+  { id: "linhas-pipeline", titulo: "Linhas de pesquisa em andamento", icone: "linhas", montar: slideLinhasPipeline,
+    apresenta: "Cada linha de pesquisa com o que já saiu, o que está com o periódico e o que está em escrita." },
+  { id: "ultimas", titulo: "Últimas saídas e fila", icone: "producao", montar: slideUltimas,
+    apresenta: "O que foi publicado por último e o que está com o periódico esperando resposta." },
+  { id: "projetos", titulo: "Projetos e fomento", icone: "projeto", montar: slideProjetos,
+    apresenta: "Projetos em andamento, quem coordena, quem financia e quando terminam." },
 ];
+
+/* ==========================================================================
+   Telas novas do ciclo: o que o acervo já sabe e as outras telas não mostram
+   (qualidade do veículo, desenho do estudo, tempos do processo, linhas,
+   últimas saídas e projetos). Todas leem só `D.articles`, `D.research_lines`
+   e `D.projects` -- nenhuma depende da TV (`D.tv`) chegar.
+   ========================================================================== */
+function medianaDe(lista) {
+  const v = lista.filter(function (x) { return typeof x === "number" && isFinite(x); })
+    .sort(function (a, b) { return a - b; });
+  if (!v.length) return null;
+  const m = Math.floor(v.length / 2);
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+function mediaDe(lista) {
+  const v = lista.filter(function (x) { return typeof x === "number" && isFinite(x); });
+  return v.length ? v.reduce(function (a, b) { return a + b; }, 0) / v.length : null;
+}
+function publicados() { return artigos().filter(function (a) { return a.status === "publicado"; }); }
+
+const ORDEM_QUALIS = ["A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4", "C"];
+function slideQualis() {
+  const pub = publicados();
+  const contagem = new Map();
+  pub.forEach(function (a) {
+    const q = String(a.qualis || "").trim().toUpperCase() || "sem Qualis";
+    contagem.set(q, (contagem.get(q) || 0) + 1);
+  });
+  const ordenadas = ORDEM_QUALIS.filter(function (q) { return contagem.has(q); })
+    .concat(Array.from(contagem.keys()).filter(function (q) { return ORDEM_QUALIS.indexOf(q) < 0; }));
+  const comQualis = pub.filter(function (a) { return a.qualis; }).length;
+  const altos = pub.filter(function (a) { return /^A[1-4]$/i.test(String(a.qualis || "")); }).length;
+  const fi = medianaDe(pub.map(function (a) { return Number(a.impact_factor); })
+    .filter(function (x) { return x > 0; }));
+  const comDoi = pub.filter(function (a) { return a.doi; }).length;
+  const kpis = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Publicados", valor: pub.length, icone: "producao", serie: 1,
+      pe: "<b>" + fmt(comQualis) + "</b> com Qualis informado" }),
+    tile({ nome: "Qualis A", valor: comQualis ? Math.round(100 * altos / comQualis) : 0, sufixo: "%",
+      icone: "aceite", serie: 3, pastilha: "verde", pe: "<b>" + fmt(altos) + "</b> em periódicos A1–A4" }),
+    tile({ nome: "Fator de impacto", valor: fi === null ? "sem dado" : String(fi).replace(".", ","),
+      icone: "citacao", serie: 7, pastilha: "violeta", pe: "mediana dos periódicos" }),
+    tile({ nome: "Com DOI", valor: pub.length ? Math.round(100 * comDoi / pub.length) : 0, sufixo: "%",
+      icone: "achado", serie: 5, pastilha: "magenta", pe: "<b>" + fmt(comDoi) + "</b> localizáveis" }),
+  ]);
+  const grafico = ordenadas.length
+    ? ChartsEnhanced.colunasIsometricas(ordenadas.map(function (q) { return { rotulo: q, valor: contagem.get(q) }; }),
+      { unidade: "publicação(ões)" })
+    : vazio("Nenhum artigo publicado com Qualis informado.");
+  return escalonar(el("div", { class: "slide" }, [
+    kpis,
+    quadro("Publicações por estrato Qualis", "citacao", grafico,
+      comQualis < pub.length ? fmt(pub.length - comQualis) + " sem Qualis cadastrado" : "", "moldura-viva"),
+  ]));
+}
+
+const IDIOMAS = { pt: "Português", "pt-br": "Português", en: "Inglês", es: "Espanhol", fr: "Francês" };
+function slideDesenhos() {
+  const arts = artigos();
+  const tipos = contar(arts, function (a) { return a.study_type || "Não informado"; }).slice(0, 8);
+  const idiomas = contar(arts, function (a) {
+    const k = String(a.language || "").trim().toLowerCase();
+    return k ? (IDIOMAS[k] || k) : "Não informado";
+  }).slice(0, 6);
+  const semTipo = arts.filter(function (a) { return !a.study_type; }).length;
+  const ingles = arts.filter(function (a) { return /^en/i.test(String(a.language || "")); }).length;
+  const comLing = arts.filter(function (a) { return a.language; }).length;
+  const kpis = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Desenhos distintos", valor: tipos.filter(function (t) { return t.label !== "Não informado"; }).length,
+      icone: "experimento", serie: 1, pe: "tipos de estudo no acervo" }),
+    tile({ nome: "Sem tipo informado", valor: semTipo, icone: "aviso", tom: "warning", pastilha: "alerta",
+      pe: arts.length ? "<b>" + Math.round(100 * semTipo / arts.length) + "%</b> do acervo" : "" }),
+    tile({ nome: "Em inglês", valor: comLing ? Math.round(100 * ingles / comLing) : 0, sufixo: "%",
+      icone: "mapa", serie: 4, pastilha: "ambar", pe: "dos artigos com idioma informado" }),
+  ]);
+  return escalonar(el("div", { class: "slide" }, [
+    kpis,
+    el("div", { class: "painel-duplo" }, [
+      quadro("Como se pesquisa", "experimento", tipos.length
+        ? C.bars({ items: tipos.map(function (t) { return { label: cortar(t.label, 34), value: t.value }; }),
+          unit: "artigos", caption: "desenho do estudo", width: 640, labelWidth: 220, rowH: 42 })
+        : vazio("Nenhum tipo de estudo informado."), arts.length + " artigos", "moldura-viva"),
+      quadro("Em que língua", "mapa", idiomas.length
+        ? C.bars({ items: idiomas, unit: "artigos", caption: "idioma do artigo", width: 560, labelWidth: 150, rowH: 48 })
+        : vazio("Nenhum idioma informado."), "", "moldura-viva"),
+    ]),
+  ]));
+}
+
+function slideTempos() {
+  const arts = artigos();
+  const m = function (campo) { return mediaDe(arts.map(function (a) { return a[campo]; })); };
+  const inicio = m("days_start_to_publication"), aceite = m("days_submission_to_acceptance"),
+    espera = m("days_acceptance_to_publication");
+  const tentativas = mediaDe(arts.filter(function (a) { return a.submission_attempts > 0; })
+    .map(function (a) { return a.submission_attempts; }));
+  const rejeicoes = arts.reduce(function (n, a) { return n + (a.rejections || 0); }, 0);
+  const num = function (v) { return v === null ? "sem dado" : Math.round(v); };
+  const kpis = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Da ideia à revista", valor: num(inicio), sufixo: inicio === null ? "" : " dias", icone: "relogio",
+      serie: 1, pe: "média, do início à publicação" }),
+    tile({ nome: "Revisão por pares", valor: num(aceite), sufixo: aceite === null ? "" : " dias", icone: "submissao",
+      serie: 4, pastilha: "ambar", pe: "da submissão ao aceite" }),
+    tile({ nome: "Fila de publicação", valor: num(espera), sufixo: espera === null ? "" : " dias", icone: "aceite",
+      serie: 3, pastilha: "verde", pe: "do aceite à publicação" }),
+    tile({ nome: "Tentativas", valor: tentativas === null ? "sem dado" : String(Math.round(tentativas * 10) / 10).replace(".", ","),
+      icone: "prazo", serie: 7, pastilha: "violeta", pe: "submissões por artigo, em média" }),
+    tile({ nome: "Rejeições", valor: rejeicoes, icone: "aviso", tom: "serious", pastilha: "alerta",
+      pe: "no histórico do acervo" }),
+  ]);
+  const etapas = [
+    { label: "Início → publicação", value: inicio }, { label: "Submissão → aceite", value: aceite },
+    { label: "Aceite → publicação", value: espera },
+  ].filter(function (e) { return e.value !== null; })
+    .map(function (e) { return { label: e.label, value: Math.round(e.value) }; });
+  const maisLentos = arts.filter(function (a) { return a.days_start_to_publication > 0; })
+    .sort(function (a, b) { return b.days_start_to_publication - a.days_start_to_publication; }).slice(0, 5)
+    .map(function (a) { return { label: cortar(a.title, 40), value: a.days_start_to_publication }; });
+  return escalonar(el("div", { class: "slide" }, [
+    kpis,
+    el("div", { class: "painel-duplo" }, [
+      quadro("Onde o tempo passa", "relogio", etapas.length
+        ? C.bars({ items: etapas, unit: "dias", caption: "média de dias por etapa", width: 640, labelWidth: 200, rowH: 56 })
+        : vazio("Ainda não há datas suficientes para medir os tempos."), "média de dias", "moldura-viva"),
+      quadro("Os cinco mais demorados", "prazo", maisLentos.length
+        ? C.bars({ items: maisLentos, unit: "dias", caption: "início → publicação", width: 700, labelWidth: 280, rowH: 50 })
+        : vazio("Nenhum artigo com início e publicação datados."), "", "moldura-viva"),
+    ]),
+  ]));
+}
+
+function slideLinhasPipeline() {
+  const linhas = (D.research_lines || []).filter(function (l) { return l.n_articles > 0; })
+    .sort(function (a, b) { return b.n_articles - a.n_articles; }).slice(0, 8);
+  const fases = [
+    { campo: "n_published", nome: "publicados", serie: 3 },
+    { campo: "n_submitted", nome: "em avaliação", serie: 4 },
+    { campo: "n_in_progress", nome: "em produção", serie: 1 },
+  ];
+  const maior = Math.max(1, ...linhas.map(function (l) { return l.n_articles; }));
+  const corpo = linhas.length ? el("div", { class: "linhas-pipeline" }, linhas.map(function (l) {
+    const resto = Math.max(0, l.n_articles - fases.reduce(function (n, f) { return n + (l[f.campo] || 0); }, 0));
+    const segs = fases.map(function (f) { return { nome: f.nome, valor: l[f.campo] || 0, cor: "var(--series-" + f.serie + ")" }; });
+    if (resto) segs.push({ nome: "outros status", valor: resto, cor: "var(--ink-muted)" });
+    return el("div", { class: "lp-linha", style: "display:grid;grid-template-columns:minmax(180px,26%) 1fr 64px;gap:14px;align-items:center;margin:26px 0" }, [
+      el("div", { style: "font-weight:700;font-size:clamp(14px,1.5vw,22px)", text: cortar(l.name, 38) }),
+      el("div", { style: "display:flex;height:46px;border-radius:10px;overflow:hidden;background:var(--surface-raised);width:" + (100 * l.n_articles / maior) + "%;min-width:48px" },
+        segs.filter(function (x) { return x.valor > 0; }).map(function (x) {
+          return el("div", { title: x.nome + ": " + x.valor, style: "flex:" + x.valor + ";background:" + x.cor + ";display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px", text: String(x.valor) });
+        })),
+      el("div", { style: "text-align:right;font-weight:800;font-size:clamp(16px,1.8vw,26px)", text: fmt(l.n_articles) }),
+    ]);
+  })) : vazio("Nenhuma linha de pesquisa com artigos cadastrados.");
+  const legenda = el("div", { style: "display:flex;gap:22px;flex-wrap:wrap;margin-top:6px;color:var(--ink-2);font-size:clamp(12px,1.2vw,17px)" },
+    fases.map(function (f) {
+      return el("span", {}, [el("i", { style: "display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;background:var(--series-" + f.serie + ")" }), f.nome]);
+    }));
+  const top = linhas[0];
+  const kpis = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Linhas ativas", valor: (D.research_lines || []).filter(function (l) { return l.active; }).length,
+      icone: "linhas", serie: 1, pe: "<b>" + fmt(linhas.length) + "</b> com artigos" }),
+    tile({ nome: "Maior carteira", valor: top ? top.n_articles : 0, icone: "producao", serie: 3, pastilha: "verde",
+      pe: top ? "<b>" + cortar(top.name, 34) + "</b>" : "sem dado" }),
+    tile({ nome: "Citações", valor: linhas.reduce(function (n, l) { return n + (l.scopus_citations || 0); }, 0),
+      icone: "citacao", serie: 7, pastilha: "violeta", pe: "Scopus, nas linhas acima" }),
+  ]);
+  return escalonar(el("div", { class: "slide" }, [
+    kpis, quadro("Cada linha, do manuscrito à publicação", "linhas", el("div", {}, [corpo, legenda]),
+      "artigos por status", "moldura-viva")]));
+}
+
+function slideUltimas() {
+  const arts = artigos();
+  const data = function (a) { return a.published_on || (a.year_published ? a.year_published + "-01-01" : ""); };
+  const recentes = publicados().filter(function (a) { return data(a); })
+    .sort(function (a, b) { return data(b).localeCompare(data(a)); }).slice(0, 6);
+  const naFila = arts.filter(function (a) { return a.status === "submetido" || a.status === "em_revisao" || a.status === "aceito"; })
+    .sort(function (a, b) { return String(a.first_submission_on || "").localeCompare(String(b.first_submission_on || "")); })
+    .slice(0, 6);
+  const linha = function (a, icone, tom, quando) {
+    const iso = quando;
+    return linhaDePauta({ data: iso, icone: icone, tom: tom, dias: null, espera: 0,
+      titulo: cortar(a.title, 78), detalhe: [a.journal || a.current_journal || "periódico não informado", a.qualis ? "Qualis " + a.qualis : ""].filter(Boolean).join(" · ") });
+  };
+  const lista = function (itens, vazioMsg, icone, tom, campo) {
+    return itens.length ? el("ul", { class: "pauta" }, itens.map(function (a) {
+      const li = linha(a, icone, tom, campo(a));
+      const contagem = li.querySelector(".contagem");
+      const d = diasAte(campo(a));
+      if (contagem) contagem.textContent = d === null ? "sem data" : haQuanto(d);
+      return li;
+    })) : vazio(vazioMsg);
+  };
+  return escalonar(el("div", { class: "slide" }, [
+    el("div", { class: "painel-duplo" }, [
+      quadro("Saíram por último", "producao", lista(recentes, "Nenhum artigo publicado com data.", "producao", "bom", data), "publicados", "moldura-viva"),
+      quadro("Na fila agora", "submissao", lista(naFila, "Nada com o periódico neste momento.", "submissao", "alerta",
+        function (a) { return a.first_submission_on || a.accepted_on || ""; }), "submetidos e aceitos", "moldura-viva"),
+    ]),
+  ]));
+}
+
+function slideProjetos() {
+  const lista = projetos().slice().sort(function (a, b) {
+    return String(b.status === "em_andamento").localeCompare(String(a.status === "em_andamento"))
+      || String(b.started_on || "").localeCompare(String(a.started_on || ""));
+  });
+  const ativos = lista.filter(function (p) { return p.status === "em_andamento"; });
+  const total = lista.reduce(function (n, p) { return n + (p.amount || 0); }, 0);
+  const financiadores = contar(lista, "funder");
+  const kpis = el("div", { class: "linha-kpi" }, [
+    tile({ nome: "Em andamento", valor: ativos.length, icone: "projeto", serie: 3, pastilha: "verde",
+      pe: "de <b>" + fmt(lista.length) + "</b> projetos" }),
+    tile({ nome: "Fomento", valor: total ? Math.round(total / 1000) : 0, prefixo: "R$ ", sufixo: " mil", icone: "alvo", serie: 4,
+      pastilha: "ambar", pe: "soma dos valores cadastrados" }),
+    tile({ nome: "Financiadores", valor: financiadores.length, icone: "pessoas", serie: 7, pastilha: "violeta",
+      pe: financiadores.length ? "<b>" + financiadores[0].label + "</b> lidera" : "nenhum informado" }),
+  ]);
+  const cartoes = lista.length ? el("ul", { class: "pauta" }, lista.slice(0, 5).map(function (p) {
+    const fim = p.ended_on || "";
+    const d = fim ? diasAte(fim) : null;
+    return linhaDePauta({ data: fim || p.started_on || "", icone: "projeto", tom: p.status === "em_andamento" ? "bom" : "alerta",
+      dias: null, espera: 0, titulo: cortar(p.name, 74),
+      detalhe: [p.coordinator_name || p.coordinator, p.funder, p.research_line].filter(Boolean).join(" · ") });
+  })) : vazio("Nenhum projeto cadastrado.");
+  const lis = cartoes.querySelectorAll ? cartoes.querySelectorAll(".contagem") : [];
+  Array.prototype.forEach.call(lis, function (c, i) {
+    const p = lista[i]; const d = p && p.ended_on ? diasAte(p.ended_on) : null;
+    c.textContent = d === null ? (p && p.status === "em_andamento" ? "em andamento" : "—") : "termina " + porExtenso(d);
+  });
+  return escalonar(el("div", { class: "slide" }, [
+    kpis, quadro("Projetos", "projeto", cartoes, lista.length > 5 ? "e mais " + (lista.length - 5) : "", "moldura-viva")]));
+}
 
 /* As paletas de fundo, as mesmas do ao vivo. A escolha é lida de
    `?paleta=` ou de `lape-paleta` no navegador -- que é onde o ao vivo
