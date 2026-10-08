@@ -39,7 +39,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Callable
 
-from . import (analise, auth, config, export, extracao, ingest_autor, marca, metrics,
+from . import (triagem_assistida, analise, auth, config, export, extracao, ingest_autor, marca, metrics,
                ponto, report, revisao, variaveis, versao)
 from .db import Database
 from .util import clean_text, to_int
@@ -1971,8 +1971,13 @@ def route_review_queue(ctx: "Context", review_id: str) -> Any:
     member_id = _sou_da_equipe(ctx, rev["id"])
     etapa = (ctx.query.get("etapa") or ["titulo_resumo"])[0]
     limite = min(to_int((ctx.query.get("limite") or ["40"])[0]) or 40, 200)
+    if (ctx.query.get("assist") or ["0"])[0] == "1":
+        ordem = (ctx.query.get("ordem") or ["relevancia"])[0]
+        fila = triagem_assistida.fila_assistida(ctx.db, rev["id"], member_id, limite, etapa, ordem)
+    else:
+        fila = revisao.fila(ctx.db, rev["id"], member_id, limite, etapa)
     return {
-        "fila": revisao.fila(ctx.db, rev["id"], member_id, limite, etapa),
+        "fila": fila,
         "faltam": ctx.db.scalar(
             "SELECT COUNT(*) FROM refs r WHERE r.review_id = ? AND r.duplicate_of IS NULL"
             "   AND r.stage = ? AND NOT EXISTS (SELECT 1 FROM screenings s"
@@ -2188,6 +2193,41 @@ def route_review_terms(ctx: "Context", review_id: str) -> Any:
     ctx.db.conn.commit()
     return {"termos": ctx.db.dicts(
         "SELECT term, tone FROM review_terms WHERE review_id = ?", (rev["id"],))}
+
+
+def route_review_criteria(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "integrante")
+    rev = _revisao(ctx, review_id)
+    return {"criterios": triagem_assistida.criterios(ctx.db, rev["id"]),
+            "grupos": list(triagem_assistida.GRUPOS)}
+
+
+def route_review_criteria_save(ctx: "Context", review_id: str) -> Any:
+    auth.require(ctx.user, "coordenacao")
+    rev = _revisao(ctx, review_id)
+    lista = (ctx.body or {}).get("criterios")
+    if not isinstance(lista, list):
+        raise ApiError(400, "envie {\"criterios\": [...]}")
+    return {"criterios": triagem_assistida.salvar_criterios(ctx.db, rev["id"], lista)}
+
+
+def route_review_assistant(ctx: "Context", review_id: str) -> Any:
+    rev = _revisao(ctx, review_id)
+    member_id = _sou_da_equipe(ctx, rev["id"])
+    etapa = (ctx.query.get("etapa") or ["titulo_resumo"])[0]
+    return triagem_assistida.painel(ctx.db, rev["id"], member_id, etapa)
+
+
+def route_review_batch(ctx: "Context", review_id: str) -> Any:
+    rev = _revisao(ctx, review_id)
+    member_id = _sou_da_equipe(ctx, rev["id"])
+    tipo = (ctx.query.get("tipo") or ["excluir"])[0]
+    if tipo not in ("excluir", "incluir"):
+        raise ApiError(400, "tipo deve ser excluir ou incluir")
+    limite = min(to_int((ctx.query.get("limite") or ["30"])[0]) or 30, 100)
+    etapa = (ctx.query.get("etapa") or ["titulo_resumo"])[0]
+    return {"itens": triagem_assistida.lote(ctx.db, rev["id"], member_id, tipo, limite, etapa),
+            "tipo": tipo}
 
 
 # ----------------------------------------------------------------------
@@ -3285,6 +3325,10 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/avancar/?$", route_review_advance, "coordenacao"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/concordancia/?$", route_review_agreement, "integrante"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/termos/?$", route_review_terms, "integrante"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/criterios/?$", route_review_criteria, "integrante"),
+    ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/criterios/?$", route_review_criteria_save, "coordenacao"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/assistente/?$", route_review_assistant, "integrante"),
+    ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/lote/?$", route_review_batch, "integrante"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/duplicados/?$", route_review_duplicates, "integrante"),
     ("POST", r"^/api/revisoes/(?P<review_id>[\w-]+)/duplicados/?$", route_review_unmerge, "integrante"),
     ("GET", r"^/api/revisoes/(?P<review_id>[\w-]+)/formulario/?$", route_review_form, "integrante"),

@@ -17,7 +17,17 @@ const ESTADO = {
   fila: [], indice: 0, motivos: [], termos: [],
   faltam: 0, jaTriei: 0, eu: null,
   pendentes: [], ultima: null, comecou: null, feitasAgora: 0,
+  ordem: guardado("lape.triagem.ordem", "relevancia"),
+  sugestoes: guardado("lape.triagem.sugestoes", "1") === "1",
 };
+
+/* Preferência por pessoa; o navegador pode negar o acesso (janela privada). */
+function guardado(chave, padrao) {
+  try { return localStorage.getItem(chave) || padrao; } catch (e) { return padrao; }
+}
+function guardar(chave, valor) {
+  try { localStorage.setItem(chave, valor); } catch (e) { /* sem preferência salva */ }
+}
 
 async function api(caminho, metodo, corpo) {
   const resposta = await fetch(caminho, {
@@ -149,6 +159,7 @@ function desenhar() {
   palco.innerHTML = "";
   desenharAbas();
   if (!ESTADO.revisao) return desenharEscolha(palco);
+  if (ESTADO.aba === "assistente") return desenharAssistente(palco);
   if (ESTADO.aba === "conflitos") return desenharConflitos(palco);
   if (ESTADO.aba === "duplicados") return desenharDuplicados(palco);
   if (ESTADO.aba === "extracao") return desenharExtracao(palco);
@@ -163,7 +174,7 @@ function desenharAbas() {
   barra.innerHTML = "";
   if (!ESTADO.revisao) return;
   document.getElementById("qual").textContent = ESTADO.revisao.title;
-  [["triar", "Triar"], ["conflitos", "Conflitos"], ["duplicados", "Duplicados"],
+  [["triar", "Triar"], ["assistente", "Assistente"], ["conflitos", "Conflitos"], ["duplicados", "Duplicados"],
    ["extracao", "Extração"], ["prisma", "PRISMA"], ["padrao", "Padrão"],
    ["importar", "Importar"]].forEach(function (par) {
     barra.appendChild(el("button", {
@@ -182,6 +193,7 @@ function desenharTriagem(palco) {
     el("div", { class: "n", html: "<b>" + ESTADO.faltam + "</b> a triar" }),
     el("div", { class: "n", html: "<b>" + ESTADO.jaTriei + "</b> feitas" }),
     ritmo() ? el("div", { class: "n", html: ritmo() }) : null,
+    controlesAssistente(),
   ]));
 
   if (!ref) {
@@ -210,15 +222,16 @@ function desenharTriagem(palco) {
       ref.language ? el("span", { class: "badge", text: ref.language }) : null,
       ref.notes ? el("span", { class: "badge", text: ref.notes }) : null,
     ]),
-    el("h2", { html: realcar(ref.title, ESTADO.termos) }),
+    el("h2", { html: realcar(ref.title, termosDaRef(ref)) }),
     ref.authors ? el("div", { class: "autores", text: ref.authors }) : null,
     fonte ? el("div", { class: "fonte", text: fonte }) : null,
     ref.abstract
-      ? el("div", { class: "resumo", html: realcar(ref.abstract, ESTADO.termos) })
+      ? el("div", { class: "resumo", html: realcar(ref.abstract, termosDaRef(ref)) })
       : el("div", { class: "sem-resumo", text:
           "Sem resumo neste registro — decida pelo título, ou abra o artigo (A)." }),
     el("div", { class: "fora" }, destinos(ref)),
   ]);
+  if (ref.assist) cartao.insertBefore(blocoAssistente(ref), cartao.querySelector(".resumo, .sem-resumo"));
   palco.appendChild(cartao);
 
   palco.appendChild(el("div", { class: "decidir" }, [
@@ -285,6 +298,237 @@ function humano(minutos) {
   if (minutos < 60) return minutos + " min";
   const horas = Math.floor(minutos / 60);
   return horas + " h" + (minutos % 60 ? " " + (minutos % 60) + " min" : "");
+}
+
+
+/* -------------------------------------------------------------- assistente */
+/* O assistente SUGERE; quem decide é a pessoa. Nada aqui grava decisão
+   sozinho: aceitar uma sugestão é só atalho para o mesmo botão de sempre. */
+const GRUPO_ROTULO = { populacao: "População", intervencao: "Intervenção", comparador: "Comparador",
+  desfecho: "Desfecho", delineamento: "Delineamento", outro: "Outro" };
+
+function termosDaRef(ref) {
+  const extra = [];
+  if (ref.assist && ESTADO.sugestoes) {
+    ref.assist.criterios.forEach(function (c) {
+      c.termos.forEach(function (t) {
+        extra.push({ term: t.replace(/\*+$/, ""), tone: c.kind });
+      });
+    });
+  }
+  return ESTADO.termos.concat(extra);
+}
+
+function estrelas(n) {
+  return "★★★★★".slice(0, n) + "☆☆☆☆☆".slice(0, 5 - n);
+}
+
+function controlesAssistente() {
+  const ordem = el("select", { class: "ordem-fila", title: "Ordem da fila", onchange: function () {
+    ESTADO.ordem = this.value; guardar("lape.triagem.ordem", this.value);
+    ESTADO.fila = ESTADO.fila.slice(0, ESTADO.indice); carregarFila(true);
+  } }, [
+    el("option", { value: "relevancia", text: "Mais prováveis primeiro" }),
+    el("option", { value: "cronologica", text: "Ordem da importação" }),
+  ]);
+  ordem.value = ESTADO.ordem;
+  const sug = el("label", { class: "n alterna", title: "Mostra estrelas, critérios e sugestão. Desligue para triar sem influência (a ordem da fila continua)." }, [
+    el("input", { type: "checkbox", onchange: function () {
+      ESTADO.sugestoes = this.checked; guardar("lape.triagem.sugestoes", this.checked ? "1" : "0"); desenhar();
+    } }),
+    el("span", { text: " sugestões" }),
+  ]);
+  sug.querySelector("input").checked = ESTADO.sugestoes;
+  return el("div", { class: "controles-assistente" }, [ordem, sug]);
+}
+
+function blocoAssistente(ref) {
+  const a = ref.assist;
+  const caixa = el("div", { class: "assistente" });
+  const topo = el("div", { class: "assistente-topo" }, [
+    el("span", { class: "estrelas", title: "Relevância prevista: " + Math.round(a.p * 100) + "%", text: estrelas(a.estrelas) }),
+    el("span", { class: "prev", text: Math.round(a.p * 100) + "% de chance de incluir" }),
+    a.modelo_ativo ? el("span", { class: "badge", text: "aprendeu com você" }) : null,
+  ]);
+  caixa.appendChild(topo);
+  if (!ESTADO.sugestoes) return caixa;
+
+  if (a.sinais.length) {
+    caixa.appendChild(el("div", { class: "sinais" }, a.sinais.map(function (s) {
+      return el("span", { class: "sinal sinal-" + s.tom, text: s.rotulo });
+    })));
+  }
+  if (a.criterios.length) {
+    caixa.appendChild(el("ul", { class: "criterios" }, a.criterios.filter(function (c) {
+      return c.kind === "incluir" || c.estado === "sim";   // exclusão só aparece quando bate
+    }).map(function (c) {
+      const marca = c.kind === "excluir"
+        ? (c.estado === "sim" ? "⚠" : "·") : (c.estado === "sim" ? "✔" : (c.estado === "nao" ? "✖" : "?"));
+      const classe = "crit crit-" + c.kind + " " + (c.estado === "sim" ? "achou" : (c.estado === "nao" ? "nao" : "sem"));
+      return el("li", { class: classe, title: c.termos.join(", ") }, [
+        el("b", { text: marca }),
+        el("span", { text: " " + (GRUPO_ROTULO[c.grupo] || "") + ": " + c.label }),
+        c.termos.length ? el("i", { text: " — " + c.termos.slice(0, 2).join(", ") }) : null,
+      ]);
+    })));
+  }
+  if (a.sugestao) {
+    const motivo = a.sugestao.motivo_id
+      ? (ESTADO.motivos.find(function (m) { return m.id === a.sugestao.motivo_id; }) || {}).label : null;
+    caixa.appendChild(el("div", { class: "sugestao sug-" + a.sugestao.decisao }, [
+      el("b", { text: "Sugestão: " + rotuloDecisao(a.sugestao.decisao) + (motivo ? " — " + motivo : "") }),
+      a.sugestao.porque.length ? el("span", { text: " · " + a.sugestao.porque.join(" · ") }) : null,
+      el("button", { class: "ghost", onclick: aceitarSugestao }, [
+        el("span", { class: "tecla", text: "↵" }), el("span", { text: "Aceitar" })]),
+    ]));
+  }
+  return caixa;
+}
+
+function aceitarSugestao() {
+  const ref = atual();
+  if (!ref || !ref.assist || !ref.assist.sugestao || !ESTADO.sugestoes) return false;
+  const s = ref.assist.sugestao;
+  decidir(s.decisao, s.motivo_id || null);
+  return true;
+}
+
+async function desenharAssistente(palco) {
+  const code = ESTADO.revisao.code;
+  palco.appendChild(el("p", { class: "hint", text:
+    "O assistente aprende só com as SUAS decisões — o voto dos colegas continua cego — e nunca decide por você: "
+    + "ele ordena a fila, mostra por que e sugere. Confirmar é com você." }));
+  const alvo = el("div", {});
+  palco.appendChild(alvo);
+  let p, c;
+  try {
+    p = await api("/api/revisoes/" + code + "/assistente?etapa=" + ESTADO.etapa);
+    c = await api("/api/revisoes/" + code + "/criterios");
+  } catch (erro) { alvo.appendChild(el("p", { class: "note erro", text: erro.message })); return; }
+
+  const q = p.qualidade;
+  alvo.appendChild(el("div", { class: "grade-assistente" }, [
+    caixa("Modelo", p.treino.modelo_ativo ? "ativo" : "ainda não",
+      p.treino.n + " decisões suas (" + p.treino.incluir + " incluir · " + p.treino.excluir + " excluir)"),
+    caixa("Qualidade (AUC)", q ? String(q.auc) : "—",
+      q ? "testado em " + q.n_teste + " decisões" + (q.recall_na_melhor_metade !== null
+        ? " · acha " + Math.round(q.recall_na_melhor_metade * 100) + "% dos incluídos na melhor metade" : "")
+        : "precisa de ~20 decisões"),
+    caixa("Incluídos esperados", String(p.incluidos_esperados), "ainda na sua fila de " + p.pendentes),
+    caixa("Recall estimado", p.recall_estimado === null ? "—" : Math.round(p.recall_estimado * 100) + "%",
+      "incluídos achados ÷ (achados + esperados)"),
+    caixa("Exclusões seguidas", String(p.excluidas_seguidas), "mínimo p/ regra de parada: " + p.regra_de_parada.minimo_seguidas),
+    caixa("Tempo mediano", p.mediana_segundos ? Math.round(p.mediana_segundos) + " s" : "—", "por referência"),
+  ]));
+
+  alvo.appendChild(el("div", { class: "parada " + (p.regra_de_parada.pode_parar ? "pode" : "nao") }, [
+    el("b", { text: p.regra_de_parada.pode_parar ? "Dá para considerar parar" : "Continue triando" }),
+    el("span", { text: " — " + p.regra_de_parada.motivo }),
+  ]));
+
+  const maxFaixa = Math.max.apply(null, p.faixas_estrelas.concat([1]));
+  alvo.appendChild(secaoLivre("A fila por relevância prevista", [
+    el("div", { class: "histograma" }, p.faixas_estrelas.map(function (n, i) {
+      return el("div", { class: "col" }, [
+        el("div", { class: "barra-col", style: "height:" + Math.max(3, Math.round(80 * n / maxFaixa)) + "px" }),
+        el("b", { text: String(n) }), el("span", { text: estrelas(i + 1) })]);
+    })),
+  ]));
+
+  alvo.appendChild(secaoCriterios(code, c));
+  alvo.appendChild(secaoLote(code, p));
+}
+
+function secaoCriterios(code, dados) {
+  const lista = dados.criterios.map(function (x) { return Object.assign({}, x); });
+  const corpo = el("div", {});
+  function pintar() {
+    corpo.innerHTML = "";
+    lista.forEach(function (c, i) {
+      corpo.appendChild(el("div", { class: "linha-criterio" }, [
+        el("select", { onchange: function () { c.kind = this.value; } }, [
+          el("option", { value: "incluir", text: "Incluir se…" }), el("option", { value: "excluir", text: "Excluir se…" })]),
+        el("select", { onchange: function () { c.grupo = this.value; } },
+          dados.grupos.map(function (g) { return el("option", { value: g, text: GRUPO_ROTULO[g] }); })),
+        el("input", { placeholder: "Critério (ex.: Atletas de handebol)", value: c.label || "",
+          oninput: function () { c.label = this.value; } }),
+        el("input", { placeholder: "Palavras: handebol*; handball (sep. por ;)", value: c.keywords || "",
+          oninput: function () { c.keywords = this.value; } }),
+        el("select", { title: "Motivo sugerido ao excluir", onchange: function () { c.motivo_code = this.value || null; } },
+          [el("option", { value: "", text: "motivo…" })].concat(ESTADO.motivos.map(function (m) {
+            return el("option", { value: m.code, text: m.label }); }))),
+        el("button", { class: "ghost", text: "✕", onclick: function () { lista.splice(i, 1); pintar(); } }),
+      ]));
+      const linha = corpo.lastChild.querySelectorAll("select");
+      linha[0].value = c.kind || "incluir"; linha[1].value = c.grupo || "outro"; linha[2].value = c.motivo_code || "";
+    });
+  }
+  pintar();
+  return secaoLivre("Critérios de elegibilidade (alimentam checklist, motivo sugerido e ordem)", [
+    el("p", { class: "hint", text:
+      "Um critério por linha, com as palavras que o denunciam no título ou resumo. `handebol*` casa o radical. "
+      + "Isso não exclui nada: só alimenta o assistente. Apenas a coordenação grava." }),
+    corpo,
+    el("div", { style: "display:flex;gap:9px;margin-top:10px" }, [
+      el("button", { class: "ghost", text: "+ critério", onclick: function () {
+        lista.push({ kind: "incluir", grupo: "populacao", label: "", keywords: "" }); pintar(); } }),
+      el("button", { text: "Salvar critérios", onclick: async function () {
+        try {
+          await api("/api/revisoes/" + code + "/criterios", "POST", { criterios: lista });
+          aviso("Critérios salvos — a fila já usa"); ESTADO.fila = []; await carregarFila(false); ESTADO.aba = "assistente"; desenhar();
+        } catch (erro) { aviso(erro.message); }
+      } }),
+    ]),
+  ]);
+}
+
+function secaoLote(code, p) {
+  const corpo = el("div", {});
+  const info = p.alta_confianca;
+  async function carregar(tipo) {
+    corpo.innerHTML = "";
+    let dados;
+    try { dados = await api("/api/revisoes/" + code + "/lote?tipo=" + tipo + "&limite=40&etapa=" + ESTADO.etapa); }
+    catch (erro) { corpo.appendChild(el("p", { class: "note erro", text: erro.message })); return; }
+    if (!dados.itens.length) {
+      corpo.appendChild(el("p", { class: "hint", text:
+        "Nenhuma sugestão de alta confiança agora. Isso exige um modelo com qualidade medida (AUC ≥ 0,75) "
+        + "ou critérios de exclusão bem definidos." }));
+      return;
+    }
+    const marcados = new Set(dados.itens.map(function (i) { return i.id; }));
+    dados.itens.forEach(function (i) {
+      const cx = el("input", { type: "checkbox", onchange: function () {
+        if (this.checked) marcados.add(i.id); else marcados.delete(i.id); } });
+      cx.checked = true;
+      corpo.appendChild(el("label", { class: "item-lote" }, [cx, el("div", {}, [
+        el("div", { text: i.title }),
+        el("div", { class: "hint", text: Math.round(i.p * 100) + "% · " + (i.porque.join(" · ") || "modelo")
+          + (i.motivo ? " · motivo: " + i.motivo : "") })])]));
+    });
+    corpo.appendChild(el("button", { style: "margin-top:12px", text: "Confirmar como minhas decisões (" + tipo + ")",
+      onclick: async function () {
+        const escolhidas = dados.itens.filter(function (i) { return marcados.has(i.id); }).map(function (i) {
+          return { ref_id: i.id, decisao: i.decisao, motivo_id: i.motivo_id || null, segundos: null }; });
+        if (!escolhidas.length) return;
+        try {
+          await api("/api/revisoes/" + code + "/decidir", "POST", { decisoes: escolhidas });
+          aviso(escolhidas.length + " decisão(ões) gravadas em seu nome");
+          ESTADO.fila = []; await carregarFila(false); ESTADO.aba = "assistente"; desenhar();
+        } catch (erro) { aviso(erro.message); }
+      } }));
+  }
+  return secaoLivre("Conferir em lote (cada item confirmado vira decisão sua)", [
+    el("p", { class: "hint", text: "Ordenado do mais seguro. Desmarque o que discordar; o resto você confirma de uma vez, e o PRISMA conta como triagem humana." }),
+    el("div", { style: "display:flex;gap:9px" }, [
+      el("button", { class: "ghost", text: "Exclusões muito prováveis (" + info.excluir + ")", onclick: function () { carregar("excluir"); } }),
+      el("button", { class: "ghost", text: "Inclusões muito prováveis (" + info.incluir + ")", onclick: function () { carregar("incluir"); } }),
+    ]), corpo,
+  ]);
+}
+
+function secaoLivre(titulo, filhos) {
+  return el("section", { class: "sec-assistente" }, [el("h3", { text: titulo })].concat(filhos));
 }
 
 /* -------------------------------------------------------------- conflitos */
@@ -1105,7 +1349,7 @@ async function carregarFila(acrescentar) {
   if (!ESTADO.revisao) return;
   try {
     const dados = await api("/api/revisoes/" + ESTADO.revisao.code
-      + "/fila?etapa=" + ESTADO.etapa + "&limite=60");
+      + "/fila?etapa=" + ESTADO.etapa + "&limite=60&assist=1&ordem=" + ESTADO.ordem);
     const jaNaTela = new Set(ESTADO.fila.slice(0, ESTADO.indice).map(function (r) { return r.id; }));
     const novas = (dados.fila || []).filter(function (r) { return !jaNaTela.has(r.id); });
     if (acrescentar) {
@@ -1141,6 +1385,7 @@ document.addEventListener("keydown", function (ev) {
   else if (tecla === "e") { ev.preventDefault(); abrirMotivos(); }
   else if (tecla === "t") { ev.preventDefault(); decidir("talvez"); }
   else if (tecla === "z") { ev.preventDefault(); desfazer(); }
+  else if (tecla === "enter" || tecla === "s") { if (aceitarSugestao()) ev.preventDefault(); }
   else if (tecla === "a") {
     const primeiro = document.querySelector(".ref .fora a");
     if (primeiro) { ev.preventDefault(); window.open(primeiro.href, "_blank", "noopener"); }
