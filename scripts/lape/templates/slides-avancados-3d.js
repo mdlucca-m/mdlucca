@@ -1027,7 +1027,7 @@ function slideFrameworkN8n() {
   const contagem = {};
   FASES.concat([DESFECHO]).forEach(f => { contagem[f.id] = 0; });
   artigos().forEach(function (a) {
-    if (contagem.hasOwnProperty(a.status)) contagem[a.status]++;
+    if (contagem.hasOwnProperty(faseDe(a))) contagem[faseDe(a)]++;
     else if (a.status === "rejeitado" || a.status === "arquivado") contagem.rejeitado_arquivado++;
   });
 
@@ -1099,7 +1099,7 @@ function slideFrameworkN8n() {
     const nome = a.research_line || "Sem linha";
     if (!porLinha.has(nome)) porLinha.set(nome, { nome: nome, total: 0 });
     const reg = porLinha.get(nome);
-    const fase = contagem.hasOwnProperty(a.status) ? a.status
+    const fase = contagem.hasOwnProperty(faseDe(a)) ? faseDe(a)
       : ((a.status === "rejeitado" || a.status === "arquivado") ? DESFECHO.id : null);
     if (!fase) return;
     reg[fase] = (reg[fase] || 0) + 1;
