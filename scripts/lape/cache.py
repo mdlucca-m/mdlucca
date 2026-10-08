@@ -15,6 +15,18 @@ def limpar() -> None:
     _CACHE.clear()
 
 
+def invalidar(prefixo: str) -> int:
+    """Apaga as entradas cuja chave comeca com `prefixo`; devolve quantas.
+
+    Existe para mudancas que NAO podem esperar o TTL: tirar um acervo da
+    parede (restringir) tem de valer na hora, e nao em 5 minutos.
+    """
+    chaves = [k for k in _CACHE if k.startswith(prefixo)]
+    for k in chaves:
+        del _CACHE[k]
+    return len(chaves)
+
+
 def get(chave: str, ttl: int = DEFAULT_TTL) -> Any | None:
     """Recupera valor em cache se ainda válido."""
     if chave not in _CACHE:

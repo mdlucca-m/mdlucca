@@ -683,6 +683,21 @@ CREATE TABLE IF NOT EXISTS review_terms (
   UNIQUE (review_id, term, tone)
 );
 
+/* Criterios de elegibilidade, um por linha, cada um com as palavras que o
+   denunciam no titulo e no resumo. Nao decidem nada: alimentam o assistente
+   da triagem (checklist por referencia, sugestao de motivo, ordem da fila). */
+CREATE TABLE IF NOT EXISTS review_criteria (
+  id          INTEGER PRIMARY KEY,
+  review_id   INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+  kind        TEXT NOT NULL DEFAULT 'incluir',
+  grupo       TEXT NOT NULL DEFAULT 'outro',
+  label       TEXT NOT NULL,
+  keywords    TEXT NOT NULL DEFAULT '',
+  motivo_code TEXT,
+  seq         INTEGER NOT NULL DEFAULT 1,
+  UNIQUE (review_id, kind, label)
+);
+
 /* ---------- Extracao de dados e risco de vies ----------
 
    Depois da triagem vem a parte que ninguem gosta: ler cada estudo

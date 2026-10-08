@@ -2394,6 +2394,14 @@ def declarar_dono(db: Database, code: str, member_id: int | None,
     db.execute("UPDATE biblioteca SET dono_id = ?, restrita = ? WHERE id = ?",
                (member_id, 1 if restrita else 0, achada))
     db.conn.commit()
+    # a parede guarda a lista de acervos por minutos: restringir tem de valer
+    # na hora, senao o acervo "restrito" segue na TV ate o cache vencer. A
+    # chave leva o caminho do banco na frente (ver tv.para_a_tv) -- sem isso
+    # aqui, o prefixo nao bate com nada e a invalidacao vira um nao-op mudo.
+    from . import cache
+    prefixo = f"{db.path}:"
+    cache.invalidar(prefixo + "acervos_")
+    cache.invalidar(prefixo + "tv_completo_")  # o pacote inteiro da TV tambem leva a lista
     return {"code": code, "dono_id": member_id, "restrita": bool(restrita)}
 
 

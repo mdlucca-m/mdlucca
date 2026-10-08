@@ -93,7 +93,39 @@ FUSOES_DECLARADAS: tuple[tuple[str, str], ...] = (
     # listou os autores so pelo primeiro nome num deles. Sao a mesma
     # pessoa, conferido com a coordenacao do LAPE.
     ("Henrique Fukumasa", "Henrique"),
+    # "Alexandro" (ficha com a produção e os orientandos) e "Alexandro
+    # Andrade" (uma ficha com um artigo) são a mesma pessoa, confirmado
+    # pela coordenação em 08/10/2026. Fica o nome completo; os dados da ficha
+    # mais completa -- vínculo, orientandos, ponto -- prevalecem.
+    ("Alexandro Andrade", "Alexandro"),
 )
+
+# Fusões declaradas em que as duas fichas ASSINAM o mesmo artigo e, ainda
+# assim, são a mesma pessoa -- confirmado pela coordenação em 08/10/2026
+# depois de ver o artigo (1 em comum, "Alexandro" e "Alexandro Andrade" na
+# mesma lista de autores). A regra geral desconfia disso, e com razão: dois
+# nomes no mesmo artigo costumam ser duas pessoas. Aqui a coordenação já
+# respondeu, e a autoria repetida é descartada na fusão (a pessoa conta uma
+# vez só em cada artigo).
+FUSOES_COM_ARTIGO_EM_COMUM: frozenset[tuple[str, str]] = frozenset({
+    ("Alexandro Andrade", "Alexandro"),
+})
+
+
+def _ficha_pelo_nome(db: Database, nome: str) -> int | None:
+    """A ficha cujo nome ESCRITO e `nome`; so se houver uma.
+
+    Nao basta a chave de autor (`db.member_id`): a ficha "Alexandro" nasceu
+    de "Andrade, A.V." e guarda a chave `andrade_av`, entao a chave
+    `alexandro` nao a encontra -- e a fusao declarada era pulada em silencio.
+    A chave segue como segunda tentativa, para os nomes que a usam.
+    """
+    achadas = db.dicts("SELECT id FROM members WHERE lower(full_name) = lower(?) ORDER BY id", (nome,))
+    if len(achadas) == 1:
+        return int(achadas[0]["id"])
+    if len(achadas) > 1:
+        return None                      # ambiguo: nao e para o codigo escolher
+    return db.member_id(nome, create=False)
 
 
 def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
@@ -105,17 +137,19 @@ def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
     """
     feitas = []
     for nome_fica, nome_sai in FUSOES_DECLARADAS:
-        fica = db.member_id(nome_fica, create=False)
-        sai = db.member_id(nome_sai, create=False)
+        fica = _ficha_pelo_nome(db, nome_fica)
+        sai = _ficha_pelo_nome(db, nome_sai)
         if not fica or not sai or fica == sai:
             continue
-        if not e_fantasma_de(db, sai, fica):
+        if not e_fantasma_de(db, sai, fica,
+                             ignorar_artigo_comum=(nome_fica, nome_sai) in FUSOES_COM_ARTIGO_EM_COMUM):
             continue
         feitas.append(fundir(db, manter_id=fica, sumir_id=sai))
     return feitas
 
 
-def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int) -> bool:
+def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int,
+                  ignorar_artigo_comum: bool = False) -> bool:
     """A ficha `ficha_id` e so um pedaco do nome de `pessoa_id`?
 
     As mesmas duas perguntas de `candidatos`, feitas sobre um par ja
@@ -134,6 +168,8 @@ def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int) -> bool:
         return False
     if norm_key(curto) != _primeiro_nome(cheio):
         return False
+    if ignorar_artigo_comum:
+        return True
     juntos = db.scalar(
         "SELECT COUNT(*) FROM article_authors a JOIN article_authors b"
         "    ON a.article_id = b.article_id"
@@ -157,15 +193,30 @@ def fundir(db: Database, manter_id: int, sumir_id: int) -> dict[str, Any]:
         raise ValueError("ficha nao encontrada")
 
     grafia = fichas[sumir_id]["full_name"]
+    chave_antiga = db.scalar("SELECT name_key FROM members WHERE id = ?", (sumir_id,))
     antes = int(db.scalar("SELECT COUNT(*) FROM article_authors WHERE member_id = ?",
                           (sumir_id,)) or 0)
-    db.merge_members(sumir_id, manter_id)
+    # a ficha mais completa (mais artigos) e quem dita os dados da pessoa:
+    # vinculo, orientador, e-mail. O nome e o de quem "fica".
+    herdar = "origem" if antes > int(db.scalar(
+        "SELECT COUNT(*) FROM article_authors WHERE member_id = ?", (manter_id,)) or 0) else "vazios"
+    db.merge_members(sumir_id, manter_id, herdar=herdar)
     # A grafia so entra DEPOIS da fusao: enquanto a ficha antiga existe, a
     # chave dela pertence a outro integrante e o cadastro recusa o apelido.
     try:
         db.register_alias(grafia, manter_id)
     except ValueError:
         pass
+    # A chave INTERNA da ficha que sumiu tambem vira apelido. Ela pode ser
+    # outra que a do nome escrito ("Alexandro" guardava `andrade_av`, vinda
+    # de "Andrade, A.V."): sem isto, a proxima importacao da planilha
+    # reencontra essa grafia, nao acha ninguem e recria a ficha.
+    if chave_antiga:
+        db.execute(
+            "INSERT INTO member_aliases (member_id, alias, name_key) VALUES (?, ?, ?)"
+            " ON CONFLICT(name_key) DO UPDATE SET member_id = excluded.member_id",
+            (manter_id, grafia, chave_antiga))
+        db._cache.setdefault("members", {})[chave_antiga] = manter_id
     db.conn.commit()
     return {"manter": fichas[manter_id]["full_name"], "sumiu": grafia,
             "artigos_movidos": antes,

@@ -53,9 +53,10 @@ class BaseFichas(unittest.TestCase):
                     "INSERT INTO articles (title, title_key, status)"
                     " VALUES (?, ?, 'publicado')", (titulo, title_key(titulo))).lastrowid
             self.db.execute(
-                "INSERT INTO article_authors (article_id, member_id, author_name,"
-                "                             author_order) VALUES (?, ?, ?, 1)",
-                (aid, mid, nome))
+                "INSERT INTO article_authors (article_id, member_id, author_name, author_order)"
+                " VALUES (?, ?, ?, (SELECT COALESCE(MAX(author_order), 0) + 1"
+                "                     FROM article_authors WHERE article_id = ?))",
+                (aid, mid, nome, aid))
         self.db.conn.commit()
         return mid
 
@@ -141,6 +142,125 @@ class TestOQueNaoSePropoe(BaseFichas):
         self.pessoa("Alexandro Andrade", ["A"])
         self.pessoa("Guilherme Torres Vilarino", ["B"])
         self.assertEqual(duplicatas.candidatos(self.db), [])
+
+
+class TestAFusaoNaoPerdeNada(BaseFichas):
+    """A fusão mexia só em autoria; o resto caía em SET NULL ou CASCADE.
+
+    O caso real: a ficha "Alexandro" tem a produção, o vínculo e 14
+    orientandos; "Alexandro Andrade" tem um artigo. Fundir apagando a
+    primeira deixava os orientandos sem orientador e sumia com o ponto.
+    """
+
+    def monta(self):
+        rica = self.pessoa("Alexandro", ["A", "B", "C"])
+        leve = self.pessoa("Alexandro Andrade", ["D"])
+        self.db.execute("UPDATE members SET role = 'professor', email = 'a@x.br' WHERE id = ?", (rica,))
+        orientando = self.pessoa("Maria Souza", ["E"])
+        self.db.execute("UPDATE members SET advisor_id = ?, co_advisor_id = ? WHERE id = ?",
+                        (rica, rica, orientando))
+        self.db.execute("INSERT INTO ponto (member_id, entrada) VALUES (?, datetime('now'))", (rica,))
+        self.db.conn.commit()
+        return rica, leve, orientando
+
+    def test_orientandos_continuam_com_orientador(self):
+        rica, leve, orientando = self.monta()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        linha = self.db.dicts("SELECT advisor_id, co_advisor_id FROM members WHERE id = ?", (orientando,))[0]
+        self.assertEqual(linha["advisor_id"], leve)
+        self.assertEqual(linha["co_advisor_id"], leve)
+
+    def test_o_ponto_vai_junto(self):
+        rica, leve, _ = self.monta()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM ponto WHERE member_id = ?", (leve,)), 1)
+
+    def test_a_ficha_mais_completa_dita_vinculo_e_email_e_o_nome_e_de_quem_fica(self):
+        rica, leve, _ = self.monta()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        ficha = self.db.dicts("SELECT full_name, role, email FROM members WHERE id = ?", (leve,))[0]
+        self.assertEqual(ficha["full_name"], "Alexandro Andrade")
+        self.assertEqual(ficha["role"], "professor")
+        self.assertEqual(ficha["email"], "a@x.br")
+
+    def test_ficha_mais_leve_so_preenche_os_vazios(self):
+        rica, leve, _ = self.monta()
+        self.db.execute("UPDATE members SET role = 'bolsista_ic' WHERE id = ?", (leve,))
+        self.db.conn.commit()
+        duplicatas.fundir(self.db, manter_id=rica, sumir_id=leve)   # a leve some
+        self.assertEqual(self.db.scalar("SELECT role FROM members WHERE id = ?", (rica,)), "professor")
+
+    def test_ninguem_vira_o_proprio_orientador(self):
+        rica, leve, _ = self.monta()
+        self.db.execute("UPDATE members SET advisor_id = ? WHERE id = ?", (leve, rica))
+        self.db.conn.commit()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        self.assertIsNone(self.db.scalar("SELECT advisor_id FROM members WHERE id = ?", (leve,)))
+
+    def test_a_fusao_declarada_roda_mesmo_com_artigo_assinado_pelas_duas_fichas(self):
+        """O caso real: o único artigo de "Alexandro Andrade" também lista "Alexandro".
+
+        A regra geral não funde fichas que assinam o mesmo artigo. Para este
+        par a coordenação já confirmou que é a mesma pessoa, e a autoria
+        repetida tem de virar UMA só -- senão ela contaria duas vezes no artigo.
+        """
+        rica = self.pessoa("Alexandro", ["A", "B", "Comum"])
+        leve = self.pessoa("Alexandro Andrade", ["Comum"])
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(len(feitas), 1, feitas)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+        sobrou = self.db.scalar("SELECT id FROM members WHERE full_name = 'Alexandro Andrade'")
+        self.assertEqual(sobrou, leve)
+        por_artigo = self.db.dicts(
+            "SELECT article_id, COUNT(*) AS n FROM article_authors WHERE member_id = ? GROUP BY article_id", (sobrou,))
+        self.assertEqual(len(por_artigo), 3)
+        self.assertTrue(all(l["n"] == 1 for l in por_artigo), por_artigo)
+        self.assertEqual(rica not in [r["id"] for r in self.db.dicts("SELECT id FROM members")], True)
+
+    def test_a_ficha_com_chave_interna_diferente_do_nome_tambem_funde(self):
+        """O caso real: "Alexandro" guarda a chave `andrade_av`, nao `alexandro`.
+
+        A fusao declarada procurava pela chave do nome ("alexandro"), nao achava
+        a ficha e era pulada sem aviso. E a chave antiga tem de virar apelido,
+        senao a proxima importacao de "Andrade, A.V." recria a ficha.
+        """
+        rica = self.pessoa("Alexandro", ["A", "B", "Comum"])
+        leve = self.pessoa("Alexandro Andrade", ["Comum"])
+        self.db.execute("UPDATE members SET name_key = 'andrade_av' WHERE id = ?", (rica,))
+        self.db.conn.commit()
+        self.assertIsNone(self.db.scalar("SELECT id FROM members WHERE name_key = 'alexandro'"))
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(len(feitas), 1, feitas)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+        # a importacao seguinte, com a grafia antiga, cai na ficha que ficou
+        self.assertEqual(self.db.member_id("Andrade, A.V.", create=True), leve)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+
+    def test_nome_ambiguo_nao_funde(self):
+        # duas fichas com o mesmo nome escrito: o codigo nao escolhe
+        self.pessoa("Alexandro", ["A"])
+        outra = self.pessoa("Alexandro Andrade", ["B"])
+        self.db.execute("INSERT INTO members (full_name, name_key, role, active) VALUES ('Alexandro', 'alexandro_2', 'colaborador', 1)")
+        self.db.conn.commit()
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+        self.assertIsNotNone(self.db.scalar("SELECT id FROM members WHERE id = ?", (outra,)))
+
+    def test_artigo_em_comum_continua_bloqueando_os_outros_pares(self):
+        # a excecao e so do par declarado: "Henrique" que assina junto com outro
+        # nao funde por conta propria
+        self.pessoa("Henrique", ["X"])
+        self.pessoa("Henrique Fukumasa", ["X"])
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Henrique%'"), 2)
+
+    def test_a_fusao_declarada_do_alexandro_roda_na_subida(self):
+        rica, leve, orientando = self.monta()
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertTrue(any(f["manter"] == "Alexandro Andrade" for f in feitas), feitas)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+        self.assertEqual(self.db.scalar("SELECT advisor_id FROM members WHERE id = ?", (orientando,)), leve)
+        # segunda vez: nada a fazer, sem erro
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
 
 
 class TestAFusao(BaseFichas):

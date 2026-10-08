@@ -7,6 +7,11 @@
 <style>
 __THEME_CSS__
 
+/* `--tom` e `--tom2` sao a cor da etapa e a da etapa seguinte nos cartoes do
+   processo; o JS escreve os dois em cada cartao. O padrao aqui existe para o
+   cartao que ainda nao recebeu cor nao ficar sem nenhuma. */
+:root { --tom: var(--accent); --tom2: var(--accent-strong); }
+
 /* ==========================================================================
    estrutura do painel
    ========================================================================== */
