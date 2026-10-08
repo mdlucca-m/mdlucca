@@ -1050,6 +1050,33 @@ class TestEdicaoNaAreaDoIntegrante(unittest.TestCase):
         self.assertIn("acao: botaoDeDesfecho", self.bloco_da_aba("submissoes"))
 
 
+class TestAlertaDeSessaoAbertaNaTela(unittest.TestCase):
+    """O quadro "No laboratório agora" precisa repetir em texto o que o
+    backend manda em `alerta` -- cor sozinha nao serve (ver o comentario
+    de `.pulso-vivo` sobre nao depender so da cor)."""
+
+    TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+
+    def corpo_de_quadro_de_agora(self) -> str:
+        texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        inicio = texto.index("function quadroDeAgora")
+        return texto[inicio:texto.index("\n}", inicio)]
+
+    def test_usa_o_alerta_que_o_backend_manda(self):
+        corpo = self.corpo_de_quadro_de_agora()
+        self.assertIn("x.alerta", corpo)
+
+    def test_tem_texto_para_os_dois_niveis_de_alerta(self):
+        corpo = self.corpo_de_quadro_de_agora()
+        self.assertIn("critico", corpo)
+        self.assertIn("atencao", corpo)
+        self.assertIn("fechamento automático", corpo)
+
+    def test_meu_ponto_tambem_avisa_a_propria_pessoa(self):
+        texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        self.assertIn("r.aberto.alerta", texto)
+
+
 class TestTokensDoTema(unittest.TestCase):
     """Todo var(--token) usado nas paginas precisa existir no tema.
 

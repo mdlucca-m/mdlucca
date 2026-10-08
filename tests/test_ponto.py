@@ -81,6 +81,30 @@ class TestBaterPonto(BasePonto):
         ponto.entrar(self.db, self.eu)
         self.assertEqual(ponto.aberto(self.db, self.eu)["ha_horas"], 0)
 
+    def test_sessao_curta_nao_tem_alerta(self):
+        ponto.entrar(self.db, self.eu)
+        self.assertIsNone(ponto.aberto(self.db, self.eu)["alerta"])
+
+    def test_sessao_de_oito_horas_fica_em_atencao(self):
+        oito_horas = (datetime.now() - timedelta(hours=8, minutes=5)).strftime(ponto.FORMATO)
+        self.aberta(oito_horas)
+        self.assertEqual(ponto.aberto(self.db, self.eu)["alerta"], "atencao")
+
+    def test_sessao_perto_do_fechamento_automatico_fica_critica(self):
+        # LIMITE_HORAS fecha sozinho com 12h; o aviso critico precisa
+        # chegar ANTES disso, enquanto a pessoa ainda pode bater saida
+        perto_do_limite = (datetime.now()
+                            - timedelta(hours=ponto.LIMIAR_CRITICO_HORAS, minutes=5)
+                            ).strftime(ponto.FORMATO)
+        self.aberta(perto_do_limite)
+        self.assertEqual(ponto.aberto(self.db, self.eu)["alerta"], "critico")
+
+    def test_agora_tambem_leva_o_alerta_para_quem_coordena(self):
+        oito_horas = (datetime.now() - timedelta(hours=8, minutes=5)).strftime(ponto.FORMATO)
+        self.aberta(oito_horas)
+        presente = ponto.agora(self.db)[0]
+        self.assertEqual(presente["alerta"], "atencao")
+
     def test_bater_entrada_duas_vezes_nao_abre_duas(self):
         ponto.entrar(self.db, self.eu)
         ponto.entrar(self.db, self.eu)
@@ -937,6 +961,26 @@ class TestHoraNaoEProducao(BasePonto):
         producao = ponto.producao_no_periodo(self.db, dias=30)
         self.assertEqual(producao["publicados"], 1)
         self.assertNotIn("horas", producao)
+
+
+class TestAlertaDeSessaoAberta(unittest.TestCase):
+    """A funcao pura por tras do aviso -- sem banco, so os limiares."""
+
+    def test_sem_horas_nenhum_alerta(self):
+        self.assertIsNone(ponto.alerta_de_sessao_aberta(None))
+
+    def test_abaixo_do_limiar_de_atencao_nenhum_alerta(self):
+        self.assertIsNone(ponto.alerta_de_sessao_aberta(ponto.LIMIAR_ATENCAO_HORAS - 0.1))
+
+    def test_no_limiar_de_atencao_ja_avisa(self):
+        self.assertEqual(ponto.alerta_de_sessao_aberta(ponto.LIMIAR_ATENCAO_HORAS), "atencao")
+
+    def test_no_limiar_critico_vira_critico(self):
+        self.assertEqual(ponto.alerta_de_sessao_aberta(ponto.LIMIAR_CRITICO_HORAS), "critico")
+
+    def test_critico_e_sempre_antes_do_fechamento_automatico(self):
+        # senao o aviso chega junto com o fechamento, tarde para agir
+        self.assertLess(ponto.LIMIAR_CRITICO_HORAS, ponto.LIMITE_HORAS)
 
 
 class TestMetaSemanalEBancoDeHoras(BasePonto):
