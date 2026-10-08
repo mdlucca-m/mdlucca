@@ -3075,9 +3075,14 @@ def route_ginastica_ritmica_gravar(ctx: "Context") -> Any:
 def route_ginastica_ritmica_excluir(ctx: "Context", estudo_id: str) -> Any:
     from . import ginastica_ritmica
 
-    _acesso_ginastica_ritmica(ctx)
-    if not ginastica_ritmica.excluir_estudo(ctx.db, to_int(estudo_id) or -1):
+    user = _acesso_ginastica_ritmica(ctx)
+    alvo = to_int(estudo_id) or -1
+    titulo = ctx.db.scalar(
+        "SELECT titulo FROM ginastica_ritmica_estudos WHERE id = ?", (alvo,))
+    if not ginastica_ritmica.excluir_estudo(ctx.db, alvo):
         raise ApiError(404, "estudo não encontrado")
+    auth.log(ctx.db, user["id"], user.get("login"), "ginastica_ritmica_estudo_excluido",
+             "ginastica_ritmica_estudos", alvo, titulo)
     return {"excluido": True}
 
 
