@@ -45,7 +45,7 @@ def _ris(titulos: list[str], resumos: bool = True) -> str:
     return "\n".join(blocos)
 
 
-class Base(unittest.TestCase):
+class BaseAssistente(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.db = Database(Path(self.tmp.name) / "t.sqlite")
@@ -148,7 +148,7 @@ class TestCriterios(unittest.TestCase):
         self.assertEqual(r[0]["estado"], "nao")
 
 
-class TestModeloEFila(Base):
+class TestModeloEFila(BaseAssistente):
     def test_sem_decisoes_o_modelo_nao_entra(self):
         self.importar(RELEVANTES + IRRELEVANTES)
         fila = ta.fila_assistida(self.db, self.rev, self.ana)
@@ -197,7 +197,7 @@ class TestModeloEFila(Base):
         self.assertIn(ref, [r["id"] for r in ta.fila_assistida(self.db, self.rev, self.beto)])
 
 
-class TestCriteriosNaFila(Base):
+class TestCriteriosNaFila(BaseAssistente):
     def setUp(self):
         super().setUp()
         ta.salvar_criterios(self.db, self.rev, [
@@ -235,7 +235,7 @@ class TestCriteriosNaFila(Base):
         self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM screenings"), 0)
 
 
-class TestPainelELote(Base):
+class TestPainelELote(BaseAssistente):
     def treinar(self, n=12):
         extras_r = [f"Mood and handball players study number {i}" for i in range(n)]
         extras_i = [f"Cancer chemotherapy patients trial number {i}" for i in range(n)]
@@ -288,7 +288,7 @@ class TestPainelELote(Base):
 from tests.test_triagem import BaseWeb, RIS  # noqa: E402
 
 
-class TestRotas(BaseWeb):
+class TestRotasDoAssistente(BaseWeb):
     def setUp(self):
         self.ana = self.entrar("ana@udesc.br")
         self.beto = self.entrar("beto@udesc.br")
