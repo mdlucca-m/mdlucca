@@ -470,6 +470,18 @@ class TestPaginaDoPanorama(BasePanorama):
         self.assertIn("weight:", trecho)
         self.assertNotIn("value:", trecho)
 
+    def test_cartao_das_citacoes_nao_usa_variavel_indefinida(self):
+        # Achado ao vivo: a funcao usa `cit` como nome local de D.citacoes,
+        # mas duas linhas liam `d.env` -- um `d` que so existe dentro de
+        # `cartaoDoDendrograma`, outra funcao. Com nenhuma chave Scopus/WoS
+        # configurada (o estado padrao de uma instalacao nova), a tela
+        # quebrava com "d is not defined" bem onde o cartao devia aparecer,
+        # e tudo que vinha depois dele na pagina parava de desenhar.
+        js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+        corpo = js[js.index("function cartaoDasCitacoes"):js.index("function cartaoDoDendrograma")]
+        self.assertNotIn("d.env", corpo)
+        self.assertIn("cit.env", corpo)
+
     def test_a_aba_do_ponto_so_aparece_para_quem_pode_abri_la(self):
         # aba que responde 403 é pior que aba nenhuma: promete e nega
         js = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")

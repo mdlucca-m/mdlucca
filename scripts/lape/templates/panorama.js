@@ -735,12 +735,12 @@ function cartaoDasCitacoes() {
     /* "Falta configurar" tem duas causas com a mesma cara na tela: não há
        arquivo, ou há e a linha da chave é que está errada. Sem dizer qual
        das duas, quem lê refaz o arquivo que já estava certo. */
-    if (d.env) {
+    if (cit.env) {
       /* o nome do arquivo vem do servidor: entra por `text`, e nao por
          `html`, que e a regra desta casa para tudo que nao escrevi aqui */
       const achou = el("p", { class: "hint", style: "margin-top:10px" },
         [el("b", { text: "O sistema leu o arquivo " }),
-         el("code", { text: d.env }),
+         el("code", { text: cit.env }),
          el("span", { text: " ao subir. Então o arquivo existe e chegou: o que "
            + "falta é a linha da chave dentro dele — confira o nome da variável "
            + "e que não há espaço antes do sinal de igual." })]);
