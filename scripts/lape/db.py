@@ -507,8 +507,22 @@ class Database:
         self.conn.commit()
         return levados
 
-    def merge_members(self, source_id: int, target_id: int) -> None:
-        """Funde dois registros da mesma pessoa criados por grafias diferentes."""
+    def merge_members(self, source_id: int, target_id: int, herdar: str = "vazios") -> None:
+        """Funde dois registros da mesma pessoa criados por grafias diferentes.
+
+        Tudo o que apontava para a ficha que some passa a apontar para a que
+        fica -- orientandos (`advisor_id`), ponto, projetos, triagens,
+        autorias, contas. Antes eram só autoria, eventos e primeira autoria:
+        o resto caía em `ON DELETE SET NULL` ou `CASCADE`, e fundir uma
+        ficha com 14 orientandos os deixava sem orientador, sem que nada
+        avisasse.
+
+        `herdar` diz o que acontece com os dados da própria ficha (vínculo,
+        e-mail, orientador...): "vazios" só preenche o que a que fica não
+        tem; "origem" faz o que a ficha que some tinha prevalecer (usado
+        quando ela é a mais completa). O nome e a chave de quem fica nunca
+        mudam.
+        """
         if source_id == target_id:
             return
         self.conn.execute(
@@ -523,6 +537,18 @@ class Database:
             "UPDATE articles SET lead_member_id = ? WHERE lead_member_id = ?",
             (target_id, source_id),
         )
+        # todo o resto que aponta para um integrante, descoberto no esquema:
+        # coluna nova que referencie `members` entra aqui sem ninguem lembrar
+        tabelas = [r[0] for r in self.conn.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")]
+        for tabela in tabelas:
+            for fk in self.conn.execute(f'PRAGMA foreign_key_list("{tabela}")').fetchall():
+                if fk[2] != "members":
+                    continue
+                coluna = fk[3]
+                self.conn.execute(
+                    f'UPDATE OR IGNORE "{tabela}" SET "{coluna}" = ? WHERE "{coluna}" = ?',
+                    (target_id, source_id))
         # remove coautoria duplicada do mesmo integrante no mesmo artigo
         self.conn.execute(
             "DELETE FROM article_authors WHERE rowid NOT IN"
@@ -530,7 +556,31 @@ class Database:
             " AND member_id = ?",
             (target_id,),
         )
+        origem = self.conn.execute("SELECT * FROM members WHERE id = ?", (source_id,)).fetchone()
         self.conn.execute("DELETE FROM members WHERE id = ?", (source_id,))
+        if origem is not None:
+            # depois do DELETE: colunas unicas (e-mail, login) ficam livres
+            for coluna in origem.keys():
+                if coluna in ("id", "name_key", "full_name", "created_at", "updated_at"):
+                    continue
+                valor = origem[coluna]
+                if valor in (None, ""):
+                    continue
+                if herdar == "origem":
+                    cond = ""
+                else:
+                    cond = f' AND ("{coluna}" IS NULL OR "{coluna}" = \'\')'
+                try:
+                    self.conn.execute(
+                        f'UPDATE members SET "{coluna}" = ? WHERE id = ?{cond}',
+                        (valor, target_id))
+                except sqlite3.IntegrityError:
+                    pass
+        # ninguem e o proprio orientador
+        self.conn.execute("UPDATE members SET advisor_id = NULL WHERE id = ? AND advisor_id = ?",
+                          (target_id, target_id))
+        self.conn.execute("UPDATE members SET co_advisor_id = NULL WHERE id = ? AND co_advisor_id = ?",
+                          (target_id, target_id))
         cache = self._cache.setdefault("members", {})
         for key, value in list(cache.items()):
             if value == source_id:

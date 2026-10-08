@@ -143,6 +143,69 @@ class TestOQueNaoSePropoe(BaseFichas):
         self.assertEqual(duplicatas.candidatos(self.db), [])
 
 
+class TestAFusaoNaoPerdeNada(BaseFichas):
+    """A fusão mexia só em autoria; o resto caía em SET NULL ou CASCADE.
+
+    O caso real: a ficha "Alexandro" tem a produção, o vínculo e 14
+    orientandos; "Alexandro Andrade" tem um artigo. Fundir apagando a
+    primeira deixava os orientandos sem orientador e sumia com o ponto.
+    """
+
+    def monta(self):
+        rica = self.pessoa("Alexandro", ["A", "B", "C"])
+        leve = self.pessoa("Alexandro Andrade", ["D"])
+        self.db.execute("UPDATE members SET role = 'professor', email = 'a@x.br' WHERE id = ?", (rica,))
+        orientando = self.pessoa("Maria Souza", ["E"])
+        self.db.execute("UPDATE members SET advisor_id = ?, co_advisor_id = ? WHERE id = ?",
+                        (rica, rica, orientando))
+        self.db.execute("INSERT INTO ponto (member_id, entrada) VALUES (?, datetime('now'))", (rica,))
+        self.db.conn.commit()
+        return rica, leve, orientando
+
+    def test_orientandos_continuam_com_orientador(self):
+        rica, leve, orientando = self.monta()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        linha = self.db.dicts("SELECT advisor_id, co_advisor_id FROM members WHERE id = ?", (orientando,))[0]
+        self.assertEqual(linha["advisor_id"], leve)
+        self.assertEqual(linha["co_advisor_id"], leve)
+
+    def test_o_ponto_vai_junto(self):
+        rica, leve, _ = self.monta()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM ponto WHERE member_id = ?", (leve,)), 1)
+
+    def test_a_ficha_mais_completa_dita_vinculo_e_email_e_o_nome_e_de_quem_fica(self):
+        rica, leve, _ = self.monta()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        ficha = self.db.dicts("SELECT full_name, role, email FROM members WHERE id = ?", (leve,))[0]
+        self.assertEqual(ficha["full_name"], "Alexandro Andrade")
+        self.assertEqual(ficha["role"], "professor")
+        self.assertEqual(ficha["email"], "a@x.br")
+
+    def test_ficha_mais_leve_so_preenche_os_vazios(self):
+        rica, leve, _ = self.monta()
+        self.db.execute("UPDATE members SET role = 'bolsista_ic' WHERE id = ?", (leve,))
+        self.db.conn.commit()
+        duplicatas.fundir(self.db, manter_id=rica, sumir_id=leve)   # a leve some
+        self.assertEqual(self.db.scalar("SELECT role FROM members WHERE id = ?", (rica,)), "professor")
+
+    def test_ninguem_vira_o_proprio_orientador(self):
+        rica, leve, _ = self.monta()
+        self.db.execute("UPDATE members SET advisor_id = ? WHERE id = ?", (leve, rica))
+        self.db.conn.commit()
+        duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
+        self.assertIsNone(self.db.scalar("SELECT advisor_id FROM members WHERE id = ?", (leve,)))
+
+    def test_a_fusao_declarada_do_alexandro_roda_na_subida(self):
+        rica, leve, orientando = self.monta()
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertTrue(any(f["manter"] == "Alexandro Andrade" for f in feitas), feitas)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+        self.assertEqual(self.db.scalar("SELECT advisor_id FROM members WHERE id = ?", (orientando,)), leve)
+        # segunda vez: nada a fazer, sem erro
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+
+
 class TestAFusao(BaseFichas):
 
     def test_os_artigos_passam_para_a_ficha_que_fica(self):

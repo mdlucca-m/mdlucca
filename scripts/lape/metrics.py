@@ -95,11 +95,26 @@ def research_lines(db: Database) -> list[dict]:
     return achadas
 
 
+# Em que fase o artigo esta DE VERDADE. O status gravado em `articles` sobe
+# a mao e muita gente deixa "submetido" mesmo depois de o periodico pedir
+# revisao -- a parede mostrava como "submetido" o que ja estava em revisao.
+# A submissao mais recente diz o que ele e: decisao "revisao_solicitada", ou
+# alguma rodada de revisao ja contada, e o artigo esta em revisao.
+FASE_SQL = """CASE WHEN status = 'submetido' AND EXISTS (
+        SELECT 1 FROM submissions s
+         WHERE s.article_id = v_articles_full.id
+           AND s.attempt_no = (SELECT MAX(attempt_no) FROM submissions
+                                WHERE article_id = v_articles_full.id)
+           AND (s.decision = 'revisao_solicitada' OR COALESCE(s.review_rounds, 0) > 0))
+       THEN 'em_revisao' ELSE status END"""
+
+
 def articles_by_status(db: Database, statuses: Sequence[str], order_by: str) -> list[dict]:
     placeholders = ", ".join("?" for _ in statuses)
     return db.dicts(
         f"""
-        SELECT id, internal_code, title, authors, research_line, status, study_type,
+        SELECT id, internal_code, title, authors, research_line, status,
+               {FASE_SQL} AS fase, study_type,
                started_on, first_submission_on, accepted_on, published_on, year_published,
                journal, doi, url, submission_attempts, rejections,
                days_start_to_publication, days_submission_to_acceptance,
@@ -951,7 +966,8 @@ def article_rows(db: Database) -> list[dict]:
     """Lista achatada de artigos: base do cruzamento interativo do painel."""
     return db.dicts(
         """
-        SELECT id, internal_code, title, authors, status, research_line, research_line_code,
+        SELECT id, internal_code, title, authors, status,
+               """ + FASE_SQL + """ AS fase, research_line, research_line_code,
                study_type, language, started_on, first_submission_on, accepted_on, published_on,
                year_published, journal, qualis, impact_factor, doi, url, lead_name,
                wos_citations, scopus_citations, openalex_citations,

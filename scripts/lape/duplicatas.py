@@ -93,6 +93,11 @@ FUSOES_DECLARADAS: tuple[tuple[str, str], ...] = (
     # listou os autores so pelo primeiro nome num deles. Sao a mesma
     # pessoa, conferido com a coordenacao do LAPE.
     ("Henrique Fukumasa", "Henrique"),
+    # "Alexandro" (ficha com a produção e os orientandos) e "Alexandro
+    # Andrade" (uma ficha com um artigo) são a mesma pessoa, confirmado
+    # pela coordenação em 08/10/2026. Fica o nome completo; os dados da ficha
+    # mais completa -- vínculo, orientandos, ponto -- prevalecem.
+    ("Alexandro Andrade", "Alexandro"),
 )
 
 
@@ -159,7 +164,11 @@ def fundir(db: Database, manter_id: int, sumir_id: int) -> dict[str, Any]:
     grafia = fichas[sumir_id]["full_name"]
     antes = int(db.scalar("SELECT COUNT(*) FROM article_authors WHERE member_id = ?",
                           (sumir_id,)) or 0)
-    db.merge_members(sumir_id, manter_id)
+    # a ficha mais completa (mais artigos) e quem dita os dados da pessoa:
+    # vinculo, orientador, e-mail. O nome e o de quem "fica".
+    herdar = "origem" if antes > int(db.scalar(
+        "SELECT COUNT(*) FROM article_authors WHERE member_id = ?", (manter_id,)) or 0) else "vazios"
+    db.merge_members(sumir_id, manter_id, herdar=herdar)
     # A grafia so entra DEPOIS da fusao: enquanto a ficha antiga existe, a
     # chave dela pertence a outro integrante e o cadastro recusa o apelido.
     try:

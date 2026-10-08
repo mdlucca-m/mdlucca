@@ -193,6 +193,10 @@ function artigos() {
   const todos = D.articles || [];
   return AREA ? todos.filter(function (a) { return a.research_line === AREA; }) : todos;
 }
+/* A fase de verdade: o status gravado pode estar atrasado (muita gente deixa
+   "submetido" depois de o periódico pedir revisão). O servidor calcula
+   `fase` pela submissão mais recente; sem ela, vale o status. */
+function faseDe(a) { return (a && (a.fase || a.status)) || ""; }
 function pessoas() {
   const todos = D.researchers || [];
   return AREA ? todos.filter(function (p) { return p.research_line === AREA; }) : todos;
@@ -611,7 +615,8 @@ function slideBancada() {
       return linhaDeArtigo({
         titulo: a.title, data: a.first_submission_on, dias: espera,
         detalhe: (a.first_submission_on
-          ? "submetido em " + dataCurta(a.first_submission_on)
+          ? (faseDe(a) === "em_revisao" ? "em revisão · submetido em " : "submetido em ")
+            + dataCurta(a.first_submission_on)
           : "sem data de submissão registrada")
           + (a.journal ? " · " + a.journal : ""),
         /* as palavras vão na pastilha, e não no fim da linha de detalhe:
@@ -1617,7 +1622,7 @@ function slideSankey() {
   FASES.forEach(function (f) { contagem[f.id] = 0; });
   let rejeitados = 0;
   artigos().forEach(function (a) {
-    if (contagem.hasOwnProperty(a.status)) contagem[a.status]++;
+    if (contagem.hasOwnProperty(faseDe(a))) contagem[faseDe(a)]++;
     else if (a.status === "rejeitado" || a.status === "arquivado") rejeitados++;
   });
 
