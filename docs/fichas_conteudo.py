@@ -1053,125 +1053,134 @@ CONTRASTE = {
 
 
 # ════════════════════════════════════════════════════════════════════════════
-# PUXAR E EMPURRAR — potência, força e unilateral, nesta ordem
+# CORPO INTEIRO — oito multiarticulares: potência, força e unilateral
 # ════════════════════════════════════════════════════════════════════════════
 # Força e potência na mesma sessão só funciona com a ordem certa: POTÊNCIA
 # PRIMEIRO. Velocidade morre com fadiga, e um push press depois de quatro séries
 # de supino a 82% vira um desenvolvimento lento com ajuda de perna — o exercício
 # continua no papel e o estímulo some.
 #
-# O UNILATERAL VEM POR ÚLTIMO porque é o único dos três que continua fazendo o
-# trabalho dele cansado: ele não existe para somar carga, existe para achar a
-# diferença entre os lados — e é justamente cansado que ela aparece.
+# O UNILATERAL VEM POR ÚLTIMO porque é o único dos três blocos que continua
+# fazendo o trabalho dele cansado: ele não existe para somar carga, existe para
+# achar a diferença entre os lados — e é cansado que ela aparece.
 #
-# TRÊS DE EMPURRAR E TRÊS DE PUXAR, de propósito. Em quem ataca e bloqueia,
-# sessão que empurra mais do que puxa leva o ombro para a frente, e é assim que a
-# dor de ombro do atacante começa. Esta está empatada padrão a padrão.
-PUXAR_EMPURRAR = {
-    "arquivo": "ELASE-puxar-e-empurrar.pdf",
-    "meta_titulo": "ELASE - Puxar e empurrar: forca e potencia",
-    "meta_assunto": "Potencia, forca e unilateral; tres de empurrar e tres de puxar",
-    "titulo": "Puxar e empurrar",
+# A CONTA DOS PADRÕES: 11 séries de empurrar contra 10 de puxar, e 7 de perna.
+# Em quem ataca e bloqueia, sessão que empurra bem mais do que puxa leva o ombro
+# para a frente, e é assim que a dor de ombro do atacante começa. A regra de
+# corte da folha mantém o empate em vez de estragá-lo.
+#
+# Oito multiarticulares com pausa cheia dá quase duas horas, e isso está dito na
+# folha com a regra de corte — em vez de prometer 80 minutos e o atleta descobrir
+# na metade que não ia dar.
+CORPO_INTEIRO = {
+    "arquivo": "ELASE-corpo-inteiro-8-multiarticulares.pdf",
+    "meta_titulo": "ELASE - Corpo inteiro, oito multiarticulares",
+    "meta_assunto": "Potencia, forca e unilateral; empurrar, puxar e perna",
+    "titulo": "Corpo inteiro",
     "titulo_verso": "Como usar esta ficha",
-    "protocolo": "Sexta, 09/10 &nbsp;&middot;&nbsp; potência, força e unilateral, "
-                 "nesta ordem &nbsp;&middot;&nbsp; três de empurrar, três de puxar",
+    "protocolo": "Sexta, 09/10 &nbsp;&middot;&nbsp; oito multiarticulares "
+                 "&nbsp;&middot;&nbsp; potência, força e unilateral, nesta ordem",
     "rotulo_carga": "CARGA",
     "larguras": [196, 44, 44, 40],
     "abertura":
         "<b>A ordem desta sessão é a prescrição tanto quanto as cargas.</b> "
-        "Potência vem primeiro, com o corpo inteiro: velocidade morre com fadiga, "
-        "e um push press depois de quatro séries de supino pesado vira outro "
-        "exercício. A força pesada vem no meio, e o <b>unilateral por último</b> — "
-        "ele é o único que continua fazendo o trabalho dele cansado, porque não "
-        "está ali para somar carga e sim para <b>achar a diferença entre os seus "
-        "dois lados</b>.",
+        "Potência primeiro: velocidade morre com fadiga, e um push press depois do "
+        "agachamento pesado vira outro exercício. A força vem no meio, e o "
+        "<b>unilateral por último</b> — ele não está ali para somar carga e sim "
+        "para <b>achar a diferença entre os seus dois lados</b>. Os oito são "
+        "multiarticulares: nenhum isolado, nenhuma máquina.",
     "aquecimento_titulo": "Aquecimento — antes do primeiro exercício de cada padrão",
     "aquecimento_nota": "O push press é o primeiro da sessão e o mais técnico: o "
                         "ombro precisa chegar nele pronto, não aquecendo nele.",
     "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
     "aquecimento": [
-        ["Mobilidade de ombro e torácica", "5 min", "a mesma do app"],
+        ["Mobilidade de tornozelo, quadril, ombro e torácica", "6 min",
+         "a mesma do app"],
         ["Bicicleta ou esteira, ritmo leve", "4 min", "até suar, sem cansar"],
         ["Rotadores externos com elástico", "2 × 12", "leve, acorda o manguito"],
         ["Barra vazia e 55% no padrão de cada exercício", "1 × 8 e 1 × 5",
          "1 min entre elas"],
     ],
     "exercicios": [
-        ("Push press", "potência &middot; empurrar vertical — a perna joga, o braço termina",
+        ("Push press", "potência &middot; empurrar vertical — a perna joga",
          "4 × 3", "2,5 min", "58%"),
-        ("Remada curvada explosiva", "potência &middot; puxar horizontal — puxa rápido, solta devagar",
+        ("Remada curvada explosiva", "potência &middot; puxar horizontal — rápido, solta devagar",
          "4 × 4", "2 min", "50%"),
+        ("Agachamento livre", "força &middot; perna — o mais pesado do dia",
+         "4 × 5", "3 min", "80%"),
         ("Supino reto com barra", "força &middot; empurrar horizontal — sobrariam 2 repetições",
          "4 × 5", "2,5 min", "82%"),
-        ("Barra fixa com carga", "força &middot; puxar vertical — sem carga suficiente? ver o verso",
-         "4 × 5", "2,5 min", "RIR 2"),
-        ("Desenvolvimento unilateral em pé", "unilateral &middot; empurrar — 6 em CADA lado, começa pelo fraco",
+        ("Barra fixa com carga", "força &middot; puxar vertical — sem carga? ver o verso",
+         "3 × 6", "2,5 min", "RIR 2"),
+        ("Afundo com halteres", "unilateral &middot; perna — 8 em CADA lado, começa pelo fraco",
+         "3 × 8", "2 min", "RIR 2"),
+        ("Desenvolvimento unilateral em pé", "unilateral &middot; empurrar — 6 em CADA lado",
          "3 × 6", "90 s", "RIR 2"),
-        ("Remada unilateral (serrote)", "unilateral &middot; puxar — 8 em CADA lado, cotovelo para trás",
+        ("Remada unilateral (serrote)", "unilateral &middot; puxar — 8 em CADA lado",
          "3 × 8", "90 s", "RIR 2"),
     ],
     "nota_tabela":
-        "Anote a carga de cada exercício. Nos dois unilaterais, <b>anote os dois "
-        "lados</b> — é a única informação desta folha que não aparece em nenhuma "
-        "outra, e é a que mais diz sobre risco de lesão.",
+        "Anote a carga de cada exercício. Nos <b>três unilaterais, anote os dois "
+        "lados</b> — é a informação desta folha que mais diz sobre risco de lesão.",
     "caixa_duracao":
-        "<b>Duração prevista: 70 a 80 minutos</b> com o aquecimento. <b>Se o tempo "
-        "apertar, corte uma série do supino e uma da barra fixa</b> — as duas "
-        "juntas, para a conta de empurrar e puxar não piorar. Nunca corte os "
-        "unilaterais: eles levam 15 minutos e são a parte da sessão que nenhuma "
-        "outra ficha cobre.",
+        "<b>Duração prevista: 95 a 110 minutos</b> — oito multiarticulares com "
+        "pausa cheia é sessão longa, e vale saber antes de chegar na metade. "
+        "<b>Com menos de 85 minutos:</b> 3 séries em vez de 4 no push press, na "
+        "remada, no agachamento e no supino. Corte a série, nunca a pausa — e "
+        "nunca os unilaterais.",
     "verso": [
         ("h", "Por que esta ordem, e não outra"),
         ("grade", ["BLOCO", "O QUE", "POR QUE VEM AQUI"], [
             ["1º", "Potência — push press e remada explosiva",
-             "velocidade é a primeira coisa que a fadiga leva; depois do supino "
-             "pesado estes dois viram outro exercício"],
-            ["2º", "Força — supino e barra fixa",
-             "carga alta aguenta um pouco de cansaço; velocidade não aguenta nenhum"],
-            ["3º", "Unilateral — halteres",
-             "é o único que continua fazendo o trabalho dele cansado — e é cansado "
-             "que a diferença entre os lados aparece"],
+             "velocidade é a primeira coisa que a fadiga leva; depois do "
+             "agachamento pesado estes dois viram outro exercício"],
+            ["2º", "Força — agachamento, supino e barra fixa",
+             "carga alta aguenta um pouco de cansaço; velocidade não aguenta "
+             "nenhum. O agachamento abre o bloco por ser o mais pesado"],
+            ["3º", "Unilateral — afundo, desenvolvimento e serrote",
+             "é o único bloco que continua fazendo o trabalho dele cansado — e é "
+             "cansado que a diferença entre os lados aparece"],
         ], [0.08, 0.34, 0.58]),
-        ("espaco", 8),
-        ("caixa", "<b>Três de empurrar e três de puxar, de propósito.</b> Push "
-                  "press, supino e desenvolvimento empurram; remada explosiva, "
-                  "barra fixa e serrote puxam. Em quem ataca e bloqueia centenas "
-                  "de vezes por semana — trabalho que já é todo à frente do corpo "
-                  "— uma sessão que empurra mais do que puxa leva o ombro para a "
-                  "frente e tira a escápula de posição. <b>Se precisar cortar "
-                  "série, corte de um lado e do outro.</b>"),
-        ("espaco", 8),
+        ("espaco", 7),
+        ("caixa", "<b>A conta dos padrões: 11 séries de empurrar, 10 de puxar e 7 "
+                  "de perna.</b> Em quem ataca e bloqueia centenas de vezes por "
+                  "semana — trabalho que já é todo à frente do corpo — uma sessão "
+                  "que empurra bem mais do que puxa leva o ombro para a frente e "
+                  "tira a escápula de posição. <b>Se precisar cortar série, corte "
+                  "de um lado e do outro</b>, como diz a caixa da frente."),
+        ("espaco", 7),
         ("h", "Os exercícios"),
         ("notas", [
             ("Push press", "A barra sai com um <b>impulso de perna</b> — joelho "
-             "dobra uns 10 cm e estende rápido — e o braço termina o movimento. "
-             "Não é desenvolvimento lento com ajuda. Glúteo e abdômen apertados; "
-             "se a lombar arqueia para a barra subir, a carga está alta demais."),
+             "dobra uns 10 cm e estende rápido — e o braço termina. Não é "
+             "desenvolvimento lento com ajuda. Se a lombar arqueia para a barra "
+             "subir, a carga está alta demais."),
             ("Remada curvada explosiva", "Puxa o cotovelo para trás o mais rápido "
              "que conseguir e <b>desce devagar</b>. Tronco parado: se o corpo sobe "
-             "junto com a barra, quem está puxando é a lombar. Série em que a barra "
-             "saiu lenta acabou ali — marque um X."),
-            ("Supino", "Escápulas presas no banco, pés firmes no chão, barra "
-             "descendo com controle até o peito. A 82% sobrariam 2 repetições no "
-             "fim da série; se a quinta sai arrastando, desça 5 kg na próxima."),
-            ("Barra fixa com carga", "Não faz 5 com peso pendurado? Use o puxador "
-             "frente com a mesma regra de 2 repetições de reserva. Faz 5 sem peso "
-             "mas não com? Faça 4 séries no peso do corpo, o mais lento na descida "
-             "que conseguir. O que não serve é trocar por outro padrão — ela e o "
-             "serrote são as duas únicas puxadas da sessão junto com a remada."),
-            ("Os dois unilaterais", "<b>Comece sempre pelo lado mais fraco, e o "
+             "junto com a barra, quem puxa é a lombar. Série em que a barra saiu "
+             "lenta acabou ali — marque um X."),
+            ("Agachamento", "Profundidade até onde o quadril desce <b>sem a lombar "
+             "arredondar</b>. Quem não desce por falta de tornozelo tem problema de "
+             "mobilidade, não de força. A 80% sobrariam 2 repetições no fim; vem "
+             "antes do supino porque é o que mais cobra do dia inteiro."),
+            ("Barra fixa com carga", "Não faz 6 com peso pendurado? Use o puxador "
+             "frente com a mesma regra de 2 repetições de reserva. Faz 6 sem peso "
+             "mas não com? Faça no peso do corpo, o mais lento na descida que "
+             "conseguir. O que não serve é trocar por outro padrão."),
+            ("Os três unilaterais", "<b>Comece sempre pelo lado mais fraco, e o "
              "lado bom para no número que o fraco fez.</b> É assim que a diferença "
-             "diminui em vez de aumentar. No desenvolvimento, a mão livre não "
-             "segura nada — o tronco trabalha para não deixar você inclinar. No "
-             "serrote, puxe o cotovelo para trás e não o ombro para cima."),
+             "diminui em vez de aumentar. No afundo, joelho de trás descendo em "
+             "direção ao chão e tronco em pé. No desenvolvimento, a mão livre não "
+             "segura nada — o tronco trabalha para você não inclinar. No serrote, "
+             "puxe o cotovelo para trás, não o ombro para cima."),
         ]),
         ("espaco", 6),
         ("caixa", "<b>Se você fez o treino de contraste nas últimas 48 horas</b> — "
-                  "aquele com o isométrico máximo e o supino a 88% —, faça o supino "
-                  "desta ficha a <b>75% em vez de 82%</b>. É o mesmo padrão com "
-                  "carga alta duas vezes na mesma semana, e o ombro é quem paga. "
-                  "O resto da sessão fica igual: ela é de braço, e as suas pernas "
-                  "agradecem o descanso.", AMBAR_CLARO, AMBAR),
+                  "o do isométrico máximo, saltos e supino a 88% —, mude duas "
+                  "coisas: <b>agachamento a 70% e 3 séries</b>, e <b>supino a "
+                  "75%</b>. São os mesmos padrões com carga alta duas vezes na "
+                  "mesma semana, e a perna já levou isométrico máximo mais salto. "
+                  "O resto da sessão fica igual.", AMBAR_CLARO, AMBAR),
         ("espaco", 6),
     ],
 }
@@ -1179,7 +1188,7 @@ PUXAR_EMPURRAR = {
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
-          "contraste": CONTRASTE, "puxar_empurrar": PUXAR_EMPURRAR}
+          "contraste": CONTRASTE, "corpo_inteiro": CORPO_INTEIRO}
 
 
 def main():
