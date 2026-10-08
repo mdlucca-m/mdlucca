@@ -112,6 +112,22 @@ FUSOES_COM_ARTIGO_EM_COMUM: frozenset[tuple[str, str]] = frozenset({
 })
 
 
+def _ficha_pelo_nome(db: Database, nome: str) -> int | None:
+    """A ficha cujo nome ESCRITO e `nome`; so se houver uma.
+
+    Nao basta a chave de autor (`db.member_id`): a ficha "Alexandro" nasceu
+    de "Andrade, A.V." e guarda a chave `andrade_av`, entao a chave
+    `alexandro` nao a encontra -- e a fusao declarada era pulada em silencio.
+    A chave segue como segunda tentativa, para os nomes que a usam.
+    """
+    achadas = db.dicts("SELECT id FROM members WHERE lower(full_name) = lower(?) ORDER BY id", (nome,))
+    if len(achadas) == 1:
+        return int(achadas[0]["id"])
+    if len(achadas) > 1:
+        return None                      # ambiguo: nao e para o codigo escolher
+    return db.member_id(nome, create=False)
+
+
 def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
     """Junta as fichas da lista acima, se ainda houver o que juntar.
 
@@ -121,8 +137,8 @@ def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
     """
     feitas = []
     for nome_fica, nome_sai in FUSOES_DECLARADAS:
-        fica = db.member_id(nome_fica, create=False)
-        sai = db.member_id(nome_sai, create=False)
+        fica = _ficha_pelo_nome(db, nome_fica)
+        sai = _ficha_pelo_nome(db, nome_sai)
         if not fica or not sai or fica == sai:
             continue
         if not e_fantasma_de(db, sai, fica,
@@ -177,6 +193,7 @@ def fundir(db: Database, manter_id: int, sumir_id: int) -> dict[str, Any]:
         raise ValueError("ficha nao encontrada")
 
     grafia = fichas[sumir_id]["full_name"]
+    chave_antiga = db.scalar("SELECT name_key FROM members WHERE id = ?", (sumir_id,))
     antes = int(db.scalar("SELECT COUNT(*) FROM article_authors WHERE member_id = ?",
                           (sumir_id,)) or 0)
     # a ficha mais completa (mais artigos) e quem dita os dados da pessoa:
@@ -190,6 +207,16 @@ def fundir(db: Database, manter_id: int, sumir_id: int) -> dict[str, Any]:
         db.register_alias(grafia, manter_id)
     except ValueError:
         pass
+    # A chave INTERNA da ficha que sumiu tambem vira apelido. Ela pode ser
+    # outra que a do nome escrito ("Alexandro" guardava `andrade_av`, vinda
+    # de "Andrade, A.V."): sem isto, a proxima importacao da planilha
+    # reencontra essa grafia, nao acha ninguem e recria a ficha.
+    if chave_antiga:
+        db.execute(
+            "INSERT INTO member_aliases (member_id, alias, name_key) VALUES (?, ?, ?)"
+            " ON CONFLICT(name_key) DO UPDATE SET member_id = excluded.member_id",
+            (manter_id, grafia, chave_antiga))
+        db._cache.setdefault("members", {})[chave_antiga] = manter_id
     db.conn.commit()
     return {"manter": fichas[manter_id]["full_name"], "sumiu": grafia,
             "artigos_movidos": antes,
