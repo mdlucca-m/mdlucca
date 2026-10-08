@@ -217,6 +217,34 @@ class TestAFusaoNaoPerdeNada(BaseFichas):
         self.assertTrue(all(l["n"] == 1 for l in por_artigo), por_artigo)
         self.assertEqual(rica not in [r["id"] for r in self.db.dicts("SELECT id FROM members")], True)
 
+    def test_a_ficha_com_chave_interna_diferente_do_nome_tambem_funde(self):
+        """O caso real: "Alexandro" guarda a chave `andrade_av`, nao `alexandro`.
+
+        A fusao declarada procurava pela chave do nome ("alexandro"), nao achava
+        a ficha e era pulada sem aviso. E a chave antiga tem de virar apelido,
+        senao a proxima importacao de "Andrade, A.V." recria a ficha.
+        """
+        rica = self.pessoa("Alexandro", ["A", "B", "Comum"])
+        leve = self.pessoa("Alexandro Andrade", ["Comum"])
+        self.db.execute("UPDATE members SET name_key = 'andrade_av' WHERE id = ?", (rica,))
+        self.db.conn.commit()
+        self.assertIsNone(self.db.scalar("SELECT id FROM members WHERE name_key = 'alexandro'"))
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(len(feitas), 1, feitas)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+        # a importacao seguinte, com a grafia antiga, cai na ficha que ficou
+        self.assertEqual(self.db.member_id("Andrade, A.V.", create=True), leve)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+
+    def test_nome_ambiguo_nao_funde(self):
+        # duas fichas com o mesmo nome escrito: o codigo nao escolhe
+        self.pessoa("Alexandro", ["A"])
+        outra = self.pessoa("Alexandro Andrade", ["B"])
+        self.db.execute("INSERT INTO members (full_name, name_key, role, active) VALUES ('Alexandro', 'alexandro_2', 'colaborador', 1)")
+        self.db.conn.commit()
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+        self.assertIsNotNone(self.db.scalar("SELECT id FROM members WHERE id = ?", (outra,)))
+
     def test_artigo_em_comum_continua_bloqueando_os_outros_pares(self):
         # a excecao e so do par declarado: "Henrique" que assina junto com outro
         # nao funde por conta propria
