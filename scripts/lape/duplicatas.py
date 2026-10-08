@@ -100,6 +100,17 @@ FUSOES_DECLARADAS: tuple[tuple[str, str], ...] = (
     ("Alexandro Andrade", "Alexandro"),
 )
 
+# Fusões declaradas em que as duas fichas ASSINAM o mesmo artigo e, ainda
+# assim, são a mesma pessoa -- confirmado pela coordenação em 08/10/2026
+# depois de ver o artigo (1 em comum, "Alexandro" e "Alexandro Andrade" na
+# mesma lista de autores). A regra geral desconfia disso, e com razão: dois
+# nomes no mesmo artigo costumam ser duas pessoas. Aqui a coordenação já
+# respondeu, e a autoria repetida é descartada na fusão (a pessoa conta uma
+# vez só em cada artigo).
+FUSOES_COM_ARTIGO_EM_COMUM: frozenset[tuple[str, str]] = frozenset({
+    ("Alexandro Andrade", "Alexandro"),
+})
+
 
 def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
     """Junta as fichas da lista acima, se ainda houver o que juntar.
@@ -114,13 +125,15 @@ def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
         sai = db.member_id(nome_sai, create=False)
         if not fica or not sai or fica == sai:
             continue
-        if not e_fantasma_de(db, sai, fica):
+        if not e_fantasma_de(db, sai, fica,
+                             ignorar_artigo_comum=(nome_fica, nome_sai) in FUSOES_COM_ARTIGO_EM_COMUM):
             continue
         feitas.append(fundir(db, manter_id=fica, sumir_id=sai))
     return feitas
 
 
-def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int) -> bool:
+def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int,
+                  ignorar_artigo_comum: bool = False) -> bool:
     """A ficha `ficha_id` e so um pedaco do nome de `pessoa_id`?
 
     As mesmas duas perguntas de `candidatos`, feitas sobre um par ja
@@ -139,6 +152,8 @@ def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int) -> bool:
         return False
     if norm_key(curto) != _primeiro_nome(cheio):
         return False
+    if ignorar_artigo_comum:
+        return True
     juntos = db.scalar(
         "SELECT COUNT(*) FROM article_authors a JOIN article_authors b"
         "    ON a.article_id = b.article_id"

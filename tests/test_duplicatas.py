@@ -53,9 +53,10 @@ class BaseFichas(unittest.TestCase):
                     "INSERT INTO articles (title, title_key, status)"
                     " VALUES (?, ?, 'publicado')", (titulo, title_key(titulo))).lastrowid
             self.db.execute(
-                "INSERT INTO article_authors (article_id, member_id, author_name,"
-                "                             author_order) VALUES (?, ?, ?, 1)",
-                (aid, mid, nome))
+                "INSERT INTO article_authors (article_id, member_id, author_name, author_order)"
+                " VALUES (?, ?, ?, (SELECT COALESCE(MAX(author_order), 0) + 1"
+                "                     FROM article_authors WHERE article_id = ?))",
+                (aid, mid, nome, aid))
         self.db.conn.commit()
         return mid
 
@@ -195,6 +196,34 @@ class TestAFusaoNaoPerdeNada(BaseFichas):
         self.db.conn.commit()
         duplicatas.fundir(self.db, manter_id=leve, sumir_id=rica)
         self.assertIsNone(self.db.scalar("SELECT advisor_id FROM members WHERE id = ?", (leve,)))
+
+    def test_a_fusao_declarada_roda_mesmo_com_artigo_assinado_pelas_duas_fichas(self):
+        """O caso real: o único artigo de "Alexandro Andrade" também lista "Alexandro".
+
+        A regra geral não funde fichas que assinam o mesmo artigo. Para este
+        par a coordenação já confirmou que é a mesma pessoa, e a autoria
+        repetida tem de virar UMA só -- senão ela contaria duas vezes no artigo.
+        """
+        rica = self.pessoa("Alexandro", ["A", "B", "Comum"])
+        leve = self.pessoa("Alexandro Andrade", ["Comum"])
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(len(feitas), 1, feitas)
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Alexandro%'"), 1)
+        sobrou = self.db.scalar("SELECT id FROM members WHERE full_name = 'Alexandro Andrade'")
+        self.assertEqual(sobrou, leve)
+        por_artigo = self.db.dicts(
+            "SELECT article_id, COUNT(*) AS n FROM article_authors WHERE member_id = ? GROUP BY article_id", (sobrou,))
+        self.assertEqual(len(por_artigo), 3)
+        self.assertTrue(all(l["n"] == 1 for l in por_artigo), por_artigo)
+        self.assertEqual(rica not in [r["id"] for r in self.db.dicts("SELECT id FROM members")], True)
+
+    def test_artigo_em_comum_continua_bloqueando_os_outros_pares(self):
+        # a excecao e so do par declarado: "Henrique" que assina junto com outro
+        # nao funde por conta propria
+        self.pessoa("Henrique", ["X"])
+        self.pessoa("Henrique Fukumasa", ["X"])
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+        self.assertEqual(self.db.scalar("SELECT COUNT(*) FROM members WHERE full_name LIKE 'Henrique%'"), 2)
 
     def test_a_fusao_declarada_do_alexandro_roda_na_subida(self):
         rica, leve, orientando = self.monta()
