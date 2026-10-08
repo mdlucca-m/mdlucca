@@ -145,6 +145,26 @@ class TestOQueATvJunta(BaseDaTv):
                          ["producao", "citacoes", "acervos", "descobrir", "perfis"])
         self.assertIn("ligada", r)
 
+    def test_o_cache_nao_mistura_dois_bancos_no_mesmo_dia(self):
+        """`cache.py` guarda por processo, so pela chave que mandam -- sem o
+        caminho do banco na chave, perguntar a mesma coisa (mesmo "hoje")
+        a um banco DIFERENTE, dentro do mesmo ttl, devolvia o retrato do
+        banco anterior. Achado ao vivo: dois bancos de teste em sequencia
+        bastavam para reproduzir, e a troca azul-verde do deploy tem o
+        mesmo formato -- dois bancos, o mesmo processo."""
+        outro_tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(outro_tmp.cleanup)
+        outro_db = _abrir(Path(outro_tmp.name) / "outro.sqlite")
+        self.addCleanup(outro_db.close)
+        linhas.instalar(outro_db)
+        biblioteca.instalar(outro_db)
+        # nenhum artigo aqui -- o oposto do que `self.db` tem
+
+        primeiro = tv.para_a_tv(self.db, HOJE)["noticias"]["publicados"]
+        segundo = tv.para_a_tv(outro_db, HOJE)["noticias"]["publicados"]
+        self.assertTrue(primeiro, "a fixture de self.db devia ter publicados")
+        self.assertEqual(segundo, [], "banco vazio recebeu o retrato do outro banco")
+
 
 class TestLinhasDePesquisaParaOMural(BaseDaTv):
     """`_linhas_pesquisa` alimenta a lâmina "Linhas de Pesquisa 3D" do

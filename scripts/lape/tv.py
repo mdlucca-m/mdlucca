@@ -427,6 +427,13 @@ def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
     from . import metas, rotina
 
     hoje = hoje or date.today()
+    # O cache de `cache.py` e por processo, nao por banco -- so GUARDA a
+    # chave que a gente manda. Sem o caminho do banco dentro da chave, um
+    # servico que troca de banco (a troca azul-verde do deploy, ou so os
+    # testes abrindo um banco por classe) devolveria o retrato de UM banco
+    # para a pergunta feita sobre OUTRO, por ate um dia inteiro (o ttl da
+    # sazonalidade) -- um jeito silencioso de "a tela nao atualizou".
+    prefixo = f"{db.path}:"
 
     def _agregar():
         per = aovivo.periodo(db, "ano", hoje)
@@ -451,21 +458,28 @@ def para_a_tv(db: Database, hoje: date | None = None) -> dict[str, Any]:
                 "mapa_paises": {p["pais"]: p["n"] for p in paises},
             },
             "sinais": _sinais_para_a_tv(sinais.analisar(db, hoje)),
-            "acervos": cache.computar(f"acervos_{hoje.isoformat()}", lambda: _acervos(db), ttl=300),
+            "acervos": cache.computar(prefixo + f"acervos_{hoje.isoformat()}",
+                                      lambda: _acervos(db), ttl=300),
             "rotina": rotina.situacao(db),
-            "noticias": cache.computar(f"noticias_{hoje.isoformat()}", lambda: noticias(db, hoje), ttl=120),
-            "comparacoes": cache.computar(f"comp_{hoje.isoformat()}", lambda: _comparacoes(db, hoje), ttl=3600),
-            "sazonalidade": cache.computar("sazonalidade", lambda: _sazonalidade(db, hoje), ttl=86400),
-            "alertas": cache.computar(f"alertas_{hoje.isoformat()}", lambda: _alertas(db, hoje), ttl=600),
+            "noticias": cache.computar(prefixo + f"noticias_{hoje.isoformat()}",
+                                       lambda: noticias(db, hoje), ttl=120),
+            "comparacoes": cache.computar(prefixo + f"comp_{hoje.isoformat()}",
+                                          lambda: _comparacoes(db, hoje), ttl=3600),
+            "sazonalidade": cache.computar(prefixo + "sazonalidade",
+                                           lambda: _sazonalidade(db, hoje), ttl=86400),
+            "alertas": cache.computar(prefixo + f"alertas_{hoje.isoformat()}",
+                                      lambda: _alertas(db, hoje), ttl=600),
             "health": _health_rotina(db),
-            "linhas": cache.computar("linhas_pesquisa", lambda: _linhas_pesquisa(db), ttl=300),
-            "organograma": cache.computar("organograma_tv", lambda: _organograma_para_tv(db), ttl=120),
+            "linhas": cache.computar(prefixo + "linhas_pesquisa",
+                                     lambda: _linhas_pesquisa(db), ttl=300),
+            "organograma": cache.computar(prefixo + "organograma_tv",
+                                          lambda: _organograma_para_tv(db), ttl=120),
             "citacoes": _citacoes_bases_dados(db),
             "meta_publicacoes": _meta_publicacoes(db, metas, hoje),
             "gerado_em": datetime.now().isoformat(timespec="seconds"),
         }
 
-    return cache.computar(f"tv_completo_{hoje.isoformat()}", _agregar, ttl=60)
+    return cache.computar(prefixo + f"tv_completo_{hoje.isoformat()}", _agregar, ttl=60)
 
 
 def _meta_publicacoes(db: Database, metas_mod: Any, hoje: date) -> dict[str, Any] | None:
