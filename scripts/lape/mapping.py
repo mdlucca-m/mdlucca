@@ -108,6 +108,7 @@ COLUMN_ALIASES: dict[str, dict[str, tuple[str, ...]]] = {
         "journal": ("periodico", "revista", "journal", "periodico_revista", "veiculo"),
         "issn": ("issn",),
         "qualis": ("qualis", "estrato", "qualis_capes"),
+        "quartile": ("quartile", "quartil", "quartil_da_revista", "jcr_quartile"),
         "impact_factor": ("fator_de_impacto", "fator_impacto", "impacto", "jif", "impact_factor", "if"),
         "doi": ("doi", "digital_object_identifier"),
         "url": ("link", "url", "endereco", "pagina"),

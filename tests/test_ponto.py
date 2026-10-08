@@ -81,6 +81,30 @@ class TestBaterPonto(BasePonto):
         ponto.entrar(self.db, self.eu)
         self.assertEqual(ponto.aberto(self.db, self.eu)["ha_horas"], 0)
 
+    def test_sessao_curta_nao_tem_alerta(self):
+        ponto.entrar(self.db, self.eu)
+        self.assertIsNone(ponto.aberto(self.db, self.eu)["alerta"])
+
+    def test_sessao_de_oito_horas_fica_em_atencao(self):
+        oito_horas = (datetime.now() - timedelta(hours=8, minutes=5)).strftime(ponto.FORMATO)
+        self.aberta(oito_horas)
+        self.assertEqual(ponto.aberto(self.db, self.eu)["alerta"], "atencao")
+
+    def test_sessao_perto_do_fechamento_automatico_fica_critica(self):
+        # LIMITE_HORAS fecha sozinho com 12h; o aviso critico precisa
+        # chegar ANTES disso, enquanto a pessoa ainda pode bater saida
+        perto_do_limite = (datetime.now()
+                            - timedelta(hours=ponto.LIMIAR_CRITICO_HORAS, minutes=5)
+                            ).strftime(ponto.FORMATO)
+        self.aberta(perto_do_limite)
+        self.assertEqual(ponto.aberto(self.db, self.eu)["alerta"], "critico")
+
+    def test_agora_tambem_leva_o_alerta_para_quem_coordena(self):
+        oito_horas = (datetime.now() - timedelta(hours=8, minutes=5)).strftime(ponto.FORMATO)
+        self.aberta(oito_horas)
+        presente = ponto.agora(self.db)[0]
+        self.assertEqual(presente["alerta"], "atencao")
+
     def test_bater_entrada_duas_vezes_nao_abre_duas(self):
         ponto.entrar(self.db, self.eu)
         ponto.entrar(self.db, self.eu)
@@ -939,6 +963,26 @@ class TestHoraNaoEProducao(BasePonto):
         self.assertNotIn("horas", producao)
 
 
+class TestAlertaDeSessaoAberta(unittest.TestCase):
+    """A funcao pura por tras do aviso -- sem banco, so os limiares."""
+
+    def test_sem_horas_nenhum_alerta(self):
+        self.assertIsNone(ponto.alerta_de_sessao_aberta(None))
+
+    def test_abaixo_do_limiar_de_atencao_nenhum_alerta(self):
+        self.assertIsNone(ponto.alerta_de_sessao_aberta(ponto.LIMIAR_ATENCAO_HORAS - 0.1))
+
+    def test_no_limiar_de_atencao_ja_avisa(self):
+        self.assertEqual(ponto.alerta_de_sessao_aberta(ponto.LIMIAR_ATENCAO_HORAS), "atencao")
+
+    def test_no_limiar_critico_vira_critico(self):
+        self.assertEqual(ponto.alerta_de_sessao_aberta(ponto.LIMIAR_CRITICO_HORAS), "critico")
+
+    def test_critico_e_sempre_antes_do_fechamento_automatico(self):
+        # senao o aviso chega junto com o fechamento, tarde para agir
+        self.assertLess(ponto.LIMIAR_CRITICO_HORAS, ponto.LIMITE_HORAS)
+
+
 class TestMetaSemanalEBancoDeHoras(BasePonto):
     """Bolsista de IC/extensão cumpre 20h semanais sempre; mestrando e
     doutorando só têm essa obrigação quando têm bolsa registrada (mesmo
@@ -1207,6 +1251,66 @@ class TestRotasDoPonto(unittest.TestCase):
 
         _, depois = self.chamar("/api/ponto", self.bento)
         self.assertNotIn(ponto_id, [x["id"] for x in depois["historico"]])
+
+    def test_excluir_sessao_grava_no_log_de_auditoria(self):
+        # Uma exclusao de ponto sem rastro nenhum foi exatamente o que
+        # faltou pra responder "cade minha sessao" com algo melhor que
+        # "nao sei dizer" -- ver o comentario em route_ponto_excluir.
+        db = Database(self.db_path)
+        member_id = db.scalar("SELECT id FROM members WHERE full_name = 'Bento Lima'")
+        ontem = (date.today() - timedelta(days=1)).isoformat()
+        db.execute(
+            "INSERT INTO ponto (member_id, entrada, saida) VALUES (?, ?, ?)",
+            (member_id, f"{ontem} 09:00:00", f"{ontem} 10:00:00"))
+        db.conn.commit()
+        ponto_id = db.scalar(
+            "SELECT id FROM ponto WHERE member_id = ? AND saida = ?",
+            (member_id, f"{ontem} 10:00:00"))
+        antes = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        db.close()
+
+        status, excluido = self.chamar(
+            "/api/ponto/excluir", self.bento, "POST", {"ponto_id": ponto_id})
+        self.assertEqual(status, 200)
+        self.assertTrue(excluido["excluiu"])
+
+        db = Database(self.db_path)
+        depois = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        self.assertEqual(depois, antes + 1)
+        linha = db.dicts(
+            "SELECT entity_id, detail FROM audit_log WHERE action = 'ponto_excluir'"
+            " ORDER BY id DESC LIMIT 1")[0]
+        self.assertEqual(linha["entity_id"], str(ponto_id))
+        self.assertIn(f"{ontem} 09:00:00", linha["detail"])
+        self.assertIn(f"{ontem} 10:00:00", linha["detail"])
+        db.close()
+
+    def test_excluir_sessao_em_aberto_nao_grava_no_log(self):
+        # So a exclusao que de fato aconteceu entra no log -- uma tentativa
+        # recusada (sessao em aberto, ou de outra pessoa) nao e uma
+        # exclusao, e nao deve aparecer como se fosse.
+        db = Database(self.db_path)
+        member_id = db.scalar("SELECT id FROM members WHERE full_name = 'Bento Lima'")
+        db.execute(
+            "INSERT INTO ponto (member_id, entrada) VALUES (?, ?)",
+            (member_id, "2020-01-01 09:00:00"))
+        db.conn.commit()
+        ponto_id = db.scalar(
+            "SELECT id FROM ponto WHERE member_id = ? AND saida IS NULL", (member_id,))
+        antes = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        db.close()
+
+        status, resultado = self.chamar(
+            "/api/ponto/excluir", self.bento, "POST", {"ponto_id": ponto_id})
+        self.assertEqual(status, 200)
+        self.assertFalse(resultado["excluiu"])
+
+        db = Database(self.db_path)
+        depois = db.scalar("SELECT COUNT(*) FROM audit_log WHERE action = 'ponto_excluir'")
+        self.assertEqual(depois, antes)
+        db.execute("DELETE FROM ponto WHERE id = ?", (ponto_id,))
+        db.conn.commit()
+        db.close()
 
     def test_a_rota_lanca_uma_sessao_que_o_sistema_nao_chegou_a_abrir(self):
         # a classe compartilha o banco entre todos os testes (setUpClass,

@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS articles (
   journal             TEXT,
   issn                TEXT,
   qualis              TEXT,
+  quartile            TEXT,
   impact_factor       REAL,
   doi                 TEXT,
   url                 TEXT,

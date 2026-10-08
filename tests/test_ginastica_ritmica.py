@@ -331,6 +331,32 @@ class TestRotasDaAbaPrivada(unittest.TestCase):
         ids = [x["id"] for x in self.chamar("/api/ginastica-ritmica", self.mateus)[1]["items"]]
         self.assertNotIn(gravado["id"], ids)
 
+    def test_excluir_grava_no_log_de_auditoria(self):
+        # Mesma lacuna que existia na exclusao de ponto: apagar um estudo
+        # sem deixar rastro de quem apagou e o que era.
+        _, gravado = self.chamar("/api/ginastica-ritmica", self.mateus, "POST",
+                                 {"titulo": "Vai ser apagado com log"})
+        db = Database(self.db_path)
+        antes = db.scalar(
+            "SELECT COUNT(*) FROM audit_log WHERE action = 'ginastica_ritmica_estudo_excluido'")
+        db.close()
+
+        status, resultado = self.chamar(
+            f"/api/ginastica-ritmica/{gravado['id']}", self.mateus, "DELETE")
+        self.assertEqual(status, 200)
+        self.assertTrue(resultado["excluido"])
+
+        db = Database(self.db_path)
+        depois = db.scalar(
+            "SELECT COUNT(*) FROM audit_log WHERE action = 'ginastica_ritmica_estudo_excluido'")
+        self.assertEqual(depois, antes + 1)
+        linha = db.dicts(
+            "SELECT entity_id, detail FROM audit_log"
+            " WHERE action = 'ginastica_ritmica_estudo_excluido' ORDER BY id DESC LIMIT 1")[0]
+        self.assertEqual(linha["entity_id"], str(gravado["id"]))
+        self.assertEqual(linha["detail"], "Vai ser apagado com log")
+        db.close()
+
     def test_revoga_o_acesso_de_quem_foi_convidado(self):
         maria_id = self.chamar("/api/auth/me", self.maria)[1]["id"]
         self.chamar("/api/ginastica-ritmica/acesso", self.mateus, "POST",

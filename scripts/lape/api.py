@@ -2237,7 +2237,7 @@ def _artigos_do_panorama(db: Database) -> list[dict[str, Any]]:
     """Os artigos com tudo o que a tabela de extracao precisa mostrar."""
     artigos = db.dicts(
         "SELECT id, internal_code, title, authors, lead_name, status, research_line,"
-        "       research_line_code, study_type, journal, qualis, impact_factor,"
+        "       research_line_code, study_type, journal, qualis, quartile, impact_factor,"
         "       year_published, started_on, first_submission_on, accepted_on,"
         "       published_on, doi, url, wos_id, scopus_id, pmid, pmc,"
         "       open_access, oa_status, oa_url,"
@@ -2384,12 +2384,24 @@ def route_ponto_editar(ctx: "Context") -> Any:
 
 def route_ponto_excluir(ctx: "Context") -> Any:
     """A própria pessoa apaga uma sessão duplicada ou errada — ver
-    `ponto.excluir_sessao`."""
+    `ponto.excluir_sessao`.
+
+    Grava no log de auditoria o que foi apagado (entrada/saída), não só
+    que algo foi apagado -- uma exclusão de ponto sem rastro nenhum foi
+    exatamente o que faltou para responder "cadê minha sessão" com uma
+    resposta melhor que "não sei dizer".
+    """
     corpo = ctx.body or {}
     ponto_id = to_int(corpo.get("ponto_id"))
     if not ponto_id:
         raise ApiError(400, "ponto_id é obrigatório")
-    return ponto.excluir_sessao(ctx.db, _eu(ctx), ponto_id)
+    user = ctx.user or {}
+    resultado = ponto.excluir_sessao(ctx.db, _eu(ctx), ponto_id)
+    if resultado.get("excluiu"):
+        auth.log(ctx.db, user.get("id"), user.get("login"), "ponto_excluir",
+                 "ponto", ponto_id,
+                 f"entrada={resultado.get('entrada')} saida={resultado.get('saida')}")
+    return resultado
 
 
 def _avisar_ponto(ctx: "Context", evento: str, detalhe: Any) -> None:
@@ -2790,6 +2802,7 @@ def payload_do_panorama(db, desde: int | None = None,
     dados = analise.panorama(db, desde=desde, ate=ate)
     return {
         "panorama": dados,
+        "linhas_no_tempo": analise.linhas_no_tempo(db, desde=desde, ate=ate),
         "incidencia": analise.incidencia(db, dados["janela"]["anos"]),
         "triangulacao": analise.triangulacao(db),
         "dendrograma": analise.dendrograma(db),
@@ -2885,6 +2898,30 @@ def route_tv(ctx: "Context") -> Any:
     from . import tv
 
     return tv.para_a_tv(ctx.db)
+
+
+def route_mural_dados(ctx: "Context") -> Any:
+    """O payload inteiro do mural (overview, artigos, pessoas, projetos,
+    agenda, publicações e as telas da parede), pronto pro mural rebuscar
+    sozinho quando `/api/stream` avisa de uma mudança.
+
+    Mesma liberação pública de `route_tv`, e pelo mesmo motivo: o mural
+    é uma TV ligada sozinha na sala, sem ninguém pra logar.
+
+    Faltava isto -- o mural só reconferia `/api/tv` a cada poucos
+    segundos (o resto do payload era lido uma vez só, na hora que a
+    página abriu, e nunca mais). Uma pessoa cadastrada ou corrigida (um
+    "juntar fichas" na Auditoria de identidade, por exemplo) só aparecia
+    certa na parede depois de alguém recarregar a página à mão.
+    """
+    from . import tv
+
+    payload = metrics.build_payload(ctx.db, com_dados_da_coordenacao=False)
+    try:
+        payload["tv"] = tv.para_a_tv(ctx.db)
+    except Exception:
+        payload["tv"] = None
+    return payload
 
 
 def route_mural_chegadas(ctx: "Context") -> Any:
@@ -3078,9 +3115,14 @@ def route_ginastica_ritmica_gravar(ctx: "Context") -> Any:
 def route_ginastica_ritmica_excluir(ctx: "Context", estudo_id: str) -> Any:
     from . import ginastica_ritmica
 
-    _acesso_ginastica_ritmica(ctx)
-    if not ginastica_ritmica.excluir_estudo(ctx.db, to_int(estudo_id) or -1):
+    user = _acesso_ginastica_ritmica(ctx)
+    alvo = to_int(estudo_id) or -1
+    titulo = ctx.db.scalar(
+        "SELECT titulo FROM ginastica_ritmica_estudos WHERE id = ?", (alvo,))
+    if not ginastica_ritmica.excluir_estudo(ctx.db, alvo):
         raise ApiError(404, "estudo não encontrado")
+    auth.log(ctx.db, user["id"], user.get("login"), "ginastica_ritmica_estudo_excluido",
+             "ginastica_ritmica_estudos", alvo, titulo)
     return {"excluido": True}
 
 
@@ -3292,6 +3334,7 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
     ("GET", r"^/api/caminho/?$", route_caminho, "leitura"),
     ("GET", r"^/api/tv/?$", route_tv, "leitura"),
+    ("GET", r"^/api/mural/dados/?$", route_mural_dados, "leitura"),
     ("GET", r"^/api/mural/chegadas/?$", route_mural_chegadas, "leitura"),
     ("GET", r"^/api/buscar/?$", route_buscar, "leitura"),
     ("GET", r"^/api/rotina/?$", route_rotina, "leitura"),
@@ -3897,7 +3940,8 @@ COLUNAS_EXTRACAO: tuple[tuple[str, str], ...] = (
     ("Variáveis secundárias", "variaveis_secundarias"),
     ("Nº de variáveis", "n_variaveis"), ("Linha de pesquisa", "research_line"),
     ("Situação", "status"), ("Tipo de estudo", "study_type"),
-    ("Periódico", "journal"), ("Qualis", "qualis"), ("Fator de impacto", "impact_factor"),
+    ("Periódico", "journal"), ("Qualis", "qualis"), ("Quartil", "quartile"),
+    ("Fator de impacto", "impact_factor"),
     ("Ano", "ano"), ("Início", "started_on"), ("1ª submissão", "first_submission_on"),
     ("Aceite", "accepted_on"), ("Publicação", "published_on"),
     ("Tentativas", "submission_attempts"), ("Recusas", "rejections"),

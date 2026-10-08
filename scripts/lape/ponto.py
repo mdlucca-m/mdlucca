@@ -29,6 +29,13 @@ from .util import clean_text
 # Acima disto ninguem esta trabalhando: esqueceu de sair.
 LIMITE_HORAS = 12
 
+# Limiares do aviso visual numa sessao ainda aberta -- "atencao" e uma
+# jornada que ja passou do dia inteiro, "critico" e perto o bastante do
+# fechamento automatico (LIMITE_HORAS) para a pessoa ainda poder agir:
+# bater saida de verdade antes que o sistema feche por ela, estimado.
+LIMIAR_ATENCAO_HORAS = 8
+LIMIAR_CRITICO_HORAS = LIMITE_HORAS - 2
+
 # Abaixo disto e clique errado, nao sessao de trabalho.
 MINIMO_MINUTOS = 2
 
@@ -66,6 +73,19 @@ def duracao_horas(entrada: Any, saida: Any) -> float | None:
     # Igual e zero, nao "nao sei": quem acabou de bater entrada esta ha
     # zero hora dentro, e a tela dizia "ha --" no primeiro minuto.
     return (fim - ini).total_seconds() / 3600
+
+
+def alerta_de_sessao_aberta(ha_horas: float | None) -> str | None:
+    """Nivel de aviso para uma sessao AINDA aberta -- None, "atencao" ou
+    "critico". So faz sentido para quem nao tem `saida`; uma sessao ja
+    fechada nao precisa de aviso, so de registro."""
+    if ha_horas is None:
+        return None
+    if ha_horas >= LIMIAR_CRITICO_HORAS:
+        return "critico"
+    if ha_horas >= LIMIAR_ATENCAO_HORAS:
+        return "atencao"
+    return None
 
 
 def _linha(registro: dict[str, Any]) -> dict[str, Any]:
@@ -218,6 +238,7 @@ def aberto(db: Database, member_id: int) -> dict[str, Any] | None:
         return None
     linha = linhas[0]
     linha["ha_horas"] = duracao_horas(linha["entrada"], _agora())
+    linha["alerta"] = alerta_de_sessao_aberta(linha["ha_horas"])
     return linha
 
 
@@ -444,15 +465,24 @@ def excluir_sessao(db: Database, member_id: int, ponto_id: int) -> dict[str, Any
 
     Mesma trava de `editar_sessao`: so sessao FECHADA se apaga por aqui --
     a aberta e a que o fluxo de bater ponto esta usando agora.
+
+    Devolve `entrada`/`saida` da sessão apagada mesmo quando `excluiu` é
+    falso (`None` nesse caso) -- é o que `route_ponto_excluir` grava no
+    log de auditoria antes do DELETE. Sem isso, uma sessão apagada por
+    engano (ou por qualquer motivo) não deixava rastro nenhum de quando
+    existiu nem do que tinha dentro -- a única pergunta que de fato
+    importa quando alguém pergunta "cadê minha sessão de tal dia".
     """
     linha = _sessao_da_pessoa(db, member_id, ponto_id)
     if linha is None:
-        return {"excluiu": False, "porque": "sessão não encontrada"}
+        return {"excluiu": False, "porque": "sessão não encontrada",
+                "entrada": None, "saida": None}
     if linha["saida"] is None:
-        return {"excluiu": False, "porque": "sessão em aberto não se apaga por aqui"}
+        return {"excluiu": False, "porque": "sessão em aberto não se apaga por aqui",
+                "entrada": linha["entrada"], "saida": None}
     db.execute("DELETE FROM ponto WHERE id = ?", (ponto_id,))
     db.conn.commit()
-    return {"excluiu": True}
+    return {"excluiu": True, "entrada": linha["entrada"], "saida": linha["saida"]}
 
 
 # ----------------------------------------------------------------------
@@ -472,6 +502,7 @@ def agora(db: Database) -> list[dict[str, Any]]:
     agora_txt = _agora()
     for linha in linhas:
         linha["ha_horas"] = duracao_horas(linha["entrada"], agora_txt)
+        linha["alerta"] = alerta_de_sessao_aberta(linha["ha_horas"])
     return linhas
 
 

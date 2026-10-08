@@ -80,6 +80,13 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
   border-radius:var(--radius-sm);background:var(--surface-raised);
   border:1px solid var(--border)}
 .quem-agora.eu{border-color:var(--accent);background:var(--accent-wash)}
+.quem-agora.atencao{border-color:color-mix(in srgb,var(--warning) 45%,var(--border))}
+.quem-agora.atencao .pulso-vivo{background:var(--warning);
+  box-shadow:0 0 0 0 color-mix(in srgb,var(--warning) 60%,transparent)}
+.quem-agora.critico{border-color:color-mix(in srgb,var(--critical) 50%,var(--border));
+  background:color-mix(in srgb,var(--critical) 6%,var(--surface-raised))}
+.quem-agora.critico .pulso-vivo{background:var(--critical);
+  box-shadow:0 0 0 0 color-mix(in srgb,var(--critical) 60%,transparent)}
 .quem-agora b{font-size:13.5px}
 .quem-agora small{display:block;color:var(--ink-2);font-size:12px}
 .hint.aviso{color:var(--warning)}
@@ -1239,6 +1246,7 @@ VIEWS.artigos = crudView({
     field("DOI", "DOI", "text", {from: "doi",
       hint: "Com DOI o sistema busca citações sozinho."}),
     field("Qualis", "Qualis", "text", {from: "qualis"}),
+    field("Quartil", "Quartil", "text", {from: "quartile", hint: "Q1, Q2, Q3 ou Q4"}),
     field("Fator de impacto", "Fator de impacto", "number",
       {step: "0.001", from: "impact_factor"}),
     field("Link", "Link", "text", {from: "url"}),
@@ -3315,12 +3323,16 @@ function quadroDeAgora(lista, eu){
   }
   const corpo = h("div", {class: "agora"});
   lista.forEach(function (x){
-    corpo.appendChild(h("div", {class: "quem-agora" + (x.member_id === eu ? " eu" : "")}, [
+    const classes = "quem-agora" + (x.member_id === eu ? " eu" : "")
+      + (x.alerta ? " " + x.alerta : "");
+    const aviso = x.alerta === "critico" ? " · perto do fechamento automático"
+      : x.alerta === "atencao" ? " · jornada longa, não esqueça de bater saída" : "";
+    corpo.appendChild(h("div", {class: classes}, [
       h("span", {class: "pulso-vivo"}),
       h("div", {}, [
         h("b", {text: x.quem}),
         h("small", {text: (x.atividade || "sem anotar o que está fazendo")
-          + " · há " + horasTexto(x.ha_horas)}),
+          + " · há " + horasTexto(x.ha_horas) + aviso}),
       ]),
     ]));
   });
@@ -4355,6 +4367,15 @@ VIEWS.ponto = {
           : "Nenhuma entrada em aberto."}),
       ]),
     ]));
+    if (dentro && r.aberto.alerta){
+      const critico = r.aberto.alerta === "critico";
+      painel.appendChild(h("p", {class: "hint", style: "margin-top:8px;color:"
+        + (critico ? token("--critical") : token("--warning")), text: critico
+        ? "Já são " + horasTexto(r.aberto.ha_horas) + " nesta sessão — perto do limite em "
+          + "que o sistema fecha sozinho. Se já saiu, bata a saída agora."
+        : "Já são " + horasTexto(r.aberto.ha_horas) + " nesta sessão — não esqueça de "
+          + "bater a saída quando parar."}));
+    }
 
     const oque = h("input", {type: "text", placeholder: "O que você está fazendo?",
       value: dentro ? (r.aberto.atividade || "") : ""});

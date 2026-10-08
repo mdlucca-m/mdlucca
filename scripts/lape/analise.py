@@ -355,6 +355,76 @@ def panorama(db: Database, desde: int | None = None,
     }
 
 
+def linhas_no_tempo(db: Database, desde: int | None = None,
+                    ate: int | None = None) -> dict[str, Any]:
+    """Cada linha de pesquisa, ano a ano -- a mesma leitura de `panorama()`
+    (sinal/ruido, velocidade, aceleracao, inflexao, cruzamento) de cima,
+    só que agrupada por LINHA DE PESQUISA em vez de variável temática:
+    quais linhas publicam mais, como cada uma se comporta ao longo do
+    tempo, e em que ano uma linha passou a outra.
+    """
+    hoje = date.today().year
+    ate = ate or hoje
+    desde = desde or (ate - JANELA_PADRAO_ANOS + 1)
+    anos = list(range(desde, ate + 1))
+
+    artigos = db.dicts(
+        "SELECT a.id, a.year_published, a.published_on, a.accepted_on,"
+        "       a.first_submission_on, a.started_on,"
+        "       COALESCE(rl.name, 'Sem linha declarada') AS linha"
+        "  FROM articles a LEFT JOIN research_lines rl ON rl.id = a.research_line_id")
+    for artigo in artigos:
+        artigo["ano"] = _ano_do_artigo(artigo)
+
+    por_linha: dict[str, list[dict[str, Any]]] = {}
+    for artigo in artigos:
+        por_linha.setdefault(artigo["linha"], []).append(artigo)
+
+    linhas = []
+    for nome, itens in por_linha.items():
+        dentro = [a for a in itens if a["ano"] and desde <= a["ano"] <= ate]
+        serie = [sum(1 for a in dentro if a["ano"] == ano) for ano in anos]
+        filtrado = sinal_e_ruido(serie)
+        suave = filtrado["suave"]
+        vel = velocidade(suave)
+        acumulado, total = [], 0
+        for valor in serie:
+            total += valor
+            acumulado.append(total)
+        anos_com = [a["ano"] for a in dentro]
+        linhas.append({
+            "linha": nome, "total": len(dentro), "total_geral": len(itens),
+            "serie": serie, "acumulado": acumulado,
+            "velocidade": vel, "aceleracao": aceleracao(suave),
+            "inflexoes": inflexoes(anos, suave) if filtrado["confiavel"] else [],
+            "tendencia": tendencia(suave, vel, filtrado["anos_com_dado"]),
+            "crescimento_ao_ano": (crescimento_anual(suave)
+                                   if filtrado["confiavel"] else None),
+            "primeiro_ano": min(anos_com) if anos_com else None,
+            "ultimo_ano": max(anos_com) if anos_com else None,
+            **filtrado,
+        })
+    linhas.sort(key=lambda l: (-l["total"], l["linha"]))
+
+    # cruzamentos entre as linhas mais fortes: comparar todos os pares
+    # de uma dezena de linhas ja vira ruido que ninguem olha -- mesmo
+    # corte de panorama() acima.
+    fortes = [l for l in linhas if l["total"] >= 2][:8]
+    encontros = []
+    for i, a in enumerate(fortes):
+        for b in fortes[i + 1:]:
+            encontros.extend(cruzamentos(
+                {**a, "label": a["linha"], "code": a["linha"]},
+                {**b, "label": b["linha"], "code": b["linha"]}, anos))
+    encontros.sort(key=lambda x: -x["ano"])
+
+    return {
+        "janela": {"de": desde, "ate": ate, "anos": anos},
+        "linhas": linhas,
+        "cruzamentos": encontros[:24],
+    }
+
+
 # ----------------------------------------------------------------------
 # Incidencia e prevalencia da producao
 # ----------------------------------------------------------------------

@@ -735,12 +735,12 @@ function cartaoDasCitacoes() {
     /* "Falta configurar" tem duas causas com a mesma cara na tela: não há
        arquivo, ou há e a linha da chave é que está errada. Sem dizer qual
        das duas, quem lê refaz o arquivo que já estava certo. */
-    if (d.env) {
+    if (cit.env) {
       /* o nome do arquivo vem do servidor: entra por `text`, e nao por
          `html`, que e a regra desta casa para tudo que nao escrevi aqui */
       const achou = el("p", { class: "hint", style: "margin-top:10px" },
         [el("b", { text: "O sistema leu o arquivo " }),
-         el("code", { text: d.env }),
+         el("code", { text: cit.env }),
          el("span", { text: " ao subir. Então o arquivo existe e chegou: o que "
            + "falta é a linha da chave dentro dele — confira o nome da variável "
            + "e que não há espaço antes do sinal de igual." })]);
@@ -939,6 +939,63 @@ function verLaboratorio(palco) {
       + "do painel, é campo em branco no cadastro. Ligar cada artigo à sua linha na "
       + "<a href='/app#artigos'>Área do integrante</a> faz esta aba inteira ganhar o "
       + "primeiro nível de hierarquia."));
+  }
+
+  if (((D.linhas_no_tempo || {}).linhas || []).length) {
+    const lnt = D.linhas_no_tempo;
+    const anosLnt = lnt.janela.anos;
+    const comDado = lnt.linhas.filter(function (l) { return l.total > 0; });
+    const pontosDeInflexaoLnt = [];
+    comDado.forEach(function (l, si) {
+      (l.inflexoes || []).forEach(function (inf) {
+        const i = anosLnt.indexOf(inf.ano);
+        if (i >= 0) {
+          pontosDeInflexaoLnt.push({ serie: si, i: i, label: String(inf.ano),
+            title: l.linha + " · " + inf.ano + ": " + inf.leitura });
+        }
+      });
+    });
+    palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+      "linhas", "Linhas de pesquisa no tempo",
+      "Artigos por ano, uma curva por linha — a mais alta é a que mais publica. "
+      + "Onde duas curvas se cruzam, uma passou a outra; os pontos marcados sobre "
+      + "as curvas são as inflexões, o momento em que cada linha parou de acelerar "
+      + "(não o pico — ali a curva já tinha virado).",
+      comDado.length
+        ? C.lines({
+            labels: anosLnt,
+            series: comDado.map(function (l) {
+              return { label: l.linha, values: l.suave, area: true }; }),
+            marks: pontosDeInflexaoLnt,
+            height: 340, file: "linhas-no-tempo",
+            table: {
+              cols: [{ k: "ano", label: "Ano" }].concat(comDado.map(function (l) {
+                return { k: l.linha, label: l.linha, num: true }; })),
+              rows: anosLnt.map(function (ano, i) {
+                const row = { ano: ano };
+                comDado.forEach(function (l) { row[l.linha] = (l.serie || [])[i]; });
+                return row;
+              }),
+            },
+          })
+        : el("p", { class: "hint", text: "Nenhuma linha com artigos no período." }))));
+
+    if ((lnt.cruzamentos || []).length) {
+      palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+        "conectar", "Cruzamentos entre linhas",
+        "Em que ano uma linha de pesquisa passou a outra em volume de publicação.",
+        el("table", { class: "dados" }, [
+          el("thead", {}, el("tr", {}, ["Ano", "Quem passou", "Quem foi passada"].map(
+            function (c) { return el("th", { text: c }); }))),
+          el("tbody", {}, lnt.cruzamentos.map(function (x) {
+            return el("tr", {}, [
+              el("td", { class: "num", text: String(x.ano_cheio) }),
+              el("td", { text: x.quem_subiu }),
+              el("td", { class: "hint", text: x.quem_desceu }),
+            ]);
+          })),
+        ]))));
+    }
   }
 
   palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
