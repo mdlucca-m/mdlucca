@@ -155,14 +155,14 @@ body { background: var(--surface-sunken); }
   border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--good) 35%, var(--border));
   background: color-mix(in srgb, var(--good) 7%, var(--surface)); }
 .faixa-presenca-titulo { display: flex; align-items: center; gap: 8px;
-  font-size: clamp(11px, .9vw, 13px); font-weight: 700; color: var(--good); white-space: nowrap; }
-.ponto-vivo { width: 9px; height: 9px; border-radius: 50%; background: var(--good);
+  font-size: clamp(11px, .9vw, calc(13px * var(--zoom, 1))); font-weight: 700; color: var(--good); white-space: nowrap; }
+.ponto-vivo { width: calc(9px * var(--zoom, 1)); height: calc(9px * var(--zoom, 1)); border-radius: 50%; background: var(--good);
   box-shadow: 0 0 6px 1px color-mix(in srgb, var(--good) 70%, transparent);
   animation: pontoVivoPulso 1.6s ease-in-out infinite; }
 @keyframes pontoVivoPulso { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
 .faixa-presenca-lista { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip-presenca { display: inline-flex; align-items: center; gap: 6px;
-  font-size: clamp(10.5px, .85vw, 12.5px); color: var(--ink-2);
+  font-size: clamp(10.5px, .85vw, calc(12.5px * var(--zoom, 1))); color: var(--ink-2);
   background: var(--surface-raised); border: 1px solid var(--border);
   border-radius: 999px; padding: 4px 10px 4px 8px; }
 .chip-ponto { width: 6px; height: 6px; border-radius: 50%; background: var(--good); flex: none; }
@@ -243,7 +243,7 @@ svg.globo-neon { overflow: visible; }
   animation: fluxoArcoNeon 2.4s ease-in-out infinite; animation-delay: var(--atraso-arco, 0ms); }
 @keyframes fluxoArcoNeon { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
 .globo-neon-pais { fill: var(--accent-strong); stroke: var(--surface); stroke-width: 1.5;
-  filter: drop-shadow(0 0 6px var(--cor-esfera)); }
+  filter: drop-shadow(0 0 6px var(--cor-esfera, var(--accent))); }
 .globo-neon-sede { fill: var(--good); stroke: var(--surface); stroke-width: 2;
   filter: drop-shadow(0 0 8px var(--good)); animation: pontoVivoPulso 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
@@ -368,24 +368,24 @@ svg.globo-neon { overflow: visible; }
   gap: clamp(6px, 1vh, 12px); min-height: 0; overflow: hidden; }
 .top-pais { display: flex; align-items: center; gap: clamp(9px, .8vw, 14px);
   padding: clamp(7px, 1vh, 12px) clamp(10px, .9vw, 14px); border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--cor) 35%, var(--border));
-  border-left: 3px solid var(--cor);
-  background: color-mix(in srgb, var(--cor) 7%, var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--cor, var(--accent)) 35%, var(--border));
+  border-left: 3px solid var(--cor, var(--accent));
+  background: color-mix(in srgb, var(--cor, var(--accent)) 7%, var(--surface-raised));
   transition: background .2s ease, transform .18s ease, box-shadow .2s ease;
   animation: chegar-top-pais .4s ease-out both; animation-delay: calc(var(--i, 0) * 60ms); }
 .top-pais:hover { transform: translateX(3px);
-  background: color-mix(in srgb, var(--cor) 16%, var(--surface-raised));
-  box-shadow: 0 0 18px -6px var(--cor); }
+  background: color-mix(in srgb, var(--cor, var(--accent)) 16%, var(--surface-raised));
+  box-shadow: 0 0 18px -6px var(--cor, var(--accent)); }
 @keyframes chegar-top-pais { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
 .top-pais-num { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
-  font-size: 11.5px; font-weight: 800; color: var(--surface); background: var(--cor); }
+  font-size: 11.5px; font-weight: 800; color: var(--surface); background: var(--cor, var(--accent)); }
 .top-pais-bandeira { flex: none; width: clamp(26px, 2vw, 36px); height: clamp(18px, 1.5vw, 26px); display: grid;
   place-items: center; border-radius: 5px; overflow: hidden; background: var(--surface-raised);
   box-shadow: inset 0 0 0 1px var(--border); }
 .top-pais-bandeira svg { width: 100%; height: 100%; display: block; }
 .top-pais-nome { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .top-pais-nome b { color: var(--ink); font-size: clamp(12.5px, 1vw, calc(16px * var(--zoom, 1))); font-weight: 700; }
-.top-pais-nome small { color: var(--ink-2); font-size: clamp(10.5px, .8vw, 13px); overflow: hidden;
+.top-pais-nome small { color: var(--ink-2); font-size: clamp(10.5px, .8vw, calc(13px * var(--zoom, 1))); overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .top-pais { animation: none; } .top-pais:hover { transform: none; } }
 
@@ -658,7 +658,7 @@ svg.plot.surge { animation: surge .85s cubic-bezier(.16, .84, .3, 1) both; trans
 .celula { padding: clamp(10px, 1.2vh, 16px) clamp(6px, .7vw, 10px);
   border-radius: var(--radius-sm); text-align: center;
   border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--series-4) calc(var(--intensidade) * 0.4), var(--surface));
+  background: color-mix(in srgb, var(--series-4) calc(var(--intensidade, 50%) * 0.4), var(--surface));
   transition: all .3s ease; }
 .celula[data-status="quente"] { background: linear-gradient(135deg,
   color-mix(in srgb, var(--good) 60%, var(--surface)),

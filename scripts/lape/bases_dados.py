@@ -117,8 +117,11 @@ class OpenAlex:
             "titulo": work.get("title"),
             "citacoes": work.get("cited_by_count", 0),
             "ano_publicacao": work.get("publication_year"),
-            "revista": work.get("primary_location", {}).get("source", {}).get("display_name"),
-            "acesso_aberto": work.get("open_access", {}).get("is_oa", False),
+            # o OpenAlex manda `null` (nao a chave ausente) para registro sem
+            # local primario ou sem acesso aberto declarado; `.get(k, {})` nao
+            # protege disso e quebrava a sincronizacao inteira
+            "revista": ((work.get("primary_location") or {}).get("source") or {}).get("display_name"),
+            "acesso_aberto": (work.get("open_access") or {}).get("is_oa", False),
             "tipo": work.get("type"),
             "fonte": "openalex",
         }

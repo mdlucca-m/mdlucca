@@ -823,7 +823,7 @@ class TestAPaletaEOModoApresentacao(unittest.TestCase):
         import re
         trecho = self.mural_js[self.mural_js.index("const SLIDES = ["):]
         trecho = trecho[:trecho.index("];")]
-        ids = re.findall(r'id: "([a-z]+)"', trecho)
+        ids = re.findall(r'id: "([a-z0-9-]+)"', trecho)   # ids com hifen tambem
         self.assertGreaterEqual(len(ids), 6)
         self.assertEqual(len(re.findall(r"apresenta: \"", trecho)), len(ids))
         self.assertIn('<button class="seguir no-print" id="seguir"', self.mural_html)

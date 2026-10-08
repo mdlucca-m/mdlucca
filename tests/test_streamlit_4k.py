@@ -15,12 +15,19 @@ import sys
 import unittest
 from pathlib import Path
 
-import pandas as pd
-
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-import lape_streamlit_4k as painel  # noqa: E402
+# O Painel 4K tem dependências próprias (requirements-painel4k.txt: pandas,
+# plotly, streamlit). Onde elas não estão instaladas -- o servidor do mural não
+# precisa delas --, o arquivo inteiro sai como "pulado", dizendo por quê, em
+# vez de aparecer como erro de importação num sistema que não usa o painel.
+try:
+    import pandas as pd
+    import lape_streamlit_4k as painel  # noqa: E402
+except ModuleNotFoundError as erro:
+    raise unittest.SkipTest(
+        f"Painel 4K não testado: falta {erro.name} (pip install -r requirements-painel4k.txt)")
 
 
 def artigo(status, started=None, first_sub=None, published=None, ano=None,
