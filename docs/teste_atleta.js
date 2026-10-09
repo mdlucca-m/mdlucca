@@ -156,8 +156,8 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   const nomeTopo = await pag.textContent("#btEu");
   ok(nomeTopo.trim() === "Rafael", "o apelido sai do primeiro nome quando não informado", nomeTopo);
   const abas = await pag.$$eval("#navRolo button", bs => bs.map(b => b.textContent.trim()));
-  ok(abas.join(" ") === "Hoje Check-in Minha semana Anamnese Meus dados",
-     "a área do atleta abre com as cinco abas", abas.join(" · "));
+  ok(abas.join(" ") === "Hoje Minhas cargas Check-in Minha semana Anamnese Meus dados",
+     "a área do atleta abre com as seis abas", abas.join(" · "));
 
   const ficha = await pag.textContent("#textoEnvio");
   ok(/^🏐 CADASTRO ELASE VOLEIBOL/.test(ficha), "a ficha sai no formato que o app lê");
@@ -405,6 +405,20 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   ok(/Rafael Moreira dos Santos/.test(txtMeus), "a ficha aparece de volta");
   ok(/201/.test(txtMeus) && /95/.test(txtMeus), "com as medidas");
 
+  ok(/Minhas cargas/.test(txtMeus), "e o ponteiro para a aba de cargas");
+
+  console.log("\n\u2500\u2500 Minhas cargas \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+  /* A conversão existia, mas enterrada no cadastro. A aba própria tem de
+     mostrar o efeito na mesma tela em que o atleta digita. */
+  await pag.click('[data-ir="cargas"]');
+  await pag.waitForTimeout(300);
+  ok(await pag.isVisible('[data-rm="Agachamento"]'), "a aba Minhas cargas abre com os campos");
+  const semRM = await pag.innerText("#s-cargas");
+  /* innerText devolve o TÍTULO RENDERIZADO, e os h3 do app são
+     text-transform:uppercase — regex sensível a maiúsculas passa sempre, o que
+     é pior do que falhar. Daí o /i em todas as buscas de texto desta seção. */
+  ok(!/a sua tabela/i.test(semRM), "sem nenhuma marca lançada, não há tabela de conversão");
+
   // 1RM: o percentual vira quilo na tela do atleta
   await pag.fill('[data-rm="Agachamento"]', "150");
   await pag.click("#btRM");
@@ -417,6 +431,35 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
   }, MACRO);
   ok(viraQuilo.alvo === 92.5, "62% de 150 kg vira 92,5 kg, arredondado à anilha",
      JSON.stringify(viraQuilo));
+
+  await pag.click('[data-ir="cargas"]');
+  await pag.waitForTimeout(300);
+  const comRM = await pag.innerText("#s-cargas");
+  ok(/a sua tabela/i.test(comRM), "com a marca lançada, a tabela de conversão aparece");
+  ok(/150/.test(comRM), "a tabela mostra o 1RM lançado");
+  ok(/\b120\b/.test(comRM), "e a conversão: 80% de 150 kg dá 120 kg");
+
+  /* A sessão de hoje muda com o calendário real, então o teste não pode fixar um
+     exercício: ele descobre de quais referências a sessão de hoje depende, lança
+     todas, e exige que não sobre pendência. */
+  const refsHoje = await pag.evaluate(() => {
+    const c = conversaoDeHoje() || [];
+    return Array.from(new Set(c.map(x => x.ref).filter(Boolean)));
+  });
+  if (refsHoje.length){
+    for (const r of refsHoje) await pag.fill(`[data-rm="${r}"]`, "100");
+    await pag.click("#btRM");
+    await pag.waitForTimeout(400);
+    const txt = await pag.innerText("#s-cargas");
+    ok(!/falta o seu 1RM/i.test(txt),
+       "lançadas as referências de hoje, some o aviso de pendência");
+    const pend = await pag.evaluate(() =>
+      (conversaoDeHoje() || []).filter(x => x.kg === null).length);
+    ok(pend === 0, "e nenhum exercício de hoje fica sem quilo", pend);
+  } else {
+    ok(true, "hoje não há exercício por percentual — nada a converter");
+    ok(true, "e a tela diz isso em vez de mostrar lista vazia");
+  }
 
   // Persistência: recarregar não perde a área
   await pag.reload({ waitUntil: "load" });

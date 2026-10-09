@@ -99,6 +99,14 @@ input:focus,select:focus,textarea:focus{border-color:rgba(78,147,220,.6);outline
 .pares span{color:var(--ink-3);font-size:13.5px}
 
 .ex{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card)}
+/* Tabela de conversão de carga. Números alinhados pela coluna, porque a leitura
+   aqui é comparar quilos entre si — e dígito de largura variável desalinha. */
+.tab{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.tab th,.tab td{padding:7px 9px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.tab th:first-child,.tab td:first-child{text-align:left;white-space:normal;min-width:11ch}
+.tab thead th{font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-4);border-bottom-color:var(--ink-4)}
+.tab tbody tr:last-child td{border-bottom:none}
 .ex.prep{background:var(--inset);border-style:dashed}
 .ex .tit{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:3px}
 .ex .tit b{font-size:15px}
@@ -138,6 +146,7 @@ footer{max-width:680px;margin:0 auto;padding-inline:16px;color:var(--ink-4);font
 <main>
   <section id="s-cadastro"></section>
   <section id="s-hoje" hidden></section>
+  <section id="s-cargas" hidden></section>
   <section id="s-checkin" hidden></section>
   <section id="s-semana" hidden></section>
   <section id="s-anamnese" hidden></section>
@@ -392,7 +401,7 @@ const CAMPOS = [
 ];
 const POSICOES = ["Levantador","Oposto","Ponteiro (Ponta)","Central","Líbero"];
 const REFS_1RM = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
-                  "Remada serrote","Arranco","Clean","Clean pull"];
+                  "Remada serrote","Arranco","Clean","Clean pull","Push press"];
 
 /* ── Plano ajustado pela comissão ───────────────────────────────────────── */
 /* Esta página calcula a periodização sozinha — e é por isso que ela funciona
@@ -473,6 +482,7 @@ const REF_1RM_POR_NOME = {
   "Remada serrote":"Remada serrote", "Arranco":"Arranco", "Clean":"Clean",
   "Snatch pull / Hang high pull":"Clean pull",
   "Agachamento com salto sob carga (jump squat)":"Agachamento",
+  "Push press":"Push press",
 };
 const refDoNome = n => REF_1RM_POR_NOME[n] || null;
 
@@ -581,6 +591,7 @@ const linkZap = texto => "https://wa.me/" + ZAP_PREPARADOR + "?text=" + encodeUR
 /* ── Tela ───────────────────────────────────────────────────────────────── */
 const ABAS = [
   {id:"hoje",     rot:"Hoje"},
+  {id:"cargas",   rot:"Minhas cargas"},
   {id:"checkin",  rot:"Check-in"},
   {id:"semana",   rot:"Minha semana"},
   {id:"anamnese", rot:"Anamnese"},
@@ -1040,6 +1051,97 @@ function telaAnamnese(){
 }
 
 /* ── Meus dados ─────────────────────────────────────────────────────────── */
+/* ── Minhas cargas ──────────────────────────────────────────────────────── */
+/* A conversão de percentual em quilo já existia, mas estava no fim de "Meus
+   dados", que é a aba do cadastro: ninguém procura carga ali. Aqui ela tem
+   lugar próprio e, principalmente, MOSTRA O EFEITO na mesma tela — o atleta
+   digita 100 e vê, logo abaixo, quanto é 80% no exercício de hoje. */
+const PCTS_MOSTRA = [55, 60, 70, 75, 80, 85, 90];
+
+function arredonda(kg){ return Math.round(kg / 2.5) * 2.5; }
+
+/* Os exercícios de hoje que dependem de 1RM, com o que falta para cada um. */
+function conversaoDeHoje(){
+  const sess = sessaoValendo(hojeISO());
+  if (!sess) return null;
+  return sess.exercicios
+    .filter(e => e.pct_rm)
+    .map(e => {
+      const rm = e.ref1rm ? S.rm[e.ref1rm] : null;
+      return {nome: e.nome, ref: e.ref1rm, pct: e.pct_rm,
+              series: e.series, reps: e.reps,
+              kg: (rm && e.ref1rm) ? arredonda(rm * e.pct_rm) : null};
+    });
+}
+
+function telaCargas(){
+  const lancados = REFS_1RM.filter(r => S.rm[r] > 0);
+  const conv = conversaoDeHoje();
+  const faltando = conv ? conv.filter(c => c.kg === null) : [];
+
+  const cartaoHoje = !conv ? `<div class="cartao"><h3>No treino de hoje</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0">Hoje não tem sala.
+      O que você lançar aqui já vale para a próxima sessão.</p></div>`
+    : !conv.length ? `<div class="cartao"><h3>No treino de hoje</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0">A sessão de hoje não
+      tem exercício prescrito por percentual de 1RM — é tudo por RIR, tempo ou
+      peso do corpo. Nada aqui muda a tela de hoje.</p></div>`
+    : `<div class="cartao"><h3>No treino de hoje</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">É assim que a
+      prescrição de hoje fica com o que você lançou.</p>
+      ${conv.map(c => `<div class="ex ${c.kg === null ? "prep" : ""}">
+        <div class="tit"><b>${esc(c.nome)}</b>
+          <span class="selo">${Math.round(c.pct*100)}%</span></div>
+        <div class="pres">${c.series} × ${esc(c.reps)} ·
+          ${c.kg !== null ? `<b>${num(c.kg,1)} kg</b>`
+            : `<b>falta o seu 1RM de ${esc(c.ref || "referência")}</b>`}</div>
+      </div>`).join("")}
+      ${faltando.length ? `<p class="aviso erro" style="margin-top:12px">
+        ${faltando.length} exercício(s) de hoje ainda sem quilo. Lance a marca
+        correspondente aqui embaixo.</p>` : ""}
+    </div>`;
+
+  const tabela = !lancados.length ? "" : `<div class="cartao"><h3>A sua tabela</h3>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">Os percentuais que
+    as fichas usam, nos seus números. Arredondado de 2,5 em 2,5 kg, que é o que a
+    anilha permite.</p>
+    <div style="overflow-x:auto">
+      <table class="tab"><thead><tr><th>Exercício</th><th>1RM</th>
+        ${PCTS_MOSTRA.map(p => `<th>${p}%</th>`).join("")}</tr></thead>
+      <tbody>${lancados.map(r => `<tr><td>${esc(r)}</td>
+        <td><b>${num(S.rm[r],1)}</b></td>
+        ${PCTS_MOSTRA.map(p => `<td>${num(arredonda(S.rm[r]*p/100),1)}</td>`).join("")}
+      </tr>`).join("")}</tbody></table>
+    </div></div>`;
+
+  return `<div class="cabeca"><h2>Minhas cargas</h2>
+      <p>O que você levantou no último reteste. É o que faz o
+      \u201c80%\u201d da ficha virar um número que dá para colocar na barra.</p></div>
+
+    <div class="cartao"><h3>Lance os seus 1RM</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">Só o que você
+      testou. Deixe em branco o que não sabe — <b>campo vazio é melhor que número
+      chutado</b>, porque é dele que sai a carga de todas as semanas seguintes.</p>
+      ${REFS_1RM.map(r => `<div class="dupla" style="align-items:end;margin-bottom:8px">
+        <label style="margin:0" for="rm-${esc(r)}"><span>${esc(r)}</span></label>
+        <input id="rm-${esc(r)}" data-rm="${esc(r)}" inputmode="decimal" placeholder="kg"
+          value="${S.rm[r] !== undefined && S.rm[r] !== null ? S.rm[r] : ""}">
+      </div>`).join("")}
+      <button class="bt larga" id="btRM" style="margin-top:10px">Gravar as minhas cargas</button>
+      <p class="aviso ok" id="avRM" hidden></p>
+    </div>
+
+    ${cartaoHoje}
+    ${tabela}
+
+    <div class="cartao"><h3>Quando mudar estes números</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0">Depois de um reteste,
+      ou quando você fechar a última série prescrita e ainda sobrarem 2 repetições
+      com técnica limpa. Fora isso, deixe parado: 1RM que muda toda semana não é
+      referência, é palpite — e a carga de todo o bloco sai dele.</p>
+    </div>`;
+}
+
 function telaMeus(){
   const d = S.ficha || {};
   return `<div class="cabeca"><h2>Meus dados</h2>
@@ -1054,17 +1156,11 @@ function telaMeus(){
       <button class="bt alt larga" id="btEditar" style="margin-top:13px">Corrigir e reenviar</button>
     </div>
 
-    <div class="cartao"><h3>Meus 1RM</h3>
-      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">Lance aqui o que
-      você levantou no último reteste. É o que faz os percentuais do treino virarem
-      quilos na sua tela — sem eles, "85%" não vira número nenhum.</p>
-      ${REFS_1RM.map(r => `<div class="dupla" style="align-items:end;margin-bottom:8px">
-        <label style="margin:0" for="rm-${esc(r)}"><span>${esc(r)}</span></label>
-        <input id="rm-${esc(r)}" data-rm="${esc(r)}" inputmode="decimal" placeholder="kg"
-          value="${S.rm[r] !== undefined && S.rm[r] !== null ? S.rm[r] : ""}">
-      </div>`).join("")}
-      <button class="bt larga" id="btRM" style="margin-top:10px">Gravar os meus 1RM</button>
-      <p class="aviso ok" id="avRM" hidden></p>
+    <div class="cartao"><h3>As minhas cargas</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0 0 12px">Os seus 1RM
+      saíram daqui e ganharam aba própria — <b>Minhas cargas</b>. É lá que você
+      lança o que levantou e vê os percentuais do treino virarem quilos.</p>
+      <button class="bt alt larga" data-ir="cargas">Abrir Minhas cargas</button>
     </div>
 
     <div class="cartao"><h3>Onde isto fica</h3>
@@ -1100,7 +1196,7 @@ document.addEventListener("click", soltarDepois, true);
 document.addEventListener("pointercancel", soltarDepois, true);
 document.addEventListener("touchcancel", soltarDepois, true);
 
-const SECOES = ["cadastro","hoje","checkin","semana","anamnese","meus"];
+const SECOES = ["cadastro","hoje","cargas","checkin","semana","anamnese","meus"];
 function desenhar(){
   const dentro = !!S.ficha && !UI.editando;
   const btEu = document.getElementById("btEu");
@@ -1125,6 +1221,7 @@ function desenhar(){
   el.hidden = false;
   const conteudo = !dentro ? telaCadastro()
     : UI.aba === "hoje" ? telaHoje()
+    : UI.aba === "cargas" ? telaCargas()
     : UI.aba === "fim" ? telaFim()
     : UI.aba === "checkin" ? telaCheckin()
     : UI.aba === "semana" ? telaSemana()
@@ -1381,7 +1478,12 @@ function gravarRM(){
     else delete S.rm[nome];
   });
   guardar();
-  mostrarAviso("avRM", n ? `${n} marca(s) gravada(s). Os percentuais já viram quilos em Hoje.`
+  /* Redesenhar antes de avisar: a tabela de conversão e a prescrição de hoje
+     ficam na MESMA tela dos campos, e sem o redesenho o atleta grava 150 e
+     continua vendo a tela de quem não lançou nada. O aviso vem depois porque o
+     redesenho recria o elemento. */
+  if (UI.aba === "cargas") desenhar();
+  mostrarAviso("avRM", n ? `${n} marca(s) gravada(s). Os percentuais já viram quilos aqui embaixo e em Hoje.`
     : "Nenhuma marca gravada.", true);
 }
 function apagarTudo(){
