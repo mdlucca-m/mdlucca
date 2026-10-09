@@ -1092,11 +1092,11 @@ CORPO_INTEIRO = {
     "abertura":
         "<b>A ordem desta sessão é a prescrição tanto quanto as cargas.</b> "
         "Potência primeiro: velocidade morre com fadiga, e um push press depois do "
-        "agachamento pesado vira outro exercício. A força vem no meio, e o "
+        "trabalho pesado de perna vira outro exercício. A força vem no meio, e o "
         "<b>unilateral por último</b> — ele não está ali para somar carga e sim "
-        "para <b>achar a diferença entre os seus dois lados</b>. O agachamento e o "
-        "terra são os dois pesados do dia, e o <b>supino entra entre eles</b> para "
-        "a lombar não levar os dois seguidos.",
+        "para <b>achar a diferença entre os seus dois lados</b>. O terra é o mais "
+        "pesado do dia e o avanço é o que mais exige equilíbrio: por isso o avanço "
+        "vem cedo e o <b>supino entra entre os dois</b>.",
     "aquecimento_titulo": "Aquecimento — antes do primeiro exercício de cada padrão",
     "aquecimento_nota": "O push press é o primeiro da sessão e o mais técnico: o "
                         "ombro precisa chegar nele pronto, não aquecendo nele.",
@@ -1112,12 +1112,12 @@ CORPO_INTEIRO = {
     "exercicios": [
         ("Push press", "potência &middot; empurrar vertical — a perna joga",
          "4 × 3", "2,5 min", "58%"),
-        ("Agachamento livre", "força &middot; perna — o mais pesado do dia",
-         "4 × 5", "3 min", "80%"),
+        ("Avanço com barra, à frente e atrás", "força &middot; perna — 5 ciclos em CADA perna",
+         "4 × 5", "3 min", "RIR 2"),
         ("Supino reto com barra", "força &middot; empurrar horizontal — sobrariam 2 repetições",
          "4 × 5", "2,5 min", "82%"),
         ("Levantamento terra", "força &middot; dobra de quadril — cada repetição do chão",
-         "4 × 4", "3 min", "78%"),
+         "4 × 4", "3 min", "75%"),
         ("Remada alta", "força &middot; ombro — pegada ABERTA, ler o verso antes",
          "3 × 8", "90 s", "RIR 2"),
         ("Puxada unilateral no pulley alto", "unilateral &middot; puxar vertical — 10 em CADA lado",
@@ -1128,24 +1128,24 @@ CORPO_INTEIRO = {
          "3 × 8", "90 s", "RIR 2"),
     ],
     "nota_tabela":
-        "Anote a carga de cada exercício. Nos <b>três unilaterais, anote os dois "
+        "Anote a carga de cada exercício. Nos <b>quatro unilaterais, anote os dois "
         "lados</b> — é a informação desta folha que mais diz sobre risco de lesão.",
     "caixa_duracao":
         "<b>Duração prevista: 95 a 110 minutos</b> — oito multiarticulares com "
         "pausa cheia é sessão longa, e vale saber antes de chegar na metade. "
         "<b>Com menos de 85 minutos:</b> 3 séries em vez de 4 no push press, no "
-        "agachamento, no supino e no terra. Corte a série, nunca a pausa — e "
+        "avanço, no supino e no terra. Corte a série, nunca a pausa — e "
         "nunca as puxadas.",
     "verso": [
         ("h", "Por que esta ordem, e não outra"),
         ("grade", ["BLOCO", "O QUE", "POR QUE VEM AQUI"], [
             ["1º", "Potência — push press",
-             "velocidade é a primeira coisa que a fadiga leva: depois do "
-             "agachamento pesado ele vira um desenvolvimento lento com ajuda de perna"],
-            ["2º", "Força — agachamento, supino e terra",
-             "carga alta aguenta um pouco de cansaço; velocidade não aguenta "
-             "nenhum. <b>O supino entra entre os dois pesados</b> para a lombar "
-             "não levá-los seguidos"],
+             "velocidade é a primeira coisa que a fadiga leva: com a perna cansada "
+             "ele vira um desenvolvimento lento com ajuda de perna"],
+            ["2º", "Força — avanço, supino e terra",
+             "o avanço é unilateral mas entra aqui porque é exercício de carga, e "
+             "vem cedo porque equilíbrio com barra nas costas é o primeiro a piorar "
+             "com fadiga. <b>O supino separa o avanço do terra</b>"],
             ["3º", "Ombro e unilateral — remada alta, puxada, elevação pélvica e serrote",
              "carga menor e controle: é o bloco que continua fazendo o trabalho "
              "dele cansado — e é cansado que a diferença entre os lados aparece"],
@@ -1163,13 +1163,16 @@ CORPO_INTEIRO = {
              "dobra uns 10 cm e estende rápido — e o braço termina. Não é "
              "desenvolvimento lento com ajuda. Se a lombar arqueia para a barra "
              "subir, a carga está alta demais."),
-            ("Agachamento", "Profundidade até onde o quadril desce <b>sem a lombar "
-             "arredondar</b> — quem não desce por falta de tornozelo tem problema de "
-             "mobilidade, não de força. A 80% sobrariam 2 repetições."),
+            ("Avanço com barra", "<b>Uma repetição é um passo à frente e um atrás com "
+             "a MESMA perna</b>; cinco assim, depois troca. Joelho de trás descendo "
+             "em direção ao chão, tronco em pé, passo do tamanho que você controla. "
+             "A carga fica perto de um terço do seu agachamento — se precisar olhar "
+             "para o chão para não desequilibrar, está pesada. É o exercício que "
+             "mais exige equilíbrio da ficha, e por isso vem com a perna descansada."),
             ("Levantamento terra", "<b>Cada repetição começa do chão, do zero</b> — "
              "emendar com a lombar cansada é onde a coluna arredonda. <b>Lombar "
-             "arredondou, a série acabou.</b> São 4 a 78% e não 5 a 80% porque ele "
-             "vem depois do agachamento."),
+             "arredondou, a série acabou.</b> Está a 75% porque a perna chega nele já "
+             "trabalhada pelo avanço."),
             ("Remada alta", "<b>É o exercício de maior risco de ombro desta ficha "
              "para quem ataca</b>, e faz diferença como você faz: pegada na largura "
              "dos ombros ou <b>mais aberta</b>, barra parando na altura do "
@@ -1182,15 +1185,15 @@ CORPO_INTEIRO = {
              "subir mais, você passou do ponto. É a única da ficha que não é "
              "multiarticular: ela está aqui pela extensão de quadril, que é o que "
              "empurra o chão no salto."),
-            ("Os três unilaterais", "<b>Comece pelo lado mais fraco, e o lado bom "
+            ("Os três do fim", "<b>Comece pelo lado mais fraco, e o lado bom "
              "para no número que o fraco fez.</b> Na puxada, tronco parado: se o "
              "corpo gira para ajudar, a carga está alta."),
         ]),
         ("espaco", 3),
         ("caixa", "<b>Se você fez o treino de contraste nas últimas 48 horas</b> — "
                   "o do isométrico máximo, saltos e supino a 88% —, mude três "
-                  "cargas: <b>agachamento a 70% com 3 séries</b>, <b>supino a "
-                  "75%</b> e <b>terra em 3 séries a 70%</b>. São os mesmos padrões "
+                  "coisas: <b>avanço em 3 séries</b>, <b>supino a 75%</b> e <b>terra em "
+                  "3 séries a 70%</b>. São os mesmos padrões "
                   "pesados duas vezes na mesma semana.", AMBAR_CLARO, AMBAR),
         ("espaco", 3),
     ],
