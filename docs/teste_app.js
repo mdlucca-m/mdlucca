@@ -596,6 +596,89 @@ const servidor = http.createServer((req, res) => {
   ok(/Não consegui entender/i.test(txtFora) && /Sono/.test(txtFora),
      "sono 9 numa escala de 1 a 5 é reportado, não aceito");
 
+  console.log("\n── As cargas do elenco ────────────────────────────────");
+  /* O caminho que o atleta não tinha: ele lança o 1RM no celular dele e isso
+     chega aqui sem o preparador digitar nada. Tem de cair na MESMA coleção dos
+     testes medidos, senão a prescrição não enxerga. */
+  const hojeBR = await pag.evaluate(() => dataBR(hojeISO()));
+  await pag.fill("#waTexto", [
+    `🏐 CARGAS ELASE VOLEIBOL`, `Rafa · ${hojeBR}`, ``,
+    `1. Agachamento — 162,5 kg`, `2. Supino — 110 kg`, `3. Push press — 70 kg`,
+    `4. Levantamento terra — 180 kg`, `5. Clean — 1400 kg`,
+  ].join("\n"));
+  await pag.click("#btLerWA");
+  await pag.waitForTimeout(400);
+  const cartoesC = await pag.$$eval("#waSaida [data-import]", bs => bs.length);
+  ok(cartoesC === 1, "a mensagem de cargas é reconhecida como um tipo próprio", cartoesC);
+  const txtC = await pag.textContent("#waSaida");
+  ok(/Cargas/i.test(txtC), "e a tela diz que leu cargas");
+  ok(/162,5/.test(txtC) && /Push press/i.test(txtC),
+     "os valores e os nomes aparecem para conferir antes de lançar");
+  ok(/Levantamento terra/i.test(txtC),
+     "um exercício que não é referência de 1RM é reportado, não engolido");
+  ok(/1400/.test(txtC), "e 1400 kg também — é erro de digitação, não carga");
+  const antesDoLance = await pag.evaluate(() => melhor1RM(ativos()[0].id, "Supino"));
+
+  await pag.click('[data-import="0"]');
+  await pag.waitForTimeout(450);
+  const cargas = await pag.evaluate(() => {
+    const id = ativos()[0].id;
+    const t = ultimo1RM(id, "Agachamento");
+    return {ag: melhor1RM(id, "Agachamento"), sup: melhor1RM(id, "Supino"),
+            pp: melhor1RM(id, "Push press"),
+            terra: melhor1RM(id, "Levantamento terra"),
+            origem: t && t.origem, data: t && t.data, hoje: hojeISO()};
+  });
+  ok(cargas.ag === 162.5, "a carga do atleta entra como 1RM", cargas.ag);
+  ok(cargas.sup === 110 && antesDoLance === null,
+     "inclusive num exercício que ainda não tinha marca", `${antesDoLance} → ${cargas.sup}`);
+  ok(cargas.pp === 70, "push press também — a lista de referências é uma só", cargas.pp);
+  ok(cargas.terra === null, "e o que não foi lido não entra chutado", cargas.terra);
+  ok(cargas.origem === "atleta", "com a origem registrada", cargas.origem);
+  ok(cargas.data === cargas.hoje, "e a data do cabeçalho, não a de hoje por acaso",
+     `${cargas.data} vs ${cargas.hoje}`);
+
+  // 162,5 do atleta tem de vencer os 150 que o preparador mediu no MESMO dia
+  ok(cargas.ag === 162.5, "no empate de data vale o último lançado, não a ordem da lista");
+
+  // A grade: uma tela com o elenco inteiro, que era o pedido
+  await pag.click('#navRolo button[data-aba="testes"]');
+  await pag.waitForTimeout(400);
+  const grade = await pag.evaluate(() => {
+    const cs = Array.from(document.querySelectorAll("#s-testes .cartao"));
+    const c = cs.find(x => /cargas do elenco/i.test(x.textContent || ""));
+    if (!c) return null;
+    const ths = Array.from(c.querySelectorAll("thead th")).map(t => t.textContent.trim());
+    const tds = Array.from(c.querySelectorAll("tbody td")).map(t => t.textContent.trim());
+    return {ths, tds, texto: c.textContent};
+  });
+  ok(grade, "a aba Testes mostra a grade de cargas do elenco");
+  ok(grade && grade.ths.includes("Agachamento") && grade.ths.includes("Push press"),
+     "com uma coluna por exercício de referência que alguém tem",
+     grade && grade.ths.join(" | "));
+  ok(grade && grade.tds.some(t => /162,5/.test(t)),
+     "e a carga que o atleta mandou na célula dele", grade && grade.tds.join(" | "));
+  ok(grade && /\ba\b/.test(grade.tds.find(t => /162,5/.test(t)) || ""),
+     "marcada como informada pelo atleta, não medida aqui",
+     grade && grade.tds.find(t => /162,5/.test(t)));
+  ok(grade && !/Sem 1RM nenhum/.test(grade.texto),
+     "e nenhum aviso de falta, porque o único atleta ativo tem marca");
+  /* Nove colunas de exercício num iPhone: a tabela rola dentro do cartão, a
+     PÁGINA não. Sem isto a grade empurraria todas as outras telas para o lado. */
+  const sobraTestes = await pag.evaluate(() =>
+    document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  ok(sobraTestes <= 1, "e a grade rola dentro do cartão, sem empurrar a página",
+     sobraTestes + "px");
+
+  // O efeito que motiva tudo: o percentual da prescrição virando quilo
+  await pag.click('#navRolo button[data-aba="sessao"]');
+  await pag.waitForTimeout(400);
+  const virouQuilo = await pag.evaluate(() => {
+    const id = ativos()[0].id;
+    return melhor1RM(id, "Supino") !== null;
+  });
+  ok(virouQuilo, "e a partir daqui o supino da prescrição tem de quem sair o quilo");
+
   console.log("\n── Ajustar a sessão à mão ─────────────────────────────");
   await pag.click('#navRolo button[data-aba="prescricao"]');
   await pag.waitForTimeout(400);

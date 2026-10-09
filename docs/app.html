@@ -960,6 +960,7 @@ const TIPOS_WA = [
   {chave:"checkin",  rot:"Check-in",       re:/check\s*-?\s*in/i},
   {chave:"humor",    rot:"Humor (BRUMS)",  re:/humor|brums/i},
   {chave:"sessao",   rot:"Fim de sessão",  re:/fim\s+de\s+sess/i},
+  {chave:"cargas",   rot:"Cargas",         re:/cargas/i},
 ];
 const CABECALHO_WA = /^\s*🏐\s*(.+?)\s+ELASE\b/i;
 
@@ -1002,6 +1003,27 @@ function numeradasWA(corpo){
   }
   return fora;
 }
+/* As cargas chegam como "N. Exercício — 140 kg". Casa pelo NOME, não pela
+   posição na lista: a área do atleta pode ganhar um exercício de referência
+   amanhã, e uma leitura por índice gravaria agachamento no lugar de supino sem
+   avisar ninguém. Nome que não reconheço fica de fora e aparece na tela. */
+const RM_MAX = 400;
+function cargasWA(corpo){
+  const achadas = [], naoLidos = [];
+  for (const linha of String(corpo || "").split("\n")){
+    if (!/^\s*\d{1,2}\s*[.)\]\-–—:]/.test(linha)) continue;
+    const t = linha.trim().replace(/^\s*\d{1,2}\s*[.)\]\-–—:]?\s*/, "");
+    const i = t.lastIndexOf("—");
+    if (i < 0) continue;
+    const rot = t.slice(0, i).trim(), bruto = t.slice(i + 1).trim();
+    const ref = REFS_1RM.find(r => semAcento(r) === semAcento(rot));
+    const kg = numeroWA(bruto);
+    if (!ref){ naoLidos.push(`${rot} («${bruto}»)`); continue; }
+    if (kg === null || kg <= 0 || kg > RM_MAX){ naoLidos.push(`${ref} («${bruto}»)`); continue; }
+    if (!achadas.some(c => c.ref === ref)) achadas.push({ref, kg});
+  }
+  return {achadas, naoLidos};
+}
 function lerMensagemWA(bloco){
   const {tipo, corpo} = bloco;
   if (tipo === "cadastro"){
@@ -1009,6 +1031,12 @@ function lerMensagemWA(bloco){
     return Object.assign({tipo, corpo}, r, {quem: r.dados.apelido || r.dados.nome, data: ""});
   }
   if (tipo === "anamnese") return lerAnamnese(corpo);
+  if (tipo === "cargas"){
+    const c = cabecalhoWA(corpo), r = cargasWA(corpo);
+    return {tipo, corpo, quem:c.quem, data:c.data, dados:{cargas:r.achadas},
+            faltam: r.achadas.length ? [] : ["nenhuma carga que eu consiga ler"],
+            naoLidos: r.naoLidos, vazio: !r.achadas.length && !r.naoLidos.length};
+  }
   const cab = cabecalhoWA(corpo), n = numeradasWA(corpo);
   const naoLidos = [];
   const inteiro = (i, rot, min, max) => {
@@ -1224,9 +1252,25 @@ async function gravarDiario(id, ramo, chave, valor){
 }
 const testesDe = id => ((Store.get("testes", id) || {}).lista || [])
   .slice().sort((a,b)=>a.data<b.data?1:-1);
+/* Os exercícios que servem de referência para o percentual da prescrição. Uma
+   lista só, usada no lançamento, no desempenho, na grade do elenco e na leitura
+   das cargas que o atleta manda: duas listas divergindo é um 1RM entrando com
+   nome que nenhuma tela procura. */
+const REFS_1RM = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
+                  "Remada serrote","Arranco","Clean","Clean pull","Push press"];
+function ultimo1RM(id, exercicio){
+  /* O MAIS RECENTE, não o maior. No empate de data, o último lançado — quem
+     digitou depois sabia mais. Percorre a lista na ordem de lançamento em vez de
+     confiar na ordenação por data, que não decide empates. */
+  let fora = null;
+  for (const t of ((Store.get("testes", id) || {}).lista || []))
+    if (t.tipo === "1RM" && t.exercicio === exercicio && (!fora || t.data >= fora.data))
+      fora = t;
+  return fora;
+}
 function melhor1RM(id, exercicio){
-  const l = testesDe(id).filter(t => t.tipo === "1RM" && t.exercicio === exercicio);
-  return l.length ? l[0].valor : null;        // o MAIS RECENTE, não o maior
+  const t = ultimo1RM(id, exercicio);
+  return t ? t.valor : null;
 }
 const bibl = () => (Store.get("biblioteca","lib") || {}).itens || {};
 function infoEx(nome){
@@ -1825,8 +1869,7 @@ function telaDesempenho(){
     <div class="vazio">Nenhum atleta cadastrado ainda.</div>`;
   const lista = ativos();
   const escolhido = UI.exDesemp || "Agachamento";
-  const refs = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
-                "Remada serrote","Arranco","Clean","Clean pull"];
+  const refs = REFS_1RM;
 
   /* Força relativa: quilos por quilo de corpo. É o número que compara um central
      de 201 cm com um líbero de 178 — o absoluto não compara. */
@@ -1951,16 +1994,55 @@ function telaDesempenho(){
     </div>`;
 }
 
+/* A grade do elenco: uma linha por atleta, uma coluna por exercício de
+   referência, o 1RM que a prescrição está usando AGORA. Responde de uma vez a
+   pergunta que antes exigia abrir atleta por atleta — e mostra, no mesmo lugar,
+   quem ainda não tem marca nenhuma, que é a informação acionável. */
+/* 150 e não "150,0": numa grade de nove colunas a casa decimal vazia só rouba
+   largura. A meia anilha, quando existe, continua aparecendo — 162,5. */
+const kgCurto = v => num(v, v % 1 ? 1 : 0);
+function cartaoCargasElenco(){
+  const lista = ativos();
+  if (!lista.length) return "";
+  const usados = REFS_1RM.filter(r => lista.some(a => ultimo1RM(a.id, r)));
+  if (!usados.length) return `<div class="cartao"><h3>Cargas do elenco</h3>
+    <div class="nota">Nenhum 1RM lançado ainda, de ninguém. Eles entram no cartão
+    abaixo, ou pela aba <b>WhatsApp</b> quando o atleta manda as cargas dele pela
+    área do atleta.</div></div>`;
+  const semNada = lista.filter(a => !usados.some(r => ultimo1RM(a.id, r)));
+  return `<div class="cartao"><h3>Cargas do elenco</h3>
+    <p style="color:var(--ink-3);font-size:13px;margin:0 0 12px">O 1RM mais
+    recente de cada atleta — é esse que vira quilo na prescrição. <b>a</b> marca a
+    marca que o próprio atleta informou; o resto foi medido aqui. Toque e segure
+    numa célula para ver a data.</p>
+    <div class="rolagem"><table>
+      <thead><tr><th>Atleta</th>
+        ${usados.map(r => `<th class="num">${esc(r)}</th>`).join("")}</tr></thead>
+      <tbody>${lista.map(a => `<tr><td>${esc(a.apelido || a.nome)}</td>
+        ${usados.map(r => {
+          const t = ultimo1RM(a.id, r);
+          if (!t) return `<td class="num" style="color:var(--ink-4)">—</td>`;
+          return `<td class="num" title="${esc(dataBR(t.data))} · ${t.origem === "atleta" ? "informado pelo atleta" : "medido aqui"}"
+            >${kgCurto(t.valor)}${t.origem === "atleta"
+              ? `<span style="color:var(--ink-4);font-size:11px"> a</span>` : ""}</td>`;
+        }).join("")}</tr>`).join("")}</tbody></table></div>
+    ${semNada.length ? `<div class="nota aten" style="margin-top:12px">
+      <b>Sem 1RM nenhum:</b> ${semNada.map(a => esc(a.apelido || a.nome)).join(", ")}.
+      Para eles o percentual da prescrição não vira quilo em tela nenhuma — nem na
+      sua, nem na deles.</div>` : ""}
+    </div>`;
+}
+
 function telaTestes(){
   const a = meuAtleta();
   if (!a) return `<div class="cabeca"><h2>Testes</h2></div>
     <div class="vazio">Nenhum atleta cadastrado ainda.</div>`;
   const lista = testesDe(a.id);
-  const refs = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
-                "Remada serrote","Arranco","Clean","Clean pull"];
+  const refs = REFS_1RM;
   return `<div class="cabeca"><h2>Testes e 1RM</h2>
       <p>O que reabastece o ciclo. Sem 1RM lançado, o percentual da prescrição
       não vira quilo nenhum na tela do atleta.</p></div>
+    ${cartaoCargasElenco()}
     <div class="cartao">${seletorAtleta()}</div>
     <div class="cartao"><h3>Lançar</h3>
       <div class="dupla">
@@ -1987,7 +2069,9 @@ function telaTestes(){
       ${lista.length ? `<div class="rolagem"><table>
         <thead><tr><th>Data</th><th>Tipo</th><th>Medida</th><th class="num">Valor</th><th></th></tr></thead>
         <tbody>${lista.map((t,i) => `<tr>
-          <td>${dataBR(t.data)}</td><td>${esc(t.tipo)}</td><td>${esc(t.exercicio)}</td>
+          <td>${dataBR(t.data)}</td><td>${esc(t.tipo)}</td>
+          <td>${esc(t.exercicio)}${t.origem === "atleta"
+            ? `<span style="color:var(--ink-4);font-size:11.5px"> · do atleta</span>` : ""}</td>
           <td class="num">${num(t.valor,1)} ${esc(t.unidade)}</td>
           <td class="num"><button class="bt alt mini" data-apagar-teste="${i}">apagar</button></td>
         </tr>`).join("")}</tbody></table></div>`
@@ -2324,9 +2408,10 @@ function telaSistema(){
 
 function telaWhatsApp(){
   return `<div class="cabeca"><h2>Do WhatsApp para o sistema</h2>
-      <p>Cole aqui o que os atletas mandaram — cadastro, check-in, humor ou a PSE
-      do dia. Pode ser tudo de uma vez, do elenco inteiro: cada mensagem tem
-      cabeçalho e é separada sozinha.</p></div>
+      <p>Cole aqui o que os atletas mandaram — cadastro, check-in, humor, a PSE
+      do dia ou as cargas dele. Pode ser tudo de uma vez, do elenco inteiro: cada
+      mensagem tem cabeçalho e é separada sozinha. As cargas caem em
+      <b>Testes</b>, e a grade do elenco fica lá.</p></div>
     <div class="cartao">
       <div class="nota"><b>Como o atleta manda.</b> Ele abre a área do atleta —
       pública, em qualquer celular, sem conta e sem instalar — preenche, e o
@@ -2388,6 +2473,28 @@ function cartaoMensagem(m, i){
       <div><span>Estresse (0 a 10)</span><b>${d.es === null ? "—" : d.es}</b></div>
       <div><span>Sonolência KSS</span><b>${d.kss === null ? "—" : d.kss}</b></div>
     </div>`;
+  } else if (m.tipo === "cargas"){
+    /* Mostra o que ESTE atleta já tem no sistema ao lado do que ele mandou. O
+       dono sugerido é o do cabeçalho; se ele trocar no seletor, a comparação
+       fica desatualizada — por isso a coluna diz de quem é. */
+    const q = dono;
+    corpo = `${q ? `<p style="color:var(--ink-3);font-size:13px;margin:0 0 10px">O que
+        está hoje no sistema é o de <b>${esc(q.apelido || q.nome)}</b>, o atleta sugerido
+        pelo cabeçalho. Trocando no seletor abaixo, essa coluna não acompanha.</p>` : ""}
+      <div class="rolagem estreita"><table>
+        <thead><tr><th>Exercício</th><th class="num">mandou</th>
+          <th class="num">no sistema</th></tr></thead>
+        <tbody>${m.dados.cargas.map(c => {
+          const t = q ? ultimo1RM(q.id, c.ref) : null;
+          return `<tr><td>${esc(c.ref)}</td><td class="num"><b>${kgCurto(c.kg)} kg</b></td>
+            <td class="num">${t ? `${kgCurto(t.valor)} kg<br><span style="color:var(--ink-4);font-size:11.5px">${dataBR(t.data)}${t.origem === "atleta" ? " · do atleta" : " · medido"}</span>`
+              : '<span style="color:var(--ink-4)">—</span>'}</td></tr>`;
+        }).join("")}</tbody></table></div>
+      <div class="nota aten"><b>Entra como 1RM informado pelo atleta.</b> A
+      prescrição usa o lançamento mais <b>recente</b> de cada exercício, então uma
+      marca que ele mandou hoje passa a valer no lugar de um teste que você mediu
+      antes. Nada se perde: o anterior continua no histórico de Testes, e a grade
+      do elenco marca o que veio dele.</div>`;
   } else if (m.tipo === "humor"){
     const soma = {};
     SUBESCALAS.forEach(s => soma[s] = 0);
@@ -2971,6 +3078,15 @@ document.addEventListener("click", async ev => {
     await gravarDiario(atletaId, "w", m.data, m.dados);
   } else if (m.tipo === "humor"){
     await gravarDiario(atletaId, "b", m.data + "|pre", m.dados.vals);
+  } else if (m.tipo === "cargas"){
+    /* Vai para a MESMA coleção dos testes medidos, com a origem registrada. É o
+       que faz a carga do atleta chegar sozinha onde ela precisa chegar: a
+       prescrição, o desempenho e a grade do elenco já leem daqui. */
+    const lista = testesDe(atletaId).slice();
+    for (const c of m.dados.cargas)
+      lista.push({data: m.data, tipo: "1RM", exercicio: c.ref, valor: c.kg,
+                  unidade: "kg", origem: "atleta"});
+    await Store.set("testes", atletaId, {lista});
   } else {
     /* A sessão vem do atleta sem as séries: o que ele manda é o que conta para a
        carga — duração × PSE. Tonelagem e contatos ficam zerados, e é honesto que

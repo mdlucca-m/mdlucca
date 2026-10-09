@@ -117,6 +117,34 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
      "e o grupo de cada um também",
      grupoOk.map((g, i) => g === grupoAtleta[i] ? "" : `${i}:${g}≠${grupoAtleta[i]}`)
        .filter(Boolean).slice(0, 5).join(", "));
+
+  /* O laço das cargas, de ponta a ponta e sem mensagem escrita à mão: o celular
+     GERA o texto e o app da comissão LÊ esse texto. É o teste que pega a deriva
+     de formato — um travessão virando dois-pontos aqui quebraria lá em silêncio,
+     e o preparador veria "nenhuma carga que eu consiga ler" sem saber por quê. */
+  const refsAtleta = await pag.evaluate(() => REFS_1RM);
+  const refsApp = await pag2.evaluate(() => REFS_1RM);
+  ok(refsApp.length === refsAtleta.length && refsApp.every((n, i) => n === refsAtleta[i]),
+     "a lista de exercícios de referência é idêntica nas duas páginas",
+     `${refsApp.join(",")} vs ${refsAtleta.join(",")}`);
+  const textoCargas = await pag.evaluate(() => {
+    S.ficha = Object.assign({}, S.ficha || {}, {nome: "Rafael Moreira", apelido: "Rafa"});
+    S.rm = {Agachamento: 162.5, Supino: 110, "Push press": 70};
+    return mensagemCargas();
+  });
+  const lida = await pag2.evaluate(t => {
+    const b = separarMensagens(t);
+    return {tipos: b.map(x => x.tipo), msg: lerMensagemWA(b[0])};
+  }, textoCargas);
+  ok(lida.tipos.join(",") === "cargas",
+     "o texto que o celular gera é reconhecido como cargas", lida.tipos.join(","));
+  ok(lida.msg.quem === "Rafa", "com o dono vindo do cabeçalho", lida.msg.quem);
+  ok(lida.msg.faltam.length === 0 && lida.msg.naoLidos.length === 0,
+     "sem nada ilegível", JSON.stringify([lida.msg.faltam, lida.msg.naoLidos]));
+  const trio = (lida.msg.dados.cargas || []).map(c => `${c.ref}=${c.kg}`).join(" ");
+  ok(trio === "Agachamento=162.5 Supino=110 Push press=70",
+     "e as três marcas chegam inteiras, com a vírgula decimal lida certo", trio);
+  await pag.evaluate(() => { S.rm = {}; guardar(); });
   await pag2.close();
 
   console.log("\n── Cadastro ───────────────────────────────────────────");
@@ -460,6 +488,23 @@ const MACRO = "2026-09-21";                      // uma segunda-feira
     ok(true, "hoje não há exercício por percentual — nada a converter");
     ok(true, "e a tela diz isso em vez de mostrar lista vazia");
   }
+
+  /* A carga só serve ao treinador se sair do celular. A mensagem tem de ter o
+     mesmo cabeçalho numerado das outras, que é o que o app da comissão lê. */
+  const envioCargas = await pag.evaluate(() => mensagemCargas());
+  ok(/^🏐 CARGAS ELASE VOLEIBOL/.test(envioCargas),
+     "a mensagem de cargas tem o cabeçalho que o app da comissão reconhece",
+     envioCargas.split("\n")[0]);
+  ok(/·\s*\d{2}\/\d{2}\/\d{4}/.test(envioCargas.split("\n")[1] || ""),
+     "com apelido e data na segunda linha", envioCargas.split("\n")[1]);
+  ok(/^\d+\. Agachamento — 150 kg$/m.test(envioCargas),
+     "e uma linha numerada por marca, com o nome do exercício",
+     envioCargas.split("\n").slice(3).join(" / "));
+  ok(!/— *$/m.test(envioCargas),
+     "nenhuma linha vazia: carga não lançada não vai como ilegível");
+  const temBotaoZap = await pag.evaluate(() =>
+    Array.from(document.querySelectorAll("#s-cargas a.zap")).length);
+  ok(temBotaoZap === 1, "a aba tem o botão de enviar no WhatsApp", temBotaoZap);
 
   // Persistência: recarregar não perde a área
   await pag.reload({ waitUntil: "load" });

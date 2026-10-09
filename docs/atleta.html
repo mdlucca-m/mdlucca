@@ -579,6 +579,13 @@ function mensagem(titulo, linhas){
   return `🏐 ${titulo} ELASE VOLEIBOL\n${quem ? quem + " · " : ""}${dataBR(hojeISO())}\n\n`
     + linhas.map((l, i) => `${i+1}. ${l[0]} — ${l[1]}`).join("\n");
 }
+/* As cargas com o mesmo formato numerado das outras mensagens, para o app da
+   comissão ler sozinho. Só o que foi lançado: uma linha "— em branco" chegaria
+   lá como carga ilegível e apareceria como problema onde não há problema. */
+function mensagemCargas(){
+  return mensagem("CARGAS", REFS_1RM.filter(r => S.rm[r] > 0)
+    .map(r => [r, num(S.rm[r], S.rm[r] % 1 ? 1 : 0) + " kg"]));
+}
 function fichaCadastro(d){
   return "🏐 CADASTRO ELASE VOLEIBOL\n\n" + CAMPOS.map(([k, rot], i) => {
     let v = String(d[k] == null ? "" : d[k]).trim().replace(/\s*\n\s*/g, " ");
@@ -1133,6 +1140,14 @@ function telaCargas(){
 
     ${cartaoHoje}
     ${tabela}
+    ${!lancados.length ? "" : cartaoEnvio(mensagemCargas(),
+      "Mandar as cargas para o treinador")}
+    ${!lancados.length ? "" : `<div class="cartao"><h3>Por que mandar</h3>
+      <p style="font-size:13.5px;color:var(--ink-2);margin:0">O que você lança
+      aqui fica só neste celular. Mandando, o treinador passa a ver a sua carga
+      junto com a do elenco — e a prescrição que ele monta já sai com o seu
+      número, em vez de só com o percentual. Mande de novo depois de cada
+      reteste.</p></div>`}
 
     <div class="cartao"><h3>Quando mudar estes números</h3>
       <p style="font-size:13.5px;color:var(--ink-2);margin:0">Depois de um reteste,
