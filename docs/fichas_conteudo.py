@@ -1095,7 +1095,7 @@ CORPO_INTEIRO = {
         "agachamento pesado vira outro exercício. A força vem no meio, e o "
         "<b>unilateral por último</b> — ele não está ali para somar carga e sim "
         "para <b>achar a diferença entre os seus dois lados</b>. O agachamento e o "
-        "stiff são os dois pesados do dia, e o <b>supino entra entre eles</b> para "
+        "terra são os dois pesados do dia, e o <b>supino entra entre eles</b> para "
         "a lombar não levar os dois seguidos.",
     "aquecimento_titulo": "Aquecimento — antes do primeiro exercício de cada padrão",
     "aquecimento_nota": "O push press é o primeiro da sessão e o mais técnico: o "
@@ -1112,46 +1112,46 @@ CORPO_INTEIRO = {
     "exercicios": [
         ("Push press", "potência &middot; empurrar vertical — a perna joga",
          "4 × 3", "2,5 min", "58%"),
-        ("Remada curvada explosiva", "potência &middot; puxar horizontal — rápido, solta devagar",
-         "4 × 4", "2 min", "50%"),
         ("Agachamento livre", "força &middot; perna — o mais pesado do dia",
          "4 × 5", "3 min", "80%"),
         ("Supino reto com barra", "força &middot; empurrar horizontal — sobrariam 2 repetições",
          "4 × 5", "2,5 min", "82%"),
-        ("Stiff (terra romeno)", "força &middot; dobra de quadril — desce em 3 s",
-         "4 × 6", "2,5 min", "70%"),
+        ("Levantamento terra", "força &middot; dobra de quadril — cada repetição do chão",
+         "4 × 4", "3 min", "78%"),
         ("Remada alta", "força &middot; ombro — pegada ABERTA, ler o verso antes",
          "3 × 8", "90 s", "RIR 2"),
+        ("Puxada unilateral no pulley alto", "unilateral &middot; puxar vertical — 10 em CADA lado",
+         "3 × 10", "90 s", "RIR 2"),
         ("Elevação pélvica unilateral", "unilateral &middot; perna — 10 em CADA lado",
          "3 × 10", "90 s", "RIR 2"),
         ("Remada unilateral (serrote)", "unilateral &middot; puxar — 8 em CADA lado",
          "3 × 8", "90 s", "RIR 2"),
     ],
     "nota_tabela":
-        "Anote a carga de cada exercício. Nos <b>dois unilaterais, anote os dois "
+        "Anote a carga de cada exercício. Nos <b>três unilaterais, anote os dois "
         "lados</b> — é a informação desta folha que mais diz sobre risco de lesão.",
     "caixa_duracao":
         "<b>Duração prevista: 95 a 110 minutos</b> — oito multiarticulares com "
         "pausa cheia é sessão longa, e vale saber antes de chegar na metade. "
         "<b>Com menos de 85 minutos:</b> 3 séries em vez de 4 no push press, no "
-        "agachamento, no supino e no stiff. Corte a série, nunca a pausa — e "
+        "agachamento, no supino e no terra. Corte a série, nunca a pausa — e "
         "nunca as puxadas.",
     "verso": [
         ("h", "Por que esta ordem, e não outra"),
         ("grade", ["BLOCO", "O QUE", "POR QUE VEM AQUI"], [
-            ["1º", "Potência — push press e remada explosiva",
-             "velocidade é a primeira coisa que a fadiga leva; depois do "
-             "agachamento pesado estes dois viram outro exercício"],
-            ["2º", "Força — agachamento, supino e stiff",
+            ["1º", "Potência — push press",
+             "velocidade é a primeira coisa que a fadiga leva: depois do "
+             "agachamento pesado ele vira um desenvolvimento lento com ajuda de perna"],
+            ["2º", "Força — agachamento, supino e terra",
              "carga alta aguenta um pouco de cansaço; velocidade não aguenta "
              "nenhum. <b>O supino entra entre os dois pesados</b> para a lombar "
              "não levá-los seguidos"],
-            ["3º", "Ombro e unilateral — remada alta, elevação pélvica e serrote",
+            ["3º", "Ombro e unilateral — remada alta, puxada, elevação pélvica e serrote",
              "carga menor e controle: é o bloco que continua fazendo o trabalho "
              "dele cansado — e é cansado que a diferença entre os lados aparece"],
         ], [0.08, 0.34, 0.58]),
         ("espaco", 4),
-        ("caixa", "<b>A conta dos padrões: 8 séries de empurrar, 10 de puxar e 11 "
+        ("caixa", "<b>A conta dos padrões: 8 séries de empurrar, 9 de puxar e 11 "
                   "de perna.</b> Em quem ataca e bloqueia centenas de vezes por "
                   "semana — trabalho que já é todo à frente do corpo — puxar um "
                   "pouco mais do que se empurra é o lado certo para a conta "
@@ -1163,23 +1163,18 @@ CORPO_INTEIRO = {
              "dobra uns 10 cm e estende rápido — e o braço termina. Não é "
              "desenvolvimento lento com ajuda. Se a lombar arqueia para a barra "
              "subir, a carga está alta demais."),
-            ("Remada curvada explosiva", "Puxa o cotovelo para trás o mais rápido "
-             "que conseguir e <b>desce devagar</b>. Tronco parado: se o corpo sobe "
-             "junto com a barra, quem puxa é a lombar. Série em que a barra saiu "
-             "lenta acabou ali — marque um X."),
             ("Agachamento", "Profundidade até onde o quadril desce <b>sem a lombar "
              "arredondar</b> — quem não desce por falta de tornozelo tem problema de "
              "mobilidade, não de força. A 80% sobrariam 2 repetições."),
-            ("Stiff", "Desça contando <b>3 segundos</b>, barra rente à perna, "
-             "joelho levemente solto, e pare onde a posterior pedir — não onde a "
-             "barra chega ao chão. <b>Lombar arredondou, a série acabou.</b> Está a "
-             "70% porque chega depois do agachamento."),
+            ("Levantamento terra", "<b>Cada repetição começa do chão, do zero</b> — "
+             "emendar com a lombar cansada é onde a coluna arredonda. <b>Lombar "
+             "arredondou, a série acabou.</b> São 4 a 78% e não 5 a 80% porque ele "
+             "vem depois do agachamento."),
             ("Remada alta", "<b>É o exercício de maior risco de ombro desta ficha "
              "para quem ataca</b>, e faz diferença como você faz: pegada na largura "
              "dos ombros ou <b>mais aberta</b>, barra parando na altura do "
              "<b>esterno</b> e não do queixo, e o <b>cotovelo nunca acima da linha "
-             "do ombro</b>. Deu dor ou pinçamento na frente do ombro, troque por "
-             "face pull ou elevação lateral — a perda de treino é zero."),
+             "do ombro</b>. Deu dor ou pinçamento, troque por face pull."),
             ("Elevação pélvica unilateral", "Costas apoiadas no banco, <b>um pé no "
              "chão</b> e o outro joelho puxado contra o peito. Sem banco, deitado no "
              "chão. Sobe empurrando pelo <b>calcanhar</b> até o tronco ficar reto, "
@@ -1187,15 +1182,15 @@ CORPO_INTEIRO = {
              "subir mais, você passou do ponto. É a única da ficha que não é "
              "multiarticular: ela está aqui pela extensão de quadril, que é o que "
              "empurra o chão no salto."),
-            ("Os dois unilaterais", "<b>Comece pelo lado mais fraco, e o lado bom "
-             "para no número que o fraco fez</b> — é assim que a diferença diminui. "
-             "No serrote, cotovelo para trás, não o ombro para cima."),
+            ("Os três unilaterais", "<b>Comece pelo lado mais fraco, e o lado bom "
+             "para no número que o fraco fez.</b> Na puxada, tronco parado: se o "
+             "corpo gira para ajudar, a carga está alta."),
         ]),
         ("espaco", 3),
         ("caixa", "<b>Se você fez o treino de contraste nas últimas 48 horas</b> — "
                   "o do isométrico máximo, saltos e supino a 88% —, mude três "
                   "cargas: <b>agachamento a 70% com 3 séries</b>, <b>supino a "
-                  "75%</b> e <b>stiff em 3 séries</b>. São os mesmos padrões "
+                  "75%</b> e <b>terra em 3 séries a 70%</b>. São os mesmos padrões "
                   "pesados duas vezes na mesma semana.", AMBAR_CLARO, AMBAR),
         ("espaco", 3),
     ],
