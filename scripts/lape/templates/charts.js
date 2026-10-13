@@ -199,6 +199,32 @@ const Charts = (function () {
       + " L" + x + "," + (y + h) + " Z";
   }
 
+  /* Extrusão isométrica de uma barra horizontal — topo (clareado) e ponta
+     (escurecido) atrás da face da frente, que continua sendo a MESMA cor e
+     o mesmo comprimento de sempre: o 3D é só pele, nunca muda o que a
+     barra mede. Opcional (`spec.d3`), nunca o padrão -- profundidade e
+     sombra atrapalham justamente quem compara comprimento de barra, que é
+     a leitura que este gráfico existe para dar. */
+  function prisma3D(x, y, w, h, color, depth) {
+    depth = depth === undefined ? 7 : depth;
+    const dx = depth, dy = -depth * 0.55;
+    const claro = "color-mix(in srgb, " + color + " 60%, white)";
+    const escuro = "color-mix(in srgb, " + color + " 68%, black)";
+    const g = s("g", { class: "mark prisma" });
+    g.appendChild(s("path", {
+      d: "M" + x + "," + y + " L" + (x + dx) + "," + (y + dy)
+        + " L" + (x + w + dx) + "," + (y + dy) + " L" + (x + w) + "," + y + " Z",
+      fill: claro,
+    }));
+    g.appendChild(s("path", {
+      d: "M" + (x + w) + "," + y + " L" + (x + w + dx) + "," + (y + dy)
+        + " L" + (x + w + dx) + "," + (y + dy + h) + " L" + (x + w) + "," + (y + h) + " Z",
+      fill: escuro,
+    }));
+    g.appendChild(s("path", { d: capRight(x, y, w, h, Math.min(R_END, h / 2)), fill: color }));
+    return g;
+  }
+
   /* ------------------------------------------------------------- moldura */
   function empty(message) {
     return el("div", { class: "empty", text: message || "Sem dados para este recorte." });
@@ -441,7 +467,11 @@ const Charts = (function () {
     if (!items.length) return figure(spec, empty(spec.emptyMessage));
     const rowH = spec.rowH || 26;
     const W = spec.width || 760, ML = spec.labelWidth || 190, MR = 62;
-    const H = items.length * rowH + 12;
+    /* No 3D a barra ganha uma folga por cima e na ponta para o prisma caber
+       sem ser cortado pelo viewBox -- o comprimento medido continua o
+       mesmo, só o desenho precisa de mais ar ao redor. */
+    const topPad = spec.d3 ? 6 : 0;
+    const H = items.length * rowH + 12 + topPad;
     const iw = W - ML - MR;
     const peak = Math.max.apply(null, items.map(function (d) { return d.value; }).concat([0]));
     const scale = niceTicks(peak, 3);
@@ -449,12 +479,12 @@ const Charts = (function () {
 
     scale.ticks.forEach(function (t) {
       const x = ML + iw * t / scale.max;
-      svg.appendChild(s("line", { class: "grid-line", x1: x, x2: x, y1: 4, y2: H - 8 }));
+      svg.appendChild(s("line", { class: "grid-line", x1: x, x2: x, y1: 4 + topPad, y2: H - 8 }));
     });
-    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: ML, y1: 4, y2: H - 8 }));
+    svg.appendChild(s("line", { class: "axis-line", x1: ML, x2: ML, y1: 4 + topPad, y2: H - 8 }));
 
     items.forEach(function (item, i) {
-      const y = i * rowH + 6;
+      const y = i * rowH + 6 + topPad;
       const barH = Math.min(BAR_MAX, rowH - 10);
       const w = Math.max(item.value > 0 ? 2 : 0, iw * item.value / scale.max);
       const color = item.color || serie(spec.mono ? 0 : i);
@@ -491,7 +521,8 @@ const Charts = (function () {
         svg.appendChild(txt(s("text", { class: "val", x: ML + w + 8, y: y + barH / 2 + 4 }), fmt(item.value)));
         return;
       }
-      const node = s("path", { class: "mark cresce", d: capRight(ML, y, w, barH), fill: color });
+      const node = spec.d3 ? prisma3D(ML, y, w, barH, color)
+                           : s("path", { class: "mark cresce", d: capRight(ML, y, w, barH), fill: color });
       node.style.setProperty("--passo", i);
       const rows = [{ value: fmt(item.value), name: spec.unit || "", color: color }];
       if (item.note) rows.push({ value: "", name: item.note });
@@ -837,7 +868,12 @@ const Charts = (function () {
     const items = (spec.items || []).filter(function (d) { return d.value > 0; });
     const total = items.reduce(function (a, b) { return a + b.value; }, 0);
     if (!total) return figure(spec, empty(spec.emptyMessage));
-    const W = 300, H = 260, cx = W / 2, cy = H / 2, R = 94, r = 62;
+    /* No 3D o anel ganha uma borda por baixo -- a "grossura" de uma rosca
+       vista de lado. Entra atrás da fatia de cima, na mesma cor escurecida;
+       a PROPORÇÃO de cada fatia (o que a rosca existe para mostrar) nunca
+       muda, só o desenho ganha uma sombra de espessura. */
+    const grossura = spec.d3 ? 10 : 0;
+    const W = 300, H = 260 + grossura, cx = W / 2, cy = H / 2 - grossura / 2, R = 94, r = 62;
     const svg = svgRoot(W, H, spec.caption || "distribuição");
     svg.setAttribute("class", "plot round");
     let angle = -Math.PI / 2;
@@ -850,13 +886,17 @@ const Charts = (function () {
       const pad = Math.min(GAP / R, span / 4);
       const a0 = angle + pad / 2, a1 = angle + span - pad / 2;
       const large = (a1 - a0) > Math.PI ? 1 : 0;
-      const path = s("path", {
-        class: "mark", fill: color,
-        d: "M" + (cx + R * Math.cos(a0)) + "," + (cy + R * Math.sin(a0))
+      const fatia = "M" + (cx + R * Math.cos(a0)) + "," + (cy + R * Math.sin(a0))
           + "A" + R + "," + R + " 0 " + large + " 1 " + (cx + R * Math.cos(a1)) + "," + (cy + R * Math.sin(a1))
           + "L" + (cx + r * Math.cos(a1)) + "," + (cy + r * Math.sin(a1))
-          + "A" + r + "," + r + " 0 " + large + " 0 " + (cx + r * Math.cos(a0)) + "," + (cy + r * Math.sin(a0)) + "Z",
-      });
+          + "A" + r + "," + r + " 0 " + large + " 0 " + (cx + r * Math.cos(a0)) + "," + (cy + r * Math.sin(a0)) + "Z";
+      if (grossura) {
+        svg.appendChild(s("path", {
+          d: fatia, fill: "color-mix(in srgb, " + color + " 65%, black)",
+          transform: "translate(0," + grossura + ")",
+        }));
+      }
+      const path = s("path", { class: "mark", fill: color, d: fatia });
       const pct = Math.round(100 * item.value / total);
       hoverable(path, item.label, [{ value: fmt(item.value) + " (" + pct + "%)", name: spec.unit || "", color: color }],
         item.onSelect || (spec.onSelect && function () { spec.onSelect(item); }));

@@ -475,6 +475,50 @@ class TestOsRotulosQueSeEncontravam(unittest.TestCase):
         self.assertEqual(corpo.count("fill:#fff"), 1, "só a porcentagem é branca")
 
 
+class TestOEstilo3DOpcional(unittest.TestCase):
+    """`bars`/`donut` ganharam um visual em relevo (`spec.d3`) -- pedido do
+    Mateus para variar o formato dos gráficos. Continua opcional: o padrão
+    sem `d3` não muda, porque profundidade e sombra atrapalham justamente
+    quem está comparando comprimento de barra ou fatia de rosca -- a
+    leitura que esses dois gráficos existem para dar."""
+
+    def setUp(self):
+        self.charts = (TEMPLATES / "charts.js").read_text(encoding="utf-8")
+
+    def test_prisma3d_existe_e_nunca_muda_a_cor_da_frente(self):
+        corpo = self.charts[self.charts.index("function prisma3D("):]
+        corpo = corpo[:corpo.index("\n  }\n")]
+        # topo mais claro, ponta mais escura -- a MESMA cor da barra, só
+        # clareada/escurecida; nunca uma cor nova que a legenda não explique
+        self.assertIn('"color-mix(in srgb, " + color + " 60%, white)"', corpo)
+        self.assertIn('"color-mix(in srgb, " + color + " 68%, black)"', corpo)
+        # a face da frente usa a MESMA função de ponta arredondada do padrão flat
+        self.assertIn("capRight(x, y, w, h", corpo)
+
+    def test_barra_so_vira_prisma_quando_pedido(self):
+        corpo = self.charts[self.charts.index("function bars(spec)"):]
+        corpo = corpo[:corpo.index("function lines(spec)")]
+        self.assertIn("spec.d3 ? prisma3D(ML, y, w, barH, color)", corpo)
+        # o padrão (sem d3) continua desenhando a barra flat de sempre
+        self.assertIn('s("path", { class: "mark cresce", d: capRight(ML, y, w, barH), fill: color })', corpo)
+
+    def test_rosca_3d_nao_muda_a_proporcao_das_fatias(self):
+        corpo = self.charts[self.charts.index("function donut(spec)"):]
+        corpo = corpo[:corpo.index("function funnel(spec)")]
+        self.assertIn("const grossura = spec.d3 ? 10 : 0;", corpo)
+        # a borda de baixo usa o MESMO caminho `fatia` da fatia de cima --
+        # dois SVGs com o span angular diferente teriam sido um jeito fácil
+        # de a proporção desenhada parar de bater com `item.value / total`
+        self.assertIn("if (grossura) {", corpo)
+        self.assertIn("d: fatia, fill:", corpo)
+
+    def test_o_panorama_pede_o_estilo_3d_em_barras_e_roscas(self):
+        panorama = (TEMPLATES / "panorama.js").read_text(encoding="utf-8")
+        self.assertEqual(panorama.count("C.bars({ d3: true,"), panorama.count("C.bars({"))
+        self.assertEqual(panorama.count("C.donut({ d3: true,"), panorama.count("C.donut({"))
+        self.assertGreater(panorama.count("C.bars({ d3: true,"), 0)
+
+
 class TestOMovimento(unittest.TestCase):
     """Efeito que atrapalha quem pediu para não ter efeito é defeito."""
 
