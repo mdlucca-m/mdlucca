@@ -1077,6 +1077,57 @@ class TestAlertaDeSessaoAbertaNaTela(unittest.TestCase):
         self.assertIn("r.aberto.alerta", texto)
 
 
+class TestOCampoDeMudancaEntreCampos(unittest.TestCase):
+    """`buildForm` ganhou um gancho genérico (`f.onChange`): um campo pode
+    preencher outros campos do mesmo formulário quando muda, sem o
+    formulário em si saber nada sobre o que está ligado a quê."""
+
+    TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+
+    def corpo_de_build_form(self) -> str:
+        texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        inicio = texto.index("function buildForm(")
+        return texto[inicio:texto.index("\nfunction table(", inicio)]
+
+    def test_o_gancho_existe_e_e_opcional(self):
+        corpo = self.corpo_de_build_form()
+        self.assertIn("if (f.onChange)", corpo)
+        self.assertIn('addEventListener("change"', corpo)
+
+
+class TestOProjetoVinculadoAoArtigo(unittest.TestCase):
+    """Escolher o projeto no cadastro de Artigos preenche Autores e
+    Responsável com a equipe desse projeto -- pedido do Mateus: "vincular
+    automaticamente aos alunos envolvidos". Nunca por cima do que a
+    pessoa já digitou (ver o comentário de `_link_project` no backend,
+    mesma regra)."""
+
+    TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+
+    def setUp(self):
+        self.texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+
+    def bloco_da_aba(self, nome: str) -> str:
+        return self.texto.split(f"VIEWS.{nome} = crudView({{", 1)[1].split("\n});", 1)[0]
+
+    def test_o_campo_projeto_existe_e_vem_do_backend(self):
+        bloco = self.bloco_da_aba("artigos")
+        self.assertIn('field("Projeto"', bloco)
+        self.assertIn('from: "project"', bloco)
+
+    def test_so_preenche_o_que_ainda_esta_vazio(self):
+        bloco = self.bloco_da_aba("artigos")
+        trecho = bloco[bloco.index('field("Projeto"'):]
+        trecho = trecho[:trecho.index("}),")]
+        self.assertIn('!autoresInput.value.trim()', trecho)
+        self.assertIn('!responsavelInput.value.trim()', trecho)
+
+    def test_artigos_vinculados_do_lado_do_projeto(self):
+        bloco = self.bloco_da_aba("projetos")
+        self.assertIn('field("Artigos vinculados"', bloco)
+        self.assertIn('from: "articles_linked"', bloco)
+
+
 class TestTokensDoTema(unittest.TestCase):
     """Todo var(--token) usado nas paginas precisa existir no tema.
 

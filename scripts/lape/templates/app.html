@@ -560,6 +560,14 @@ function buildForm(spec, values, onSubmit){
     }
     if (f.required) input.required = true;
     inputs[f.key] = {input: input, spec: f};
+    /* Gancho genérico: um campo pode preencher OUTROS campos do mesmo
+       formulário quando muda -- é o que liga "Projeto" a "Autores" e
+       "Responsável" no cadastro de Artigos, sem o formulário em si saber
+       nada sobre projeto nenhum. `inputs` só fecha quando o laço todo
+       terminar, mas a função só roda ao vivo, bem depois disso. */
+    if (f.onChange){
+      input.addEventListener("change", function (){ f.onChange(input.value, inputs); });
+    }
     grid.appendChild(h("div", {class: f.span === "full" ? "full" : null}, [
       h("label", {for: id, text: f.label + (f.required ? " *" : "")}),
       input,
@@ -1225,6 +1233,39 @@ VIEWS.artigos = crudView({
     field("Linha de pesquisa", "Linha de pesquisa", "select",
       {options: function (){ return CACHE.lines; }, from: "research_line",
        vazio: "Nenhuma linha de pesquisa cadastrada ainda. A coordenação instala as sete do LAPE de uma vez em Conta › Administração › Preparar o laboratório."}),
+    /* Vincular o projeto que gerou o artigo preenche Autores e Responsável
+       sozinho, com quem já está na equipe desse projeto (cadastrada na aba
+       Projetos) -- só quando esses dois campos ainda estiverem vazios: o
+       que a pessoa já digitou nunca é substituído por conta própria. */
+    field("Projeto", "Projeto vinculado", "select", {
+      options: function (){
+        return (CACHE.projects || []).map(function (p){ return p.name; });
+      },
+      from: "project",
+      vazio: "Nenhum projeto cadastrado ainda. Cadastre em Produção › Projetos.",
+      hint: "Preenche Autores e Responsável com a equipe do projeto, se esses "
+          + "campos ainda estiverem vazios.",
+      onChange: function (nome, inputs){
+        if (!nome) return;
+        const projeto = (CACHE.projects || []).find(function (p){ return p.name === nome; });
+        if (!projeto) return;
+        const autoresInput = inputs["Autores"] && inputs["Autores"].input;
+        const responsavelInput = inputs["Responsável"] && inputs["Responsável"].input;
+        const preencheu = [];
+        if (autoresInput && !autoresInput.value.trim() && projeto.members){
+          autoresInput.value = projeto.members;
+          preencheu.push("Autores");
+        }
+        if (responsavelInput && !responsavelInput.value.trim() && projeto.coordinator){
+          responsavelInput.value = projeto.coordinator;
+          preencheu.push("Responsável");
+        }
+        if (preencheu.length){
+          toast("Preenchido a partir da equipe de “" + nome + "”: "
+              + preencheu.join(" e ") + ".");
+        }
+      },
+    }),
     /* Era texto livre, e texto livre num campo de classificação não
        classifica nada: "ECR", "ensaio clínico randomizado" e "RCT" são a
        mesma coisa escrita de três jeitos, e o painel contava três
@@ -1453,6 +1494,14 @@ VIEWS.projetos = crudView({
     field("Parecer ético", "Parecer ético / CAAE"),
     field("Integrantes", "Integrantes", "text", {span: "full",
       hint: "Separados por ponto e vírgula."}),
+    /* O mesmo vínculo que a aba de Artigos grava ao escolher "Projeto",
+       aqui do lado do projeto -- o pedido foi "qual artigo ele está
+       vinculado, ou vice-versa". Casa pelo TÍTULO já cadastrado; um
+       título que não bate com nenhum artigo fica de fora, sem travar o
+       resto do cadastro. */
+    field("Artigos vinculados", "Artigos vinculados", "text", {span: "full",
+      from: "articles_linked",
+      hint: "Separados por ponto e vírgula, com o mesmo título cadastrado na aba Artigos."}),
     field("Link", "Link"),
   ],
   columns: [
@@ -1461,6 +1510,7 @@ VIEWS.projetos = crudView({
     {k: "coordinator", label: "Coordenação"},
     {k: "funder", label: "Financiador"},
     {k: "n_members", label: "Integrantes", num: true},
+    {k: "n_articles", label: "Artigos", num: true},
     {k: "status", label: "Situação", render: function (r){
       return h("span", {class: "badge" + (r.status === "em_andamento" ? " ok" : ""),
         text: rotuloDe(PROJETO_ROTULO, r.status)}); }},

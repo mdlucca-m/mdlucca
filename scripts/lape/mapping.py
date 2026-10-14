@@ -127,6 +127,7 @@ COLUMN_ALIASES: dict[str, dict[str, tuple[str, ...]]] = {
         "internal_review": ("revisao_interna", "data_revisao_interna", "revisao_interna_em"),
         "rejection_reason": ("motivo_da_recusa", "motivo_recusa", "motivo", "razao_da_recusa"),
         "submission_journal": ("revista_submetida", "periodico_submetido", "revista_alvo"),
+        "project": ("projeto", "projeto_vinculado", "project", "projeto_de_pesquisa"),
     },
     "authors": {
         "article": ("artigo", "titulo", "titulo_do_artigo", "codigo", "id_artigo", "article"),
@@ -171,6 +172,7 @@ COLUMN_ALIASES: dict[str, dict[str, tuple[str, ...]]] = {
         "ethics_approval": ("parecer_etico", "caae", "comite_de_etica", "parecer"),
         "url": ("link", "url", "pagina"),
         "members": ("integrantes", "equipe", "participantes", "membros", "pesquisadores"),
+        "articles_linked": ("artigos", "artigos_vinculados", "artigos_do_projeto", "producao_do_projeto"),
     },
     "project_members": {
         "project": ("projeto", "codigo", "titulo", "project"),

@@ -308,6 +308,22 @@ class Database:
         cache[key] = line_id
         return line_id
 
+    def project_id(self, name: Any) -> int | None:
+        """Acha um projeto pelo codigo ou pelo nome -- e so acha: ao contrario
+        de `research_line_id`, nunca cria um projeto novo so porque alguem
+        digitou um nome que nao bate com nenhum. Um projeto nasce na aba de
+        Projetos, com coordenador e linha declarados; um artigo que erra o
+        nome do projeto tem de ficar sem o vinculo, nao ganhar um projeto
+        fantasma so com esse nome."""
+        label = clean_text(name)
+        if label is None:
+            return None
+        row = self.conn.execute(
+            "SELECT id FROM projects WHERE code = ? OR lower(name) = lower(?)",
+            (norm_key(label), label),
+        ).fetchone()
+        return int(row["id"]) if row else None
+
     def institution_id(self, name: Any, city: Any = None, **extra: Any) -> int | None:
         label = clean_text(name)
         if label is None:

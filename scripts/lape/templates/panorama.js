@@ -316,7 +316,7 @@ function raioX() {
     bloco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
       "relogio", "Onde o tempo fica",
       "Mediana de dias em cada etapa. O maior vão é onde o artigo espera.",
-      C.bars({
+      C.bars({ d3: true,
         items: medidas.map(function (e) {
           return { label: e.etapa, value: Math.round(e.dias) }; }),
         mono: true, unit: "dias",
@@ -542,7 +542,7 @@ function verVisao(palco) {
       C.funnel({ steps: etapas, file: "funil-producao", height: 250 })),
     cartao("barras", "Peso de cada variável",
       "Quantos artigos tocam cada assunto. Clique para filtrar a tela inteira.",
-      C.bars({
+      C.bars({ d3: true,
         items: (p.variaveis || []).slice(0, 10).map(function (v) {
           return { label: v.label, value: v.total_geral,
                    color: corDaVariavel(v.code),
@@ -1568,7 +1568,7 @@ function curvasSemSerie(palco) {
     palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
       "aviso", "Sinal e ruído", "Quanto o balanço pesa diante da variação real. "
       + "Perto de 1, a linha é quase só ruído.",
-      C.bars({ items: ruidosas.map(function (v) {
+      C.bars({ d3: true, items: ruidosas.map(function (v) {
         return { label: v.label, value: v.razao_ruido, color: corDaVariavel(v.code) }; }),
         labelWidth: 190, unit: "ruído/sinal", file: "ruido" }))));
   }
@@ -3105,13 +3105,13 @@ function cartaoDeFrequencia(icone, titulo, linhas, opts) {
     return opts.aoSelecionar ? function () { opts.aoSelecionar(categoria); } : undefined;
   }
   const grafico = opts.tipo === "donut"
-    ? C.donut({
+    ? C.donut({ d3: true,
         items: linhas.map(function (r, i) {
           return { label: r.categoria, value: r.n, color: C.token("--series-" + (i % 8 + 1)),
                    onSelect: clique(r.categoria) }; }),
         unit: "artigo(s)",
       })
-    : C.bars({
+    : C.bars({ d3: true,
         items: linhas.map(function (r) {
           return { label: r.categoria, value: r.n, onSelect: clique(r.categoria) }; }),
         mono: true, unit: "artigo(s)",
@@ -3381,7 +3381,7 @@ function verEquipe(palco) {
     "A barra é tempo, não resultado. Quem aparece pouco pode estar trabalhando "
     + "fora do laboratório — o ponto só sabe o que foi marcado.",
     pessoas.length
-      ? C.bars({
+      ? C.bars({ d3: true,
           /* `bars` lê `items`, não `labels`/`series` como `columns` --
              passar a forma errada não dá erro, desenha "sem dados". */
           items: pessoas.map(function (x) {
@@ -3534,13 +3534,13 @@ function verPessoas(palco) {
   palco.appendChild(el("div", { class: "grade g2", style: "margin-top:14px" }, [
     cartao("hierarquia", "Integrantes por vínculo", "Ativos e desligados, dos dois lados.",
       porPapel.length
-        ? C.donut({ items: porPapel.map(function (p, i) {
+        ? C.donut({ d3: true, items: porPapel.map(function (p, i) {
             return { label: p.label, value: p.n, color: C.token("--series-" + (i % 8 + 1)) }; }),
             unit: "pessoa(s)" })
         : el("p", { class: "hint", text: "Sem vínculo cadastrado ainda." })),
     cartao("mapa", "Integrantes por linha de pesquisa", "Só quem está ativo agora.",
       porLinha.length
-        ? C.donut({ items: porLinha.map(function (p, i) {
+        ? C.donut({ d3: true, items: porLinha.map(function (p, i) {
             return { label: p.linha, value: p.n, color: C.token("--series-" + (i % 8 + 1)) }; }),
             unit: "pessoa(s)" })
         : el("p", { class: "hint", text: "Ninguém com linha de pesquisa declarada." })),
@@ -3566,7 +3566,7 @@ function verPessoas(palco) {
   palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("citacao",
     "Citações por vínculo", "Soma de quem está ativo e desligado, do vínculo que mais produziu para o que menos.",
     porPapel.length
-      ? C.bars({ items: porPapel.filter(function (p) { return p.citacoes > 0; })
+      ? C.bars({ d3: true, items: porPapel.filter(function (p) { return p.citacoes > 0; })
           .map(function (p) { return { label: p.label, value: p.citacoes }; }),
           mono: true, unit: "citação(ões)" })
       : el("p", { class: "hint", text: "Sem citação registrada ainda." }))));
@@ -3575,7 +3575,7 @@ function verPessoas(palco) {
   if (porEscolaridade.length) {
     palco.appendChild(el("div", { style: "margin-top:14px" }, cartao("hierarquia",
       "Integrantes por escolaridade", "Ativos e desligados, dos dois lados.",
-      C.bars({ items: porEscolaridade.map(function (e) { return { label: e.escolaridade, value: e.n }; }),
+      C.bars({ d3: true, items: porEscolaridade.map(function (e) { return { label: e.escolaridade, value: e.n }; }),
         mono: true, unit: "pessoa(s)" }))));
   }
 
@@ -3587,7 +3587,7 @@ function verPessoas(palco) {
     "Déficit no banco de horas (" + deficit.length + ")",
     "Bolsistas com carga semanal obrigatória, abaixo da meta acumulada.",
     deficit.length
-      ? C.bars({ items: deficit.map(function (b) {
+      ? C.bars({ d3: true, items: deficit.map(function (b) {
           return { label: b.quem, value: Math.abs(b.saldo_acumulado), color: C.token("--critical") }; }),
           mono: true, unit: "h a menos" })
       : el("p", { class: "hint", text: "Ninguém com déficit no banco de horas." }))));
@@ -3629,7 +3629,7 @@ function verPessoas(palco) {
     "Citações por integrante (" + filtradas.length + ")",
     "Ordenado de quem mais acumulou citações para quem menos -- não é ranking de esforço, é de produção já publicada.",
     filtradas.length
-      ? C.bars({
+      ? C.bars({ d3: true,
           items: filtradas.slice(0, 30).map(function (p) {
             return { label: p.nome, value: p.citacoes }; }),
           mono: true, unit: "citação(ões)",
