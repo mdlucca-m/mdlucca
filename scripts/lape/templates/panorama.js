@@ -146,6 +146,7 @@ const ABAS = [
   { id: "funil", rotulo: "Incidência e prevalência", icone: "processo", grupo: "Análise" },
   { id: "triangulo", rotulo: "Triangulação", icone: "hierarquia", grupo: "Análise" },
   { id: "rede", rotulo: "Rede temática", icone: "rede", grupo: "Análise" },
+  { id: "rede_integrantes", rotulo: "Rede de integrantes", icone: "conectar", grupo: "Análise" },
   { id: "mapa", rotulo: "Mapa da produção", icone: "mapa", grupo: "Análise" },
   { id: "estatistica", rotulo: "Estatística", icone: "balanca", grupo: "Análise" },
   { id: "sintese", rotulo: "Síntese", icone: "aceite", grupo: "Leitura" },
@@ -1906,6 +1907,48 @@ function verRede(palco) {
     ]))));
 }
 
+function verRedeIntegrantes(palco) {
+  const rede = (D.panorama || {}).rede_integrantes || { nos: [], arestas: [], grupos: [] };
+  palco.appendChild(cabeca("conectar", "Rede de integrantes",
+    "Quem assina artigo junto e quem divide equipe de projeto. É o desenho de como "
+    + "as pessoas do laboratório se conectam, não de que assunto elas tratam."));
+
+  if (!rede.arestas.length) {
+    palco.appendChild(nota("<b>Nenhuma conexão entre integrantes ainda.</b> A rede aparece "
+      + "quando duas pessoas assinam o mesmo artigo ou integram o mesmo projeto."));
+    return;
+  }
+
+  const porId = {};
+  rede.nos.forEach(function (n) { porId[n.id] = n; });
+
+  palco.appendChild(cartao("conectar", "Quem trabalha com quem",
+    "O tamanho do nó é o quanto a pessoa está conectada; a espessura da linha, "
+    + "quantos artigos e projetos as duas dividem.",
+    C.network({
+      nodes: rede.nos.map(function (n) {
+        return { id: n.id, label: n.nome, weight: n.n, degree: n.grau, group: n.grupo }; }),
+      links: rede.arestas.map(function (a) {
+        return { source: a.de, target: a.para, weight: a.n }; }),
+      groups: rede.grupos, height: 440, unit: "vínculo(s)", file: "rede-de-integrantes" })));
+
+  palco.appendChild(el("div", { style: "margin-top:14px" }, cartao(
+    "conectar", "Os pares, em números", "Ordenados por quantas ligações as duas pessoas dividem.",
+    el("table", { class: "dados" }, [
+      el("thead", {}, el("tr", {}, ["Par", "Artigos juntos", "Projetos juntos", "Total"]
+        .map(function (c, i) { return el("th", { text: c, style: i ? "text-align:right" : null }); }))),
+      el("tbody", {}, rede.arestas.slice(0, 24).map(function (a) {
+        const de = porId[a.de], para = porId[a.para];
+        return el("tr", {}, [
+          el("td", { text: (de ? de.nome : "?") + " + " + (para ? para.nome : "?") }),
+          el("td", { class: "num", text: String(a.artigos) }),
+          el("td", { class: "num", text: String(a.projetos) }),
+          el("td", { class: "num", text: String(a.n) }),
+        ]);
+      })),
+    ]))));
+}
+
 /* ==================================================================== */
 /* 6. mapa                                                              */
 /* ==================================================================== */
@@ -3659,7 +3702,8 @@ function desenhar() {
     return;
   }
   ({ visao: verVisao, laboratorio: verLaboratorio, variaveis: verVariaveis,
-     curvas: verCurvas, rede: verRede, mapa: verMapa, sintese: verSintese,
+     curvas: verCurvas, rede: verRede, rede_integrantes: verRedeIntegrantes,
+     mapa: verMapa, sintese: verSintese,
      lacunas: verLacunas, extracao: verExtracao, funil: verFunil,
      triangulo: verTriangulo, projetos: verProjetos, estatistica: verEstatistica,
      equipe: verEquipe, pessoas: verPessoas }[ST.aba] || verVisao)(palco);

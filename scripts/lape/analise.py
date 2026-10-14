@@ -348,6 +348,7 @@ def panorama(db: Database, desde: int | None = None,
         "variaveis": variaveis,
         "cruzamentos": encontros[:24],
         "rede": rede(db),
+        "rede_integrantes": rede_integrantes(db),
         "paises": paises(db),
         "sem_ano": sum(1 for a in artigos if a["ano"] is None),
         "total_artigos": len(artigos),
@@ -1107,6 +1108,79 @@ def rede(db: Database) -> dict[str, Any]:
                  "icone": rotulos[c]["icone"], "n": len(por_variavel[c])}
                 for c in codigos],
         "arestas": arestas,
+    }
+
+
+def rede_integrantes(db: Database) -> dict[str, Any]:
+    """Quem trabalha com quem: artigo assinado junto ou equipe do mesmo projeto.
+
+    Duas pessoas se ligam por dois motivos, e aqui contam somados: assinar
+    o mesmo artigo e integrar o mesmo projeto. Um par que so compartilha um
+    dos dois nao desaparece por nao ter o outro -- a forca da ligacao e a
+    soma. So entra quem tem ao menos uma ligacao: um integrante sem nenhum
+    coautor e sem projeto em equipe nao tem o que a rede mostre dele, e um
+    no isolado so faria a figura inteira parecer mais vazia do que e.
+    """
+    from . import mapping
+
+    pessoas = {p["id"]: p for p in db.dicts(
+        "SELECT id, full_name, role FROM members WHERE is_external = 0")}
+
+    pares: dict[tuple[int, int], dict[str, int]] = {}
+
+    def somar(ids: Iterable[int], campo: str) -> None:
+        ordenados = sorted({i for i in ids if i in pessoas})
+        for i, m1 in enumerate(ordenados):
+            for m2 in ordenados[i + 1:]:
+                contagem = pares.setdefault((m1, m2), {"artigos": 0, "projetos": 0})
+                contagem[campo] += 1
+
+    por_artigo: dict[int, set[int]] = {}
+    for linha in db.dicts(
+            "SELECT article_id, member_id FROM article_authors WHERE member_id IS NOT NULL"):
+        por_artigo.setdefault(linha["article_id"], set()).add(linha["member_id"])
+    for membros in por_artigo.values():
+        somar(membros, "artigos")
+
+    por_projeto: dict[int, set[int]] = {}
+    for linha in db.dicts("SELECT project_id, member_id FROM project_members"):
+        por_projeto.setdefault(linha["project_id"], set()).add(linha["member_id"])
+    for membros in por_projeto.values():
+        somar(membros, "projetos")
+
+    grau: dict[int, int] = {}
+    peso: dict[int, int] = {}
+    arestas = []
+    for (m1, m2), contagem in pares.items():
+        n = contagem["artigos"] + contagem["projetos"]
+        if not n:
+            continue
+        arestas.append({"de": m1, "para": m2, "artigos": contagem["artigos"],
+                         "projetos": contagem["projetos"], "n": n})
+        for m in (m1, m2):
+            grau[m] = grau.get(m, 0) + 1
+            peso[m] = peso.get(m, 0) + n
+    arestas.sort(key=lambda x: -x["n"])
+
+    # A ordem de VINCULOS (coordenacao, professor, pos-doc, ... ) e a mesma
+    # ordem de grupo/cor na tela -- um papel so entra na legenda se alguem
+    # com ele de fato aparecer na rede.
+    ordem_papel = [codigo for codigo, _, _ in mapping.VINCULOS]
+    papeis_presentes = sorted(
+        {pessoas[mid]["role"] for mid in peso if pessoas[mid]["role"] in ordem_papel},
+        key=ordem_papel.index)
+
+    nos = [{"id": mid, "nome": pessoas[mid]["full_name"],
+            "papel": pessoas[mid]["role"],
+            "rotulo_papel": mapping.ROLE_LABEL.get(pessoas[mid]["role"], pessoas[mid]["role"]),
+            "grupo": (papeis_presentes.index(pessoas[mid]["role"])
+                      if pessoas[mid]["role"] in papeis_presentes else len(papeis_presentes)),
+            "n": peso[mid], "grau": grau[mid]}
+           for mid in sorted(peso, key=lambda m: -peso[m])]
+    return {
+        "nos": nos,
+        "arestas": arestas,
+        "grupos": [mapping.ROLE_LABEL.get(p, p) for p in papeis_presentes],
     }
 
 

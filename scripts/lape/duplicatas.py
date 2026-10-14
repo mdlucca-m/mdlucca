@@ -98,6 +98,13 @@ FUSOES_DECLARADAS: tuple[tuple[str, str], ...] = (
     # pela coordenação em 08/10/2026. Fica o nome completo; os dados da ficha
     # mais completa -- vínculo, orientandos, ponto -- prevalecem.
     ("Alexandro Andrade", "Alexandro"),
+    # "Andrade" -- o exemplo que abre este módulo -- é o mesmo sobrenome
+    # sozinho, não o primeiro nome; confirmado pela coordenação em
+    # 14/10/2026 como a mesma pessoa. É por isso que esta fusão, diferente
+    # das duas de cima, precisa de `qualquer_token=True` em
+    # `aplicar_declaradas`: "andrade" não é o primeiro nome de "Alexandro
+    # Andrade", e sem isso `e_fantasma_de` recusaria o par.
+    ("Alexandro Andrade", "Andrade"),
 )
 
 # Fusões declaradas em que as duas fichas ASSINAM o mesmo artigo e, ainda
@@ -109,6 +116,7 @@ FUSOES_DECLARADAS: tuple[tuple[str, str], ...] = (
 # vez só em cada artigo).
 FUSOES_COM_ARTIGO_EM_COMUM: frozenset[tuple[str, str]] = frozenset({
     ("Alexandro Andrade", "Alexandro"),
+    ("Alexandro Andrade", "Andrade"),
 })
 
 
@@ -142,14 +150,16 @@ def aplicar_declaradas(db: Database) -> list[dict[str, Any]]:
         if not fica or not sai or fica == sai:
             continue
         if not e_fantasma_de(db, sai, fica,
-                             ignorar_artigo_comum=(nome_fica, nome_sai) in FUSOES_COM_ARTIGO_EM_COMUM):
+                             ignorar_artigo_comum=(nome_fica, nome_sai) in FUSOES_COM_ARTIGO_EM_COMUM,
+                             qualquer_token=True):
             continue
         feitas.append(fundir(db, manter_id=fica, sumir_id=sai))
     return feitas
 
 
 def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int,
-                  ignorar_artigo_comum: bool = False) -> bool:
+                  ignorar_artigo_comum: bool = False,
+                  qualquer_token: bool = False) -> bool:
     """A ficha `ficha_id` e so um pedaco do nome de `pessoa_id`?
 
     As mesmas duas perguntas de `candidatos`, feitas sobre um par ja
@@ -158,6 +168,13 @@ def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int,
 
     Serve ao caso em que a coordenacao ja declarou a grafia -- ai nao ha o
     que propor a ninguem, porque a resposta ja foi dada por escrito.
+
+    `qualquer_token=True` troca "e o primeiro nome" por "e algum dos
+    nomes" -- um sobrenome sozinho ("Andrade", de "Alexandro Andrade")
+    nunca bate na regra padrao, que so olha o primeiro nome. So faz
+    sentido quando o par ja foi confirmado por fora (`aplicar_declaradas`);
+    `candidatos`, que propoe pares sem ninguem ter confirmado nada, nunca
+    passa isto -- um sobrenome comum bateria em gente diferente.
     """
     fichas = {p["id"]: p for p in db.dicts(
         "SELECT id, full_name FROM members WHERE id IN (?, ?)", (ficha_id, pessoa_id))}
@@ -166,7 +183,11 @@ def e_fantasma_de(db: Database, ficha_id: int, pessoa_id: int,
     curto, cheio = fichas[ficha_id]["full_name"], fichas[pessoa_id]["full_name"]
     if len(_tokens(curto)) != 1 or len(_tokens(cheio)) < 2:
         return False
-    if norm_key(curto) != _primeiro_nome(cheio):
+    if qualquer_token:
+        bate = norm_key(curto) in {norm_key(t) for t in _tokens(cheio)}
+    else:
+        bate = norm_key(curto) == _primeiro_nome(cheio)
+    if not bate:
         return False
     if ignorar_artigo_comum:
         return True

@@ -27,7 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from lape import api, auth, ingest_excel, metrics, variaveis  # noqa: E402
+from lape import analise, api, auth, ingest_excel, metrics, variaveis  # noqa: E402
 from lape.db import Database  # noqa: E402
 from lape.util import norm_key  # noqa: E402
 
@@ -1486,6 +1486,149 @@ class TestOOrganogramaDaGente(unittest.TestCase):
                           '  nomeDeCaixa({}) ]));')
         self.assertEqual(saida, ["Guilherme Vilarino", "Alexandro Andrade",
                                  "Ana C. B. Ribas", ""])
+
+
+class TestARedeDeIntegrantes(unittest.TestCase):
+    """Quem trabalha com quem: artigo assinado junto, equipe do mesmo projeto.
+
+    Pedido do Mateus: uma rede automática entre integrantes, no mesmo
+    espírito da rede temática que já existe -- mas de pessoa para pessoa,
+    não de variável para variável.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "r.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def pessoa(self, nome, papel=None, externo=False):
+        mid = self.db.member_id(nome, create=True)
+        self.db.execute("UPDATE members SET role = ?, is_external = ? WHERE id = ?",
+                        (papel, int(externo), mid))
+        self.db.conn.commit()
+        return mid
+
+    def artigo(self, titulo, autores):
+        cur = self.db.execute(
+            "INSERT INTO articles (title, title_key, status) VALUES (?, ?, 'publicado')",
+            (titulo, norm_key(titulo)))
+        aid = cur.lastrowid
+        for i, mid in enumerate(autores, start=1):
+            self.db.execute(
+                "INSERT INTO article_authors (article_id, member_id, author_name,"
+                "                             author_order) VALUES (?, ?, ?, ?)",
+                (aid, mid, str(mid), i))
+        self.db.conn.commit()
+        return aid
+
+    def projeto(self, nome, equipe):
+        cur = self.db.execute(
+            "INSERT INTO projects (code, name) VALUES (?, ?)", (norm_key(nome), nome))
+        pid = cur.lastrowid
+        for mid in equipe:
+            self.db.execute(
+                "INSERT INTO project_members (project_id, member_id) VALUES (?, ?)", (pid, mid))
+        self.db.conn.commit()
+        return pid
+
+    def test_quem_assina_junto_fica_ligado(self):
+        a = self.pessoa("Ana", "mestrando")
+        b = self.pessoa("Beto", "doutorando")
+        self.artigo("Artigo em dupla", [a, b])
+        rede = analise.rede_integrantes(self.db)
+        self.assertEqual(len(rede["arestas"]), 1)
+        aresta = rede["arestas"][0]
+        self.assertEqual({aresta["de"], aresta["para"]}, {a, b})
+        self.assertEqual(aresta["artigos"], 1)
+        self.assertEqual(aresta["projetos"], 0)
+        self.assertEqual(aresta["n"], 1)
+
+    def test_quem_so_divide_projeto_tambem_fica_ligado(self):
+        a = self.pessoa("Carla", "professor")
+        b = self.pessoa("Diego", "bolsista_ic")
+        self.projeto("Projeto conjunto", [a, b])
+        rede = analise.rede_integrantes(self.db)
+        self.assertEqual(len(rede["arestas"]), 1)
+        aresta = rede["arestas"][0]
+        self.assertEqual(aresta["artigos"], 0)
+        self.assertEqual(aresta["projetos"], 1)
+        self.assertEqual(aresta["n"], 1)
+
+    def test_artigo_e_projeto_em_comum_somam_na_mesma_ligacao(self):
+        # a mesma dupla assina um artigo E integra um projeto: uma ligação
+        # só, mais forte -- não duas linhas separadas no desenho
+        a = self.pessoa("Elis", "coordenacao")
+        b = self.pessoa("Fabio", "mestrando")
+        self.artigo("Artigo da dupla", [a, b])
+        self.projeto("Projeto da dupla", [a, b])
+        rede = analise.rede_integrantes(self.db)
+        self.assertEqual(len(rede["arestas"]), 1)
+        aresta = rede["arestas"][0]
+        self.assertEqual(aresta["artigos"], 1)
+        self.assertEqual(aresta["projetos"], 1)
+        self.assertEqual(aresta["n"], 2)
+
+    def test_quem_nao_tem_nenhuma_ligacao_nao_entra_no_desenho(self):
+        self.pessoa("Sozinho", "voluntario")
+        a = self.pessoa("Primeira Pessoa")
+        b = self.pessoa("Segunda Pessoa")
+        self.artigo("Artigo da dupla", [a, b])
+        rede = analise.rede_integrantes(self.db)
+        nomes = {n["nome"] for n in rede["nos"]}
+        self.assertEqual(nomes, {"Primeira Pessoa", "Segunda Pessoa"})
+
+    def test_integrante_externo_fica_de_fora(self):
+        # colaborador externo (is_external) não é "integrante" para este
+        # desenho -- a rede é da equipe do laboratório
+        de_fora = self.pessoa("Visitante", externo=True)
+        daqui = self.pessoa("Daqui")
+        self.artigo("Artigo com visitante", [de_fora, daqui])
+        rede = analise.rede_integrantes(self.db)
+        self.assertEqual(rede["arestas"], [])
+        self.assertEqual(rede["nos"], [])
+
+    def test_autor_sem_ficha_nao_quebra_a_conta(self):
+        # autoria de planilha sem member_id (autor externo não linkado) não
+        # pode travar o cálculo nem inventar um par com ele
+        a = self.pessoa("Com Ficha")
+        self.artigo("Artigo com autor solto", [a, None])
+        rede = analise.rede_integrantes(self.db)
+        self.assertEqual(rede["arestas"], [])
+
+    def test_o_grau_e_o_peso_do_no_somam_todas_as_ligacoes(self):
+        # Ana liga com Beto (artigo) e com Carla (projeto): grau 2, peso 2
+        ana = self.pessoa("Ana")
+        beto = self.pessoa("Beto")
+        carla = self.pessoa("Carla")
+        self.artigo("Artigo Ana e Beto", [ana, beto])
+        self.projeto("Projeto Ana e Carla", [ana, carla])
+        rede = analise.rede_integrantes(self.db)
+        no_ana = next(n for n in rede["nos"] if n["nome"] == "Ana")
+        self.assertEqual(no_ana["grau"], 2)
+        self.assertEqual(no_ana["n"], 2)
+
+    def test_os_grupos_seguem_a_ordem_dos_vinculos_e_so_trazem_quem_aparece(self):
+        from lape import mapping
+        a = self.pessoa("Professora", "professor")
+        b = self.pessoa("Bolsista", "bolsista_ic")
+        self.artigo("Artigo misto", [a, b])
+        rede = analise.rede_integrantes(self.db)
+        self.assertEqual(rede["grupos"],
+                         [mapping.ROLE_LABEL["professor"], mapping.ROLE_LABEL["bolsista_ic"]])
+        no_prof = next(n for n in rede["nos"] if n["nome"] == "Professora")
+        no_bols = next(n for n in rede["nos"] if n["nome"] == "Bolsista")
+        self.assertEqual(no_prof["grupo"], 0)
+        self.assertEqual(no_bols["grupo"], 1)
+
+    def test_entra_no_payload_do_panorama(self):
+        a = self.pessoa("Ana")
+        b = self.pessoa("Beto")
+        self.artigo("Artigo", [a, b])
+        pronto = analise.panorama(self.db)
+        self.assertIn("rede_integrantes", pronto)
+        self.assertEqual(len(pronto["rede_integrantes"]["arestas"]), 1)
 
 
 @unittest.skipIf(NODE is None, "node não está disponível nesta máquina")
