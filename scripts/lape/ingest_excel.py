@@ -512,6 +512,18 @@ def ingest_projects(db: Database, rows: list[dict]) -> int:
                     (project_id, member_id,
                      "Coordenacao" if clean_text(name_in_team) == coordinator else None),
                 )
+        # O mesmo vinculo que _link_project grava do lado do artigo, aqui do
+        # lado do projeto -- "qual artigo ele esta vinculado, ou vice-versa"
+        # (pedido do Mateus). So ACRESCENTA: um titulo que nao bate com
+        # nenhum artigo cadastrado fica de fora, em silencio, em vez de
+        # travar o cadastro do projeto inteiro por causa de uma linha.
+        for titulo in split_authors(row.get("articles_linked")):
+            article_id = db.scalar(
+                "SELECT id FROM articles WHERE title_key = ?", (title_key(titulo),))
+            if article_id:
+                db.execute(
+                    "INSERT OR IGNORE INTO project_articles (project_id, article_id)"
+                    " VALUES (?, ?)", (project_id, article_id))
         written += 1
     return written
 
@@ -905,6 +917,7 @@ def ingest_articles(db: Database, rows: list[dict]) -> int:
                                      rotulo="title")
         _save_milestones(db, article_id, milestones, limpar=alvo is not None)
         _link_authors(db, article_id, split_authors(row.get("authors")), lead=lead_name)
+        _link_project(db, article_id, row.get("project"))
         _inline_submission(db, article_id, row, submitted_on, accepted_on, status)
         written += 1
     return written
@@ -955,6 +968,30 @@ def _link_authors(db: Database, article_id: int, authors: list[str],
             " VALUES (?, ?, ?, ?, ?, ?)",
             (article_id, member_id, display_name(name) or name, order, corresponding, is_external),
         )
+
+
+def _link_project(db: Database, article_id: int, project_name: Any) -> None:
+    """Liga o artigo ao projeto que o gerou -- o mesmo `project_articles`
+    que a aba de Projetos ja grava, agora tambem acessivel pela aba de
+    Artigos. E o que faz "cadastrei o artigo, escolhi o projeto" trazer
+    sozinho quem ja esta na equipe do projeto (ve-se no formulario, nao
+    aqui: o navegador preenche Autores e Responsavel a partir do que
+    `/api/projects` ja devolve).
+
+    So age quando um projeto de fato foi informado -- campo vazio e "nao
+    mexi nisto", nao "desfaça o vinculo que ja existia", mesma regra de
+    `_link_authors`. E so ACRESCENTA o vinculo: nunca apaga um projeto
+    ligado pela aba de Projetos so porque este artigo declarou outro.
+    """
+    name = clean_text(project_name)
+    if not name:
+        return
+    project_id = db.project_id(name)
+    if not project_id:
+        return
+    db.execute(
+        "INSERT OR IGNORE INTO project_articles (project_id, article_id) VALUES (?, ?)",
+        (project_id, article_id))
 
 
 def _inline_submission(db: Database, article_id: int, row: dict, submitted_on: str | None,

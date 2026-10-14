@@ -987,7 +987,14 @@ SELECT
   (SELECT occurred_on FROM article_milestones
     WHERE article_id = a.id AND milestone = 'versao_4') AS version_4,
   (SELECT occurred_on FROM article_milestones
-    WHERE article_id = a.id AND milestone = 'versao_final') AS version_final
+    WHERE article_id = a.id AND milestone = 'versao_final') AS version_final,
+  /* Projeto que gerou o artigo -- so um, mesmo quando project_articles tem
+     mais de um ligado (artigo fruto de dois editais, por exemplo): a aba
+     de Artigos oferece UM seletor, entao so o primeiro (por id) volta pra
+     tela. Os demais vinculos, feitos pela aba de Projetos, continuam no
+     banco -- so nao aparecem nesse campo de volta. */
+  (SELECT p.name FROM project_articles pa JOIN projects p ON p.id = pa.project_id
+    WHERE pa.article_id = a.id ORDER BY pa.project_id LIMIT 1) AS project
 FROM articles a
 LEFT JOIN research_lines rl ON rl.id = a.research_line_id;
 
@@ -1174,7 +1181,9 @@ SELECT
   (SELECT COUNT(*) FROM project_members pm WHERE pm.project_id = p.id) AS n_members,
   (SELECT group_concat(m.full_name, '; ') FROM project_members pm
      JOIN members m ON m.id = pm.member_id WHERE pm.project_id = p.id) AS members,
-  (SELECT COUNT(*) FROM project_articles pa WHERE pa.project_id = p.id) AS n_articles
+  (SELECT COUNT(*) FROM project_articles pa WHERE pa.project_id = p.id) AS n_articles,
+  (SELECT group_concat(a.title, '; ') FROM project_articles pa
+     JOIN articles a ON a.id = pa.article_id WHERE pa.project_id = p.id) AS articles_linked
 FROM projects p
 LEFT JOIN research_lines rl ON rl.id = p.research_line_id
 LEFT JOIN members c ON c.id = p.coordinator_id;
