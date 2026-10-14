@@ -458,6 +458,79 @@ class TestAsFusoesDeclaradas(BaseFichas):
         self.assertIn("_duplicatas.aplicar_declaradas(db)", fonte)
 
 
+class TestAFusaoDoSobrenomeSozinho(BaseFichas):
+    """"Andrade", o exemplo que abre este módulo, nunca tinha sido fundido:
+    é o ÚLTIMO nome de "Alexandro Andrade", e a regra padrão só olha o
+    PRIMEIRO. Confirmado pela coordenação em 14/10/2026 como a mesma
+    pessoa -- a mesma fusão de "Alexandro", só que pelo sobrenome.
+
+    No banco de verdade "Andrade" so existe como ficha separada porque ha
+    OUTRO sobrenome "Andrade" no laboratorio (outra inicial) -- e e exatamente
+    essa ambiguidade que bloqueia o casamento automatico por sobrenome que
+    `Database.member_id` ja faz (`_match_by_surname`). Sem simular essa
+    segunda pessoa aqui, "Andrade" se juntaria sozinho a "Alexandro Andrade"
+    na hora de criar a ficha, e o teste nao provaria nada sobre a fusao
+    declarada.
+    """
+
+    def _duas_fichas(self, artigos_sobrenome=(), artigos_completo=()):
+        completo = self.pessoa("Alexandro Andrade", artigos_completo)
+        self.pessoa("Carla Andrade", ["Artigo da Carla"])  # desambigua
+        sobrenome = self.pessoa("Andrade", artigos_sobrenome)
+        return sobrenome, completo
+
+    def test_o_sobrenome_sozinho_se_junta(self):
+        sobrenome, completo = self._duas_fichas(
+            artigos_sobrenome=["Artigo um", "Artigo dois"], artigos_completo=["Artigo três"])
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(len(feitas), 1)
+        self.assertEqual(self.db.dicts("SELECT id FROM members WHERE id = ?",
+                                       (sobrenome,)), [])
+        self.assertEqual(
+            self.db.scalar("SELECT COUNT(*) FROM article_authors WHERE member_id = ?",
+                           (completo,)), 3)
+
+    def test_junta_mesmo_assinando_o_mesmo_artigo(self):
+        # a mesma excecao que ja vale para "Alexandro": a coordenacao viu o
+        # artigo em comum e confirmou que e a mesma pessoa mesmo assim
+        sobrenome, completo = self._duas_fichas(
+            artigos_sobrenome=["Artigo dividido"], artigos_completo=["Outro"])
+        artigo = self.db.scalar(
+            "SELECT article_id FROM article_authors WHERE member_id = ?", (sobrenome,))
+        self.db.execute(
+            "INSERT INTO article_authors (article_id, member_id, author_name,"
+            "                             author_order) VALUES (?, ?, ?, 2)",
+            (artigo, completo, "Alexandro Andrade"))
+        self.db.conn.commit()
+        feitas = duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(len(feitas), 1)
+        self.assertEqual(self.db.dicts("SELECT id FROM members WHERE id = ?",
+                                       (sobrenome,)), [])
+        # a autoria repetida do artigo em comum nao conta duas vezes
+        self.assertEqual(
+            self.db.scalar("SELECT COUNT(*) FROM article_authors WHERE member_id = ?",
+                           (completo,)), 2)
+
+    def test_rodar_de_novo_nao_faz_nada(self):
+        self._duas_fichas(artigos_sobrenome=["A"], artigos_completo=["B"])
+        duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(duplicatas.aplicar_declaradas(self.db), [])
+
+    def test_a_grafia_que_saiu_fica_guardada(self):
+        _, completo = self._duas_fichas(artigos_sobrenome=["A"], artigos_completo=["B"])
+        duplicatas.aplicar_declaradas(self.db)
+        self.assertEqual(self.db.member_id("Andrade", create=False), completo)
+
+    def test_sem_qualquer_token_o_sobrenome_sozinho_nao_bate(self):
+        """Fixa o motivo da mudanca: por que a fusao do sobrenome exige
+        `qualquer_token=True` em `e_fantasma_de`, e nao acontece por acaso.
+        """
+        sobrenome, completo = self._duas_fichas(artigos_sobrenome=["A"], artigos_completo=["B"])
+        self.assertFalse(duplicatas.e_fantasma_de(self.db, sobrenome, completo))
+        self.assertTrue(duplicatas.e_fantasma_de(
+            self.db, sobrenome, completo, qualquer_token=True))
+
+
 class TestAPorta(unittest.TestCase):
     """As rotas existem, e só a coordenação chega nelas."""
 
