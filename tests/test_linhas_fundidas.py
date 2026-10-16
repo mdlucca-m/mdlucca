@@ -392,7 +392,7 @@ class TestATelaDasLinhas(unittest.TestCase):
         """Duas colunas magras num quadro do tamanho da parede não são um gráfico."""
         self.assertIn("function faixasPorLinha", self.mural_js)
         self.assertIn("return x.ativa || x.total > 0;", self.mural_js)
-        self.assertIn("Icons.badge(x.icone", self.mural_js)
+        self.assertIn("emblemaDaLinha(x.icone)", self.mural_js)
         self.assertNotIn('mode: "empilhado", fill: true, height: 520, caption: "produção por linha de pesquisa"',
                          self.mural_js)
 
