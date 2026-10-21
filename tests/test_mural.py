@@ -871,6 +871,20 @@ class TestCitacoesNaParede(unittest.TestCase):
         roteiro = roteiro[:roteiro.index("];")]
         self.assertNotIn('id: "areas"', roteiro)
 
+    def test_o_icone_da_linha_e_um_emblema_cheio_nao_um_contorno_pequeno(self):
+        """Pedido do Mateus: ícone maior e mais detalhado ao lado do nome da
+        linha, não um redesenho da lâmina inteira -- a faixa continua a
+        mesma, só o selo de cada linha vira um emblema (cheio, maior) em
+        vez do contorno fino e pequeno de antes."""
+        corpo = self.js[self.js.index("function emblemaDaLinha"):
+                        self.js.index("function faixasPorLinha")]
+        self.assertIn('classList.add("solid")', corpo)
+        self.assertIn("Icons.badge(icone, null, 36)", corpo)
+        faixa = self.js[self.js.index("function faixasPorLinha"):
+                        self.js.index("function slideCitados")]
+        self.assertIn("emblemaDaLinha(x.icone)", faixa)
+        self.assertNotIn("Icons.badge(x.icone, null, 26)", faixa)
+
 
 class TestOQueAParedeSempreMostra(unittest.TestCase):
     """A marca no topo e as telas do roteiro."""

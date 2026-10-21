@@ -736,6 +736,15 @@ function temPotencialAlto(linha) {
    da lâmina de citações). `semDado`, quando existe, vira uma frase
    compacta abaixo da lista: a linha continua na tela, só não compete
    pelo mesmo espaço visual de quem já produz. */
+/* O selo cheio (gradiente + sombra), não o contorno fino do resto da
+   tela: aqui o ícone É a identidade da linha, lida do corredor -- não um
+   rótulo pequeno ao lado de um texto que já diz o nome por extenso. */
+function emblemaDaLinha(icone) {
+  const selo = Icons.badge(icone, null, 36);
+  selo.classList.add("solid");
+  return selo;
+}
+
 function faixasPorLinha(porLinha, semDado) {
   const teto = Math.max(1, ...porLinha.map(function (x) { return x.total; }));
   const partes = [
@@ -756,7 +765,7 @@ function faixasPorLinha(porLinha, semDado) {
           style: "background:var(--accent-strong);box-shadow:0 0 6px 1px "
             + "color-mix(in srgb, var(--accent-strong) 70%, transparent)",
           title: "Poucos artigos publicados, produção real em andamento" })
-          : Icons.badge(x.icone, null, 26),
+          : emblemaDaLinha(x.icone),
         el("span", { text: x.nome, title: x.nome })]),
       trilho,
       el("div", { style: "text-align:right" }, [
