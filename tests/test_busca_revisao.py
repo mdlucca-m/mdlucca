@@ -5,7 +5,8 @@
 
 Só o que não depende das bases: leitura das estratégias, montagem da
 sintaxe de cada base e a fusão dos registros. A parte que fala com a rede
-(OpenAlex, Crossref, Europe PMC, PubMed, Scopus, WoS) não é testada aqui.
+(OpenAlex, Crossref, Europe PMC, PubMed, Scopus, WoS, Semantic Scholar,
+Dialnet) não é testada aqui.
 """
 from __future__ import annotations
 
@@ -56,6 +57,31 @@ class TestSintaxe(unittest.TestCase):
 
     def test_europepmc_usa_o_campo_title_abs(self):
         self.assertIn("TITLE_ABS:", busca.sintaxe("europepmc", self.GRUPOS))
+
+    def test_semantic_scholar_usa_mais_e_barra(self):
+        q = busca.sintaxe("semanticscholar", self.GRUPOS)
+        self.assertEqual(q, '(handball | "team handball") + (mood)')
+
+    def test_toda_base_tem_nome(self):
+        self.assertEqual(set(busca.BASES), set(busca.NOMES))
+
+
+class TestDialnet(unittest.TestCase):
+    PAGINA = """<ul><li><span class="titulo"> <a href="/servlet/articulo?codigo=6263341">Cambios postest en el
+    estado de &aacute;nimo en jugadores de balonmano</a></span> <span class="autor"><a href="/x">Garc&iacute;a, A.</a></span>
+    <span class="revista"><a href="/r">Revista Andaluza de Medicina del Deporte</a>, Vol. 10, 2017</span></li></ul>"""
+
+    def test_le_titulo_autor_revista_e_ano(self):
+        it = busca.ler_dialnet(self.PAGINA)
+        self.assertEqual(len(it), 1)
+        self.assertEqual(it[0]["titulo"], "Cambios postest en el estado de ánimo en jugadores de balonmano")
+        self.assertEqual(it[0]["autores"], "García, A.")
+        self.assertTrue(it[0]["url"].endswith("codigo=6263341"))
+        self.assertEqual(it[0]["ano"], "2017")
+        self.assertIn("Revista Andaluza", it[0]["revista"])
+
+    def test_pagina_sem_resultado(self):
+        self.assertEqual(busca.ler_dialnet("<html>sin resultados</html>"), [])
 
 
 class TestFusao(unittest.TestCase):

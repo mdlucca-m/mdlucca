@@ -1,0 +1,54 @@
+{
+ "excluidos_texto_completo_rodada2": [
+  {
+   "cid": "U034",
+   "autor_ano": "Lira et al. (2017)",
+   "referencia": "LIRA, H. A. et al. O estado de humor e a insatisfação corporal possuem relação com os comportamentos de risco para transtornos alimentares em atletas de esportes coletivos do sexo masculino? **Revista Brasileira de Ciência e Movimento**, v. 25, n. 3, p. 89, 2017. DOI: https://doi.org/10.31501/rbcm.v25i3.7778",
+   "motivo": "não é handebol / dados não separáveis: BRUMS aplicada a futebol (36), basquete (18) e handebol (16), com correlações só para a amostra conjunta (resumo e monografia do mesmo estudo, UFPE). O DOI e o link da revista levam a outro artigo; PDF da versão publicada não acessado."
+  },
+  {
+   "cid": "U084",
+   "autor_ano": "Korobeinikova et al. (2025)",
+   "referencia": "KOROBEINIKOVA, L. et al. Gender features of psychophysiological state in handball players. **Health, Sport, Rehabilitation**, v. 11, n. 4, p. 6-16, 2025. DOI: https://doi.org/10.58962/HSR.2025.1276",
+   "motivo": "não mede humor por instrumento declarado: estado psicoemocional avaliado pelo teste de cores de Lüscher (teste projetivo), não por escala de humor ou afeto."
+  },
+  {
+   "cid": "U115",
+   "autor_ano": "Ravier et al. (2019)",
+   "referencia": "RAVIER, G. et al. Physiological and affective responses of 30s-30s intermittent small-sided game in elite handball players: a new alternative to intermittent running. **Journal of Human Sport and Exercise**, v. 14, n. 3, 2019. DOI: https://doi.org/10.14198/jhse.2019.143.05",
+   "motivo": "não mede humor por instrumento declarado: prazer avaliado na escala CR-10 de Borg e balanço afetivo calculado como PSE menos prazer; prazer isolado, sem escala de humor ou afeto validada."
+  },
+  {
+   "cid": "U157",
+   "autor_ano": "Batista et al. (2019)",
+   "referencia": "BATISTA, M. et al. Practice motivation and life satisfaction of athletes of team sports: comparative study between adapted and regular sport. **Journal of Human Sport and Exercise**, v. 14, n. Proc1, 2019. DOI: https://doi.org/10.14198/jhse.2019.14.proc1.03",
+   "motivo": "não é handebol / dados não separáveis: PANAS em atletas de handebol e basquetebol (adaptado e regular) analisados em conjunto, sem resultados do handebol."
+  },
+  {
+   "cid": "U168",
+   "autor_ano": "Kashapov, Ogorodova e Filippovich (2018)",
+   "referencia": "KASHAPOV, M.; OGORODOVA, T. V.; FILIPPOVICH, K. N. Types of reaction in conflict and their relation to dominant mental state of athletes. **Vestnik of Saint Petersburg University. Psychology**, v. 8, n. 2, 2018. DOI: https://doi.org/10.21638/11701/spbu16.2018.206",
+   "motivo": "outro idioma (não inglês, português, espanhol): artigo em russo (metadado dc.language.iso = ru do repositório SPbU); amostra multiesporte e instrumento de estado mental n.r. no resumo. PDF não acessado (repositório fora do ar)."
+  }
+ ],
+ "nao_recuperados_rodada2": [
+  {
+   "cid": "U012",
+   "titulo": "Prediction of sport injuries by Profile of Mood State : A case study of one rower and one handball player at national team level in Sweden",
+   "doi": "",
+   "motivo": "Estudo de caso (um remador e um jogador de handebol) apresentado no 10º Congresso Mundial da ISSP (2001, p. 94-96), segundo a página do autor no idrottsforum.org; anais e resumo não localizados em acesso aberto. Corresponde a H1 (Johnson et al., 2001)."
+  },
+  {
+   "cid": "U029",
+   "titulo": "Relationship between emotional intelligence and athlete's mood with team-efficiency and performance in elite-handball players.",
+   "doi": "",
+   "motivo": "Sem resumo e sem texto do artigo (International Journal of Sport Studies, v. 2, n. 3, p. 155-162, 2012); só citação secundária descreve 95 handebolistas com Brunel Mood Scale. Corresponde a H6."
+  },
+  {
+   "cid": "U032",
+   "titulo": "ANALYTICAL STUDY ON THE EFFECTIVENESS OF PSYCHOLOGICAL HEALTH AMONG HANDBALL PLAYERS OF THE PREMIUM CLASS",
+   "doi": "",
+   "motivo": "Sem resumo, sem DOI e sem texto localizado; o título cita saúde psicológica de handebolistas da divisão principal, sem indicar instrumento de humor."
+  }
+ ]
+}
