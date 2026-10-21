@@ -873,5 +873,111 @@ class TestAPaletaEOModoApresentacao(unittest.TestCase):
         self.assertIn('class: "linhas-chips"', self.js)
 
 
+class TestOCaminhoDoProjeto(unittest.TestCase):
+    """Onde os projetos estão agora -- `aovivo.caminho_projetos`, pedido
+    do Mateus de um guia passo a passo também para o ciclo do projeto,
+    não só para o do artigo."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "cp.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def projeto(self, nome, status):
+        self.db.execute("INSERT INTO projects (code, name, status) VALUES (?, ?, ?)",
+                        (nome.lower().replace(" ", "_"), nome, status))
+        self.db.conn.commit()
+
+    def test_cada_status_e_contado_na_sua_etapa(self):
+        self.projeto("A", "planejado")
+        self.projeto("B", "em_andamento")
+        self.projeto("C", "em_andamento")
+        self.projeto("D", "concluido")
+        self.projeto("E", "suspenso")
+        etapas = {e["code"]: e for e in aovivo.caminho_projetos(self.db)}
+        self.assertEqual(etapas["planejado"]["valor"], 1)
+        self.assertEqual(etapas["em_andamento"]["valor"], 2)
+        self.assertEqual(etapas["concluido"]["valor"], 1)
+        self.assertEqual(etapas["suspenso"]["valor"], 1)
+
+    def test_status_sem_nenhum_projeto_aparece_com_zero(self):
+        self.projeto("A", "em_andamento")
+        etapas = {e["code"]: e for e in aovivo.caminho_projetos(self.db)}
+        self.assertEqual(etapas["suspenso"]["valor"], 0)
+
+    def test_as_quatro_etapas_sempre_aparecem_nesta_ordem(self):
+        etapas = aovivo.caminho_projetos(self.db)
+        self.assertEqual([e["code"] for e in etapas],
+                         ["planejado", "em_andamento", "concluido", "suspenso"])
+
+    def test_aponta_para_a_tela_de_projetos(self):
+        for e in aovivo.caminho_projetos(self.db):
+            self.assertEqual(e["href"], "/app#projetos")
+
+
+class TestOCaminhoDaBolsa(unittest.TestCase):
+    """As submissões a editais de bolsa, pela situação --
+    `aovivo.caminho_bolsa`, recorte de `fomento.py` sobre
+    modalidade='bolsa'."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.db = Database(Path(self.tmp.name) / "cb.sqlite")
+        self.addCleanup(self.db.close)
+        self.db.migrate()
+
+    def edital(self, code, modalidade):
+        return self.db.execute(
+            "INSERT INTO editais (code, nome, modalidade) VALUES (?, ?, ?)",
+            (code, code, modalidade)).lastrowid
+
+    def submissao(self, edital_id, situacao):
+        self.db.execute(
+            "INSERT INTO submissoes_fomento (edital_id, titulo, situacao) VALUES (?, 'x', ?)",
+            (edital_id, situacao))
+
+    def test_so_conta_a_modalidade_bolsa(self):
+        bolsa = self.edital("b1", "bolsa")
+        projeto = self.edital("p1", "projeto")
+        self.submissao(bolsa, "submetida")
+        self.submissao(projeto, "submetida")
+        self.db.conn.commit()
+        etapas = {e["code"]: e for e in aovivo.caminho_bolsa(self.db)}
+        self.assertEqual(etapas["submetida"]["valor"], 1)
+
+    def test_cada_situacao_e_contada_na_sua_etapa(self):
+        bolsa = self.edital("b1", "bolsa")
+        for sit in ("submetida", "aprovada", "aprovada", "recusada", "retirada"):
+            self.submissao(bolsa, sit)
+        self.db.conn.commit()
+        etapas = {e["code"]: e for e in aovivo.caminho_bolsa(self.db)}
+        self.assertEqual(etapas["submetida"]["valor"], 1)
+        self.assertEqual(etapas["aprovada"]["valor"], 2)
+        self.assertEqual(etapas["recusada"]["valor"], 1)
+        self.assertEqual(etapas["retirada"]["valor"], 1)
+
+    def test_submissao_sem_edital_nao_quebra_a_conta(self):
+        self.submissao(None, "submetida")
+        self.db.conn.commit()
+        etapas = {e["code"]: e for e in aovivo.caminho_bolsa(self.db)}
+        self.assertEqual(etapas["submetida"]["valor"], 0)
+
+    def test_aponta_para_o_fomento_no_painel_nao_na_area_do_integrante(self):
+        """A tela de Fomento já existe em dashboard.js (`/#fomento`) -- o
+        link não pode inventar uma rota `/app#fomento` que não existe."""
+        for e in aovivo.caminho_bolsa(self.db):
+            self.assertEqual(e["href"], "/#fomento")
+
+
+class TestAsRotasDosNovosCaminhos(unittest.TestCase):
+    def test_rotas_registradas(self):
+        fonte = (ROOT / "scripts" / "lape" / "api.py").read_text(encoding="utf-8")
+        self.assertIn('r"^/api/caminho-projetos/?$", route_caminho_projetos, "leitura"', fonte)
+        self.assertIn('r"^/api/caminho-bolsa/?$", route_caminho_bolsa, "leitura"', fonte)
+
+
 if __name__ == "__main__":
     unittest.main()

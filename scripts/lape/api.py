@@ -2896,6 +2896,24 @@ def route_caminho(ctx: "Context") -> Any:
     return {"etapas": aovivo.caminho(ctx.db)}
 
 
+def route_caminho_projetos(ctx: "Context") -> Any:
+    """Onde os projetos estão agora, pelo status -- mesma ideia de
+    `route_caminho`, sobre o ciclo de vida do projeto."""
+    from . import aovivo
+
+    auth.require(ctx.user, "leitura")
+    return {"etapas": aovivo.caminho_projetos(ctx.db)}
+
+
+def route_caminho_bolsa(ctx: "Context") -> Any:
+    """As submissões a editais de bolsa, pela situação -- mesma ideia de
+    `route_caminho`, sobre o funil de fomento (ver fomento.py)."""
+    from . import aovivo
+
+    auth.require(ctx.user, "leitura")
+    return {"etapas": aovivo.caminho_bolsa(ctx.db)}
+
+
 def route_tv(ctx: "Context") -> Any:
     """O que a parede acrescenta ao painel: temas, ritmo, mundo, acervos, rotina, noticias.
 
@@ -3343,6 +3361,8 @@ ROUTES: list[tuple[str, str, Callable, str | None]] = [
     ("GET", r"^/api/panorama/?$", route_panorama, "leitura"),
     ("GET", r"^/api/aovivo/?$", route_aovivo, "leitura"),
     ("GET", r"^/api/caminho/?$", route_caminho, "leitura"),
+    ("GET", r"^/api/caminho-projetos/?$", route_caminho_projetos, "leitura"),
+    ("GET", r"^/api/caminho-bolsa/?$", route_caminho_bolsa, "leitura"),
     ("GET", r"^/api/tv/?$", route_tv, "leitura"),
     ("GET", r"^/api/mural/dados/?$", route_mural_dados, "leitura"),
     ("GET", r"^/api/mural/chegadas/?$", route_mural_chegadas, "leitura"),

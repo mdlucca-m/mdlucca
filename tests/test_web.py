@@ -1317,6 +1317,64 @@ class TestMeusPrazosNaAreaDoIntegrante(unittest.TestCase):
         self.assertIn("if (cartaoPrazos) VIEW.appendChild(cartaoPrazos);", corpo)
 
 
+class TestOsOutrosGuiasPassoAPasso(unittest.TestCase):
+    """Pedido do Mateus: o mesmo tipo de guia do "Caminho do artigo" para
+    outros processos. "Bolsa" e "projeto" têm dado real (ver
+    `aovivo.caminho_projetos`/`caminho_bolsa`); "ética" não tem estado
+    nenhum gravado no banco -- vira um guia sem contador nenhum, não um
+    funil inventado."""
+
+    TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+
+    def setUp(self):
+        self.texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+
+    def bloco(self, inicio_marca, fim_marca):
+        return self.texto[self.texto.index(inicio_marca):self.texto.index(fim_marca)]
+
+    def test_as_tres_telas_novas_estao_no_menu(self):
+        trecho = self.texto[self.texto.index("const ORDER = ["):self.texto.index("];", self.texto.index("const ORDER = ["))]
+        for id_ in ("caminho_projetos", "caminho_bolsa", "caminho_etica"):
+            with self.subTest(id=id_):
+                self.assertIn(id_, trecho)
+
+    def test_funil_do_artigo_e_dos_projetos_reaproveitam_o_mesmo_desenho(self):
+        """`funilDeEtapas` não pode virar três cópias do mesmo código."""
+        self.assertIn("function funilDeEtapas(etapas, icones, tons, cores, saibaMais){", self.texto)
+        self.assertIn("funilDeEtapas(dados.etapas || [], ICONE_CAMINHO, TOM_CAMINHO, COR_CAMINHO, SAIBA_MAIS_CAMINHO)",
+                      self.texto)
+        self.assertIn("funilDeEtapas(dados.etapas || [], ICONE_CAMINHO_PROJETOS, TOM_CAMINHO_PROJETOS,", self.texto)
+        self.assertIn("funilDeEtapas(dados.etapas || [], ICONE_CAMINHO_BOLSA, TOM_CAMINHO_BOLSA,", self.texto)
+
+    def test_projeto_busca_o_endpoint_do_ciclo_de_vida(self):
+        bloco = self.bloco("VIEWS.caminho_projetos = {", "VIEWS.caminho_bolsa = {")
+        self.assertIn('api("/api/caminho-projetos")', bloco)
+
+    def test_bolsa_busca_o_endpoint_de_fomento(self):
+        bloco = self.bloco("VIEWS.caminho_bolsa = {", "VIEWS.caminho_etica = {")
+        self.assertIn('api("/api/caminho-bolsa")', bloco)
+
+    def test_etica_nao_chama_a_api_nem_inventa_contador(self):
+        """Sem estado gravado no banco, não há o que buscar -- e o cartão
+        não pode fingir um número que não existe (ver `funilDeEtapas`:
+        `e.valor === undefined` pula o bloco do número)."""
+        bloco = self.bloco("const ETAPAS_CAMINHO_ETICA = [", "VIEWS.caminho_etica = {")
+        self.assertNotIn('"valor"', bloco)
+        render = self.bloco("VIEWS.caminho_etica = {", "VIEWS.linhas = crudView(")
+        self.assertNotIn("await api(", render)
+        self.assertIn("ETAPAS_CAMINHO_ETICA", render)
+
+    def test_funil_pula_o_numero_quando_a_etapa_nao_tem_valor(self):
+        corpo = self.bloco("function funilDeEtapas(", "VIEWS.caminho = {")
+        self.assertIn("e.valor === undefined ? null :", corpo)
+
+    def test_bolsa_aponta_para_o_fomento_do_painel_nao_da_area_do_integrante(self):
+        """O backend (`aovivo.caminho_bolsa`) é quem decide o href -- aqui
+        só confere que a tela de Fomento redundante não voltou: ela já
+        existe em dashboard.js."""
+        self.assertNotIn("VIEWS.fomento", self.texto)
+
+
 class TestTokensDoTema(unittest.TestCase):
     """Todo var(--token) usado nas paginas precisa existir no tema.
 

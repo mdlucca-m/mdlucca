@@ -1695,55 +1695,206 @@ const SAIBA_MAIS_CAMINHO = {
   ],
 };
 
+/* O desenho do funil é o mesmo para as quatro telas de "caminho" (artigo,
+   projeto, bolsa, ética) -- só mudam os dados, os ícones e as dicas.
+   `e.valor` pode faltar (a ética não tem contador nenhum: ver mais
+   abaixo) -- aí o cartão não mostra número nenhum, só o passo. */
+function funilDeEtapas(etapas, icones, tons, cores, saibaMais){
+  const lista = h("ol", {class: "caminho-funil"});
+  etapas.forEach(function (e, i){
+    const tom = cores[i % cores.length];
+    const proximoTom = cores[(i + 1) % cores.length];
+    const dicas = saibaMais[e.code] || [];
+
+    const saiba = dicas.length ? h("details", {class: "etapa-saiba"}, [
+      h("summary", {text: "Saiba mais"}),
+      h("ul", {}, dicas.map(function (t){ return h("li", {text: t}); })),
+    ]) : null;
+
+    const card = h("div", {class: "card etapa", style: "--tom:" + tom + ";--i:" + i}, [
+      h("div", {class: "etapa-topo"}, [
+        Icons.badge(icones[e.code] || "achado", tons[i % tons.length], 22),
+        h("div", {class: "etapa-titulo"}, [
+          h("h3", {text: e.rotulo}),
+          h("div", {class: "hint", text: "No LAPE: " + e.faz}),
+        ]),
+      ]),
+      e.valor === undefined ? null : h("div", {class: "etapa-meio"}, [
+        h("span", {class: "num-grande", text: C.fmt(e.valor)}),
+        h("small", {text: e.unidade + (e.detalhe !== undefined
+          ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "")}),
+      ]),
+      h("div", {class: "etapa-baixo"}, [
+        saiba,
+        h("a", {href: e.href}, [h("button", {class: "ghost", type: "button", text: e.ferramenta + " →"})]),
+      ]),
+    ]);
+    const item = h("li", {class: "etapa-item"}, [card]);
+    if (i < etapas.length - 1){
+      item.appendChild(h("div", {class: "etapa-conector", style: "--tom:" + tom + ";--tom2:" + proximoTom}));
+    }
+    lista.appendChild(item);
+  });
+  return lista;
+}
+
 VIEWS.caminho = {
   label: "Caminho do artigo", group: "Produção",
   async render(){
     const dados = await api("/api/caminho");
-    const etapas = dados.etapas || [];
     VIEW.innerHTML = "";
     VIEW.appendChild(tituloDaTela("caminho", "Caminho do artigo"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Seis etapas, da pesquisa bibliográfica à publicação: o que há em cada uma agora, e a tela do LAPE que a faz."}));
-
-    const lista = h("ol", {class: "caminho-funil"});
-    etapas.forEach(function (e, i){
-      const tom = COR_CAMINHO[i % COR_CAMINHO.length];
-      const proximoTom = COR_CAMINHO[(i + 1) % COR_CAMINHO.length];
-      const dicas = SAIBA_MAIS_CAMINHO[e.code] || [];
-
-      const saiba = dicas.length ? h("details", {class: "etapa-saiba"}, [
-        h("summary", {text: "Saiba mais"}),
-        h("ul", {}, dicas.map(function (t){ return h("li", {text: t}); })),
-      ]) : null;
-
-      const card = h("div", {class: "card etapa", style: "--tom:" + tom + ";--i:" + i}, [
-        h("div", {class: "etapa-topo"}, [
-          Icons.badge(ICONE_CAMINHO[e.code] || "achado", TOM_CAMINHO[i % TOM_CAMINHO.length], 22),
-          h("div", {class: "etapa-titulo"}, [
-            h("h3", {text: e.rotulo}),
-            h("div", {class: "hint", text: "No LAPE: " + e.faz}),
-          ]),
-        ]),
-        h("div", {class: "etapa-meio"}, [
-          h("span", {class: "num-grande", text: C.fmt(e.valor)}),
-          h("small", {text: e.unidade + (e.detalhe !== undefined
-            ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "")}),
-        ]),
-        h("div", {class: "etapa-baixo"}, [
-          saiba,
-          h("a", {href: e.href}, [h("button", {class: "ghost", type: "button", text: e.ferramenta + " →"})]),
-        ]),
-      ]);
-      const item = h("li", {class: "etapa-item"}, [card]);
-      if (i < etapas.length - 1){
-        item.appendChild(h("div", {class: "etapa-conector", style: "--tom:" + tom + ";--tom2:" + proximoTom}));
-      }
-      lista.appendChild(item);
-    });
-    VIEW.appendChild(lista);
+    VIEW.appendChild(funilDeEtapas(dados.etapas || [], ICONE_CAMINHO, TOM_CAMINHO, COR_CAMINHO, SAIBA_MAIS_CAMINHO));
     VIEW.appendChild(h("p", {class: "hint sec", text:
       "Cada etapa conta uma coisa diferente — referência, registro triado, artigo — e por isso não há "
       + "porcentagem entre elas: a forma de funil aqui é só a metáfora do processo, não conta nenhuma."}));
+  },
+};
+
+/* ==================================================================== */
+/* Caminho do projeto — o ciclo de vida (/api/caminho-projetos), não os  */
+/* passos para cadastrar um: projects.status já é um estado real, e      */
+/* "planejado"/"suspenso" não têm ordem de progresso entre si.           */
+/* ==================================================================== */
+const ICONE_CAMINHO_PROJETOS = {planejado: "calendario", em_andamento: "projeto",
+  concluido: "trofeu", suspenso: "aviso"};
+const TOM_CAMINHO_PROJETOS = ["azul", "verde", "magenta", "ambar"];
+const COR_CAMINHO_PROJETOS = ["var(--series-1)", "var(--series-3)", "var(--series-5)", "var(--series-4)"];
+const SAIBA_MAIS_CAMINHO_PROJETOS = {
+  planejado: [
+    "Linha de pesquisa, coordenador e financiador declarados cedo são o que entra no organograma e no funil de fomento.",
+    "Já existe um edital associado? A submissão se registra em Fomento — é o que alimenta a taxa de aprovação do laboratório.",
+  ],
+  em_andamento: [
+    "Equipe e artigos vinculados entram pela própria ficha do projeto, ou pela aba de Artigos ao escolher o projeto.",
+    "O prazo de encerramento é o que acende o aviso em Meus prazos e no mural — sem ele o projeto não aparece em nenhum dos dois.",
+  ],
+  concluido: [
+    "Projeto concluído continua no histórico com a produção que gerou — mudar o status não apaga vínculo nenhum.",
+    "Pendência de prestação de contas fica em Fomento, não aqui: a situação do projeto e a do convênio financeiro são coisas diferentes.",
+  ],
+  suspenso: [
+    "Suspenso é diferente de concluído: o projeto pausa sem ter sido encerrado, e volta à situação anterior quando alguém retomar.",
+    "Vale registrar o motivo na descrição — \"suspenso\" sozinho não diz se é falta de verba, de equipe ou de dado.",
+  ],
+};
+VIEWS.caminho_projetos = {
+  label: "Caminho do projeto", group: "Laboratório",
+  async render(){
+    const dados = await api("/api/caminho-projetos");
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("caminho_projetos", "Caminho do projeto"));
+    VIEW.appendChild(h("p", {class: "view",
+      text: "Onde os projetos do laboratório estão agora, e o que fazer em cada situação."}));
+    VIEW.appendChild(funilDeEtapas(dados.etapas || [], ICONE_CAMINHO_PROJETOS, TOM_CAMINHO_PROJETOS,
+      COR_CAMINHO_PROJETOS, SAIBA_MAIS_CAMINHO_PROJETOS));
+    VIEW.appendChild(h("p", {class: "hint sec", text:
+      "Não é um funil de progresso: \"planejado\" e \"suspenso\" não vêm antes nem depois um do outro, são "
+      + "dois estados possíveis entre os quatro."}));
+  },
+};
+
+/* ==================================================================== */
+/* Caminho da bolsa — as submissões a editais de bolsa, pela situação    */
+/* (/api/caminho-bolsa), recorte de fomento.py sobre modalidade="bolsa". */
+/* ==================================================================== */
+const ICONE_CAMINHO_BOLSA = {submetida: "submissao", aprovada: "trofeu",
+  recusada: "aviso", retirada: "baixar"};
+const TOM_CAMINHO_BOLSA = ["azul", "verde", "critico", "ambar"];
+const COR_CAMINHO_BOLSA = ["var(--series-1)", "var(--series-3)", "var(--critical)", "var(--series-4)"];
+const SAIBA_MAIS_CAMINHO_BOLSA = {
+  submetida: [
+    "Título, edital e proponente bastam para registrar — linha e valor pedido podem entrar depois.",
+    "O prazo do edital aparece em Fomento assim que ele está cadastrado; sem o edital, a submissão fica sem contagem regressiva.",
+  ],
+  aprovada: [
+    "O valor aprovado entra no total captado do ano em Fomento — sem ele a soma fica subestimada.",
+    "Bolsa aprovada para alguém específico também pode ser lançada na ficha da pessoa (campo Bolsa, em Meu perfil), para aparecer em Meus prazos.",
+  ],
+  recusada: [
+    "A recusa entra na taxa de aprovação do laboratório — é o que dá honestidade ao número: sem ela haveria só a lembrança de quem venceu.",
+    "Vale registrar o motivo, quando a agência o informa — ajuda a próxima submissão.",
+  ],
+  retirada: [
+    "Retirada não conta como recusa nem como aprovação — é uma saída do processo, não uma decisão da agência.",
+    "Normalmente usada quando o edital muda de regra no meio do caminho, ou quando o laboratório desiste antes do julgamento.",
+  ],
+};
+VIEWS.caminho_bolsa = {
+  label: "Caminho da bolsa", group: "Laboratório",
+  async render(){
+    const dados = await api("/api/caminho-bolsa");
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("caminho_bolsa", "Caminho da bolsa"));
+    VIEW.appendChild(h("p", {class: "view",
+      text: "As submissões a editais de bolsa, pela situação — e o que fazer em cada uma."}));
+    VIEW.appendChild(funilDeEtapas(dados.etapas || [], ICONE_CAMINHO_BOLSA, TOM_CAMINHO_BOLSA,
+      COR_CAMINHO_BOLSA, SAIBA_MAIS_CAMINHO_BOLSA));
+    VIEW.appendChild(h("p", {class: "hint sec", text:
+      "Recortado para editais de modalidade \"bolsa\" — os de projeto, auxílio e evento ficam de fora "
+      + "desta contagem, mas aparecem todos juntos em Fomento."}));
+  },
+};
+
+/* ==================================================================== */
+/* Caminho da ética — sem contador nenhum: `projects.ethics_approval` é  */
+/* um campo de texto livre, sem estado gravado no banco. É um guia dos   */
+/* passos do processo (Plataforma Brasil/CEP), não um retrato do LAPE.   */
+/* ==================================================================== */
+const ETAPAS_CAMINHO_ETICA = [
+  {code: "protocolo", rotulo: "Elaborar o protocolo",
+   faz: "TCLE, instrumentos e objetivos escritos antes de submeter — é o que o comitê avalia",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "submissao", rotulo: "Submeter na Plataforma Brasil",
+   faz: "o CAAE (Certificado de Apresentação de Apreciação Ética) é gerado nesse momento",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "analise", rotulo: "Aguardar o parecer do CEP",
+   faz: "o comitê pode pedir pendências — respondidas, o protocolo volta para análise",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "aprovado", rotulo: "Parecer aprovado",
+   faz: "CAAE e número do parecer entram no campo \"Parecer ético / CAAE\" da ficha do projeto",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "vigencia", rotulo: "Acompanhar a vigência",
+   faz: "parecer tem validade — mudança no protocolo ou prazo vencido pedem nova submissão (emenda)",
+   ferramenta: "Projetos", href: "/app#projetos"},
+];
+const ICONE_CAMINHO_ETICA = {protocolo: "etiqueta", submissao: "submissao", analise: "qualidade",
+  aprovado: "aceite", vigencia: "prazo"};
+const TOM_CAMINHO_ETICA = ["azul", "laranja", "verde", "magenta", "ambar"];
+const COR_CAMINHO_ETICA = ["var(--series-1)", "var(--series-2)", "var(--series-3)",
+  "var(--series-5)", "var(--series-4)"];
+const SAIBA_MAIS_CAMINHO_ETICA = {
+  protocolo: [
+    "Pesquisa com seres humanos passa pelo CEP institucional; multicêntrica ou de área temática especial também pela CONEP.",
+    "TCLE claro, em linguagem acessível a quem vai assinar — é o primeiro ponto de pendência mais comum.",
+  ],
+  submissao: [
+    "A Plataforma Brasil é nacional e única: o mesmo CAAE serve para todos os comitês envolvidos no protocolo.",
+  ],
+  analise: [
+    "Pendência não é recusa — é o comitê pedindo ajuste. O protocolo some da fila só se for mesmo indeferido.",
+  ],
+  aprovado: [
+    "Sem o CAAE registrado na ficha do projeto, o laboratório não tem como provar a aprovação depois — vale copiar assim que sai.",
+  ],
+  vigencia: [
+    "Mudar desenho, instrumento ou população do estudo depois de aprovado exige emenda, não começa um protocolo do zero.",
+  ],
+};
+VIEWS.caminho_etica = {
+  label: "Caminho da ética", group: "Laboratório",
+  async render(){
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("caminho_etica", "Caminho da ética"));
+    VIEW.appendChild(h("p", {class: "view",
+      text: "Os passos do processo de aprovação ética (Plataforma Brasil/CEP) até registrar o parecer no projeto."}));
+    VIEW.appendChild(funilDeEtapas(ETAPAS_CAMINHO_ETICA, ICONE_CAMINHO_ETICA, TOM_CAMINHO_ETICA,
+      COR_CAMINHO_ETICA, SAIBA_MAIS_CAMINHO_ETICA));
+    VIEW.appendChild(h("p", {class: "hint sec", text:
+      "Sem contador: o parecer ético é um campo de texto livre na ficha do projeto, não um estado que o "
+      + "sistema acompanha. Este guia é sobre o processo, não um retrato do que está em cada etapa agora."}));
   },
 };
 
@@ -3463,6 +3614,7 @@ const ICONE = {
   ponto: "relogio",
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
   caminho: "processo",
+  caminho_projetos: "processo", caminho_bolsa: "processo", caminho_etica: "processo",
   linhas: "linhas", biblioteca: "livro", eventos: "calendario", ana: "explorar",
   senha: "qualidade", admin: "dados", ritmica: "ginastica", apresentacao: "achado",
 };
@@ -5052,7 +5204,8 @@ function tituloDaTela(id, texto){
    nao aparece -- registrar em VIEWS nao basta. Custou uma tela invisivel
    para descobrir isso. */
 const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "caminho", "ana",
-               "linhas", "biblioteca", "eventos", "senha", "admin"];
+               "linhas", "caminho_projetos", "caminho_bolsa", "caminho_etica",
+               "biblioteca", "eventos", "senha", "admin"];
 
 function buildMenu(){
   MENU.innerHTML = "";
