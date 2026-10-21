@@ -1,0 +1,368 @@
+{
+  "revisao": "humor",
+  "data": "2026-10-21",
+  "passagens": 5819,
+  "distintos": 3438,
+  "por_consulta": [
+    {
+      "estrategia": "S1",
+      "base": "OpenAlex",
+      "status": "SEM RETORNO: https://api.openalex.org/works?search=%28handball+OR+%22team+handball%22+OR+%22beach+handb... -> HTTP Error 429: Too Many Requests",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto)",
+      "segundos": 4.1
+    },
+    {
+      "estrategia": "S1",
+      "base": "Crossref",
+      "status": "ok",
+      "total_na_base": 257,
+      "coletados": 257,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto)",
+      "segundos": 12.9
+    },
+    {
+      "estrategia": "S1",
+      "base": "Europe PMC",
+      "status": "ok",
+      "total_na_base": 105,
+      "coletados": 105,
+      "consulta": "((TITLE_ABS:handball) OR (TITLE_ABS:\"team handball\") OR (TITLE_ABS:\"beach handball\") OR (TITLE_ABS:\"wheelchair handball\") OR (TITLE_ABS:handebol) OR (TITLE_ABS:balonmano) OR (TITLE_ABS:andebol)) AND ((TITLE_ABS:mood) OR (TITLE_ABS:\"mood state\") OR (TITLE_ABS:\"mood states\") OR (TITLE_ABS:affect) OR (TITLE_ABS:affective) OR (TITLE_ABS:emotion) OR (TITLE_ABS:humor) OR (TITLE_ABS:\"estado de humor\") OR (TITLE_ABS:\"estados de humor\") OR (TITLE_ABS:\"estado de animo\") OR (TITLE_ABS:afeto))",
+      "segundos": 2.9
+    },
+    {
+      "estrategia": "S1",
+      "base": "PubMed",
+      "status": "ok",
+      "total_na_base": 101,
+      "coletados": 101,
+      "consulta": "(handball[tiab] OR \"team handball\"[tiab] OR \"beach handball\"[tiab] OR \"wheelchair handball\"[tiab] OR handebol[tiab] OR balonmano[tiab] OR andebol[tiab]) AND (mood[tiab] OR \"mood state\"[tiab] OR \"mood states\"[tiab] OR affect[tiab] OR affective[tiab] OR emotion[tiab] OR humor[tiab] OR \"estado de humor\"[tiab] OR \"estados de humor\"[tiab] OR \"estado de animo\"[tiab] OR afeto[tiab])",
+      "segundos": 3.4
+    },
+    {
+      "estrategia": "S1",
+      "base": "Semantic Scholar",
+      "status": "ok",
+      "total_na_base": 609,
+      "coletados": 609,
+      "consulta": "(handball | \"team handball\" | \"beach handball\" | \"wheelchair handball\" | handebol | balonmano | andebol) + (mood | \"mood state\" | \"mood states\" | affect | affective | emotion | humor | \"estado de humor\" | \"estados de humor\" | \"estado de animo\" | afeto)",
+      "segundos": 0.6
+    },
+    {
+      "estrategia": "S1",
+      "base": "Dialnet",
+      "status": "ok",
+      "total_na_base": 60,
+      "coletados": 60,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto)",
+      "segundos": 122.1
+    },
+    {
+      "estrategia": "S1",
+      "base": "Scopus",
+      "status": "SEM RETORNO: sem SCOPUS_API_KEY/SCOPUS_INST_TOKEN",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TITLE-ABS-KEY((handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto))",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S1",
+      "base": "Web of Science",
+      "status": "SEM RETORNO: sem WOS_API_KEY",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TS=(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto)",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S2",
+      "base": "OpenAlex",
+      "status": "SEM RETORNO: https://api.openalex.org/works?search=%28handball+OR+%22team+handball%22+OR+%22beach+handb... -> HTTP Error 429: Too Many Requests",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\")",
+      "segundos": 3.9
+    },
+    {
+      "estrategia": "S2",
+      "base": "Crossref",
+      "status": "ok",
+      "total_na_base": 346,
+      "coletados": 346,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\")",
+      "segundos": 9.5
+    },
+    {
+      "estrategia": "S2",
+      "base": "Europe PMC",
+      "status": "ok",
+      "total_na_base": 8,
+      "coletados": 8,
+      "consulta": "((TITLE_ABS:handball) OR (TITLE_ABS:\"team handball\") OR (TITLE_ABS:\"beach handball\") OR (TITLE_ABS:\"wheelchair handball\") OR (TITLE_ABS:handebol) OR (TITLE_ABS:balonmano) OR (TITLE_ABS:andebol)) AND ((TITLE_ABS:POMS) OR (TITLE_ABS:\"Profile of Mood States\") OR (TITLE_ABS:BRUMS) OR (TITLE_ABS:\"Brunel Mood Scale\") OR (TITLE_ABS:PANAS) OR (TITLE_ABS:\"Positive and Negative Affect\") OR (TITLE_ABS:\"Feeling Scale\") OR (TITLE_ABS:\"Self-Assessment Manikin\"))",
+      "segundos": 0.5
+    },
+    {
+      "estrategia": "S2",
+      "base": "PubMed",
+      "status": "ok",
+      "total_na_base": 8,
+      "coletados": 8,
+      "consulta": "(handball[tiab] OR \"team handball\"[tiab] OR \"beach handball\"[tiab] OR \"wheelchair handball\"[tiab] OR handebol[tiab] OR balonmano[tiab] OR andebol[tiab]) AND (POMS[tiab] OR \"Profile of Mood States\"[tiab] OR BRUMS[tiab] OR \"Brunel Mood Scale\"[tiab] OR PANAS[tiab] OR \"Positive and Negative Affect\"[tiab] OR \"Feeling Scale\"[tiab] OR \"Self-Assessment Manikin\"[tiab])",
+      "segundos": 0.9
+    },
+    {
+      "estrategia": "S2",
+      "base": "Semantic Scholar",
+      "status": "ok",
+      "total_na_base": 29,
+      "coletados": 29,
+      "consulta": "(handball | \"team handball\" | \"beach handball\" | \"wheelchair handball\" | handebol | balonmano | andebol) + (POMS | \"Profile of Mood States\" | BRUMS | \"Brunel Mood Scale\" | PANAS | \"Positive and Negative Affect\" | \"Feeling Scale\" | \"Self-Assessment Manikin\")",
+      "segundos": 0.2
+    },
+    {
+      "estrategia": "S2",
+      "base": "Dialnet",
+      "status": "ok",
+      "total_na_base": 15,
+      "coletados": 15,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\")",
+      "segundos": 177.0
+    },
+    {
+      "estrategia": "S2",
+      "base": "Scopus",
+      "status": "SEM RETORNO: sem SCOPUS_API_KEY/SCOPUS_INST_TOKEN",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TITLE-ABS-KEY((handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\"))",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S2",
+      "base": "Web of Science",
+      "status": "SEM RETORNO: sem WOS_API_KEY",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TS=(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\")",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S3",
+      "base": "OpenAlex",
+      "status": "SEM RETORNO: https://api.openalex.org/works?search=%28handball+OR+%22team+handball%22+OR+%22beach+handb... -> HTTP Error 429: Too Many Requests",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (vigor OR fatigue OR tension OR anger OR depression OR confusion OR \"total mood disturbance\")",
+      "segundos": 3.7
+    },
+    {
+      "estrategia": "S3",
+      "base": "Crossref",
+      "status": "ok",
+      "total_na_base": 241,
+      "coletados": 241,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (vigor OR fatigue OR tension OR anger OR depression OR confusion OR \"total mood disturbance\")",
+      "segundos": 9.2
+    },
+    {
+      "estrategia": "S3",
+      "base": "Europe PMC",
+      "status": "ok",
+      "total_na_base": 131,
+      "coletados": 131,
+      "consulta": "((TITLE_ABS:handball) OR (TITLE_ABS:\"team handball\") OR (TITLE_ABS:\"beach handball\") OR (TITLE_ABS:\"wheelchair handball\") OR (TITLE_ABS:handebol) OR (TITLE_ABS:balonmano) OR (TITLE_ABS:andebol)) AND ((TITLE_ABS:vigor) OR (TITLE_ABS:fatigue) OR (TITLE_ABS:tension) OR (TITLE_ABS:anger) OR (TITLE_ABS:depression) OR (TITLE_ABS:confusion) OR (TITLE_ABS:\"total mood disturbance\"))",
+      "segundos": 2.6
+    },
+    {
+      "estrategia": "S3",
+      "base": "PubMed",
+      "status": "ok",
+      "total_na_base": 130,
+      "coletados": 130,
+      "consulta": "(handball[tiab] OR \"team handball\"[tiab] OR \"beach handball\"[tiab] OR \"wheelchair handball\"[tiab] OR handebol[tiab] OR balonmano[tiab] OR andebol[tiab]) AND (vigor[tiab] OR fatigue[tiab] OR tension[tiab] OR anger[tiab] OR depression[tiab] OR confusion[tiab] OR \"total mood disturbance\"[tiab])",
+      "segundos": 2.3
+    },
+    {
+      "estrategia": "S3",
+      "base": "Semantic Scholar",
+      "status": "ok",
+      "total_na_base": 395,
+      "coletados": 395,
+      "consulta": "(handball | \"team handball\" | \"beach handball\" | \"wheelchair handball\" | handebol | balonmano | andebol) + (vigor | fatigue | tension | anger | depression | confusion | \"total mood disturbance\")",
+      "segundos": 0.7
+    },
+    {
+      "estrategia": "S3",
+      "base": "Dialnet",
+      "status": "ok",
+      "total_na_base": 45,
+      "coletados": 45,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (vigor OR fatigue OR tension OR anger OR depression OR confusion OR \"total mood disturbance\")",
+      "segundos": 164.5
+    },
+    {
+      "estrategia": "S3",
+      "base": "Scopus",
+      "status": "SEM RETORNO: sem SCOPUS_API_KEY/SCOPUS_INST_TOKEN",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TITLE-ABS-KEY((handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (vigor OR fatigue OR tension OR anger OR depression OR confusion OR \"total mood disturbance\"))",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S3",
+      "base": "Web of Science",
+      "status": "SEM RETORNO: sem WOS_API_KEY",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TS=(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (vigor OR fatigue OR tension OR anger OR depression OR confusion OR \"total mood disturbance\")",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S4",
+      "base": "OpenAlex",
+      "status": "SEM RETORNO: https://api.openalex.org/works?search=%28mood+OR+%22mood+state%22+OR+%22mood+states%22+OR+... -> HTTP Error 429: Too Many Requests",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "(mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto OR POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\") AND (athlete OR athletes OR player OR players OR sport OR sports) AND (handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol)",
+      "segundos": 3.8
+    },
+    {
+      "estrategia": "S4",
+      "base": "Crossref",
+      "status": "ok",
+      "total_na_base": 540,
+      "coletados": 540,
+      "consulta": "(mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto OR POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\") AND (athlete OR athletes OR player OR players OR sport OR sports) AND (handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol)",
+      "segundos": 12.6
+    },
+    {
+      "estrategia": "S4",
+      "base": "Europe PMC",
+      "status": "ok",
+      "total_na_base": 98,
+      "coletados": 98,
+      "consulta": "((TITLE_ABS:mood) OR (TITLE_ABS:\"mood state\") OR (TITLE_ABS:\"mood states\") OR (TITLE_ABS:affect) OR (TITLE_ABS:affective) OR (TITLE_ABS:emotion) OR (TITLE_ABS:humor) OR (TITLE_ABS:\"estado de humor\") OR (TITLE_ABS:\"estados de humor\") OR (TITLE_ABS:\"estado de animo\") OR (TITLE_ABS:afeto) OR (TITLE_ABS:POMS) OR (TITLE_ABS:\"Profile of Mood States\") OR (TITLE_ABS:BRUMS) OR (TITLE_ABS:\"Brunel Mood Scale\") OR (TITLE_ABS:PANAS) OR (TITLE_ABS:\"Positive and Negative Affect\") OR (TITLE_ABS:\"Feeling Scale\") OR (TITLE_ABS:\"Self-Assessment Manikin\")) AND ((TITLE_ABS:athlete) OR (TITLE_ABS:athletes) OR (TITLE_ABS:player) OR (TITLE_ABS:players) OR (TITLE_ABS:sport) OR (TITLE_ABS:sports)) AND ((TITLE_ABS:handball) OR (TITLE_ABS:\"team handball\") OR (TITLE_ABS:\"beach handball\") OR (TITLE_ABS:\"wheelchair handball\") OR (TITLE_ABS:handebol) OR (TITLE_ABS:balonmano) OR (TITLE_ABS:andebol))",
+      "segundos": 1.3
+    },
+    {
+      "estrategia": "S4",
+      "base": "PubMed",
+      "status": "ok",
+      "total_na_base": 94,
+      "coletados": 94,
+      "consulta": "(mood[tiab] OR \"mood state\"[tiab] OR \"mood states\"[tiab] OR affect[tiab] OR affective[tiab] OR emotion[tiab] OR humor[tiab] OR \"estado de humor\"[tiab] OR \"estados de humor\"[tiab] OR \"estado de animo\"[tiab] OR afeto[tiab] OR POMS[tiab] OR \"Profile of Mood States\"[tiab] OR BRUMS[tiab] OR \"Brunel Mood Scale\"[tiab] OR PANAS[tiab] OR \"Positive and Negative Affect\"[tiab] OR \"Feeling Scale\"[tiab] OR \"Self-Assessment Manikin\"[tiab]) AND (athlete[tiab] OR athletes[tiab] OR player[tiab] OR players[tiab] OR sport[tiab] OR sports[tiab]) AND (handball[tiab] OR \"team handball\"[tiab] OR \"beach handball\"[tiab] OR \"wheelchair handball\"[tiab] OR handebol[tiab] OR balonmano[tiab] OR andebol[tiab])",
+      "segundos": 1.5
+    },
+    {
+      "estrategia": "S4",
+      "base": "Semantic Scholar",
+      "status": "ok",
+      "total_na_base": 541,
+      "coletados": 541,
+      "consulta": "(mood | \"mood state\" | \"mood states\" | affect | affective | emotion | humor | \"estado de humor\" | \"estados de humor\" | \"estado de animo\" | afeto | POMS | \"Profile of Mood States\" | BRUMS | \"Brunel Mood Scale\" | PANAS | \"Positive and Negative Affect\" | \"Feeling Scale\" | \"Self-Assessment Manikin\") + (athlete | athletes | player | players | sport | sports) + (handball | \"team handball\" | \"beach handball\" | \"wheelchair handball\" | handebol | balonmano | andebol)",
+      "segundos": 8.9
+    },
+    {
+      "estrategia": "S4",
+      "base": "Dialnet",
+      "status": "ok",
+      "total_na_base": 880,
+      "coletados": 880,
+      "consulta": "(mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto OR POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\") AND (athlete OR athletes OR player OR players OR sport OR sports) AND (handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol)",
+      "segundos": 308.0
+    },
+    {
+      "estrategia": "S4",
+      "base": "Scopus",
+      "status": "SEM RETORNO: sem SCOPUS_API_KEY/SCOPUS_INST_TOKEN",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TITLE-ABS-KEY((mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto OR POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\") AND (athlete OR athletes OR player OR players OR sport OR sports) AND (handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol))",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S4",
+      "base": "Web of Science",
+      "status": "SEM RETORNO: sem WOS_API_KEY",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TS=(mood OR \"mood state\" OR \"mood states\" OR affect OR affective OR emotion OR humor OR \"estado de humor\" OR \"estados de humor\" OR \"estado de animo\" OR afeto OR POMS OR \"Profile of Mood States\" OR BRUMS OR \"Brunel Mood Scale\" OR PANAS OR \"Positive and Negative Affect\" OR \"Feeling Scale\" OR \"Self-Assessment Manikin\") AND (athlete OR athletes OR player OR players OR sport OR sports) AND (handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol)",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S5",
+      "base": "OpenAlex",
+      "status": "SEM RETORNO: https://api.openalex.org/works?search=%28handball+OR+%22team+handball%22+OR+%22beach+handb... -> HTTP Error 429: Too Many Requests",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (\"systematic review\" OR \"scoping review\" OR \"meta-analysis\" OR review)",
+      "segundos": 4.2
+    },
+    {
+      "estrategia": "S5",
+      "base": "Crossref",
+      "status": "ok",
+      "total_na_base": 253,
+      "coletados": 253,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (\"systematic review\" OR \"scoping review\" OR \"meta-analysis\" OR review)",
+      "segundos": 12.8
+    },
+    {
+      "estrategia": "S5",
+      "base": "Europe PMC",
+      "status": "ok",
+      "total_na_base": 146,
+      "coletados": 146,
+      "consulta": "((TITLE_ABS:handball) OR (TITLE_ABS:\"team handball\") OR (TITLE_ABS:\"beach handball\") OR (TITLE_ABS:\"wheelchair handball\") OR (TITLE_ABS:handebol) OR (TITLE_ABS:balonmano) OR (TITLE_ABS:andebol)) AND ((TITLE_ABS:\"systematic review\") OR (TITLE_ABS:\"scoping review\") OR (TITLE_ABS:\"meta-analysis\") OR (TITLE_ABS:review))",
+      "segundos": 2.7
+    },
+    {
+      "estrategia": "S5",
+      "base": "PubMed",
+      "status": "ok",
+      "total_na_base": 143,
+      "coletados": 143,
+      "consulta": "(handball[tiab] OR \"team handball\"[tiab] OR \"beach handball\"[tiab] OR \"wheelchair handball\"[tiab] OR handebol[tiab] OR balonmano[tiab] OR andebol[tiab]) AND (\"systematic review\"[tiab] OR \"scoping review\"[tiab] OR \"meta-analysis\"[tiab] OR review[tiab])",
+      "segundos": 2.4
+    },
+    {
+      "estrategia": "S5",
+      "base": "Semantic Scholar",
+      "status": "ok",
+      "total_na_base": 449,
+      "coletados": 449,
+      "consulta": "(handball | \"team handball\" | \"beach handball\" | \"wheelchair handball\" | handebol | balonmano | andebol) + (\"systematic review\" | \"scoping review\" | \"meta-analysis\" | review)",
+      "segundos": 0.7
+    },
+    {
+      "estrategia": "S5",
+      "base": "Dialnet",
+      "status": "ok",
+      "total_na_base": 195,
+      "coletados": 195,
+      "consulta": "(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (\"systematic review\" OR \"scoping review\" OR \"meta-analysis\" OR review)",
+      "segundos": 153.6
+    },
+    {
+      "estrategia": "S5",
+      "base": "Scopus",
+      "status": "SEM RETORNO: sem SCOPUS_API_KEY/SCOPUS_INST_TOKEN",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TITLE-ABS-KEY((handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (\"systematic review\" OR \"scoping review\" OR \"meta-analysis\" OR review))",
+      "segundos": 0.0
+    },
+    {
+      "estrategia": "S5",
+      "base": "Web of Science",
+      "status": "SEM RETORNO: sem WOS_API_KEY",
+      "total_na_base": 0,
+      "coletados": 0,
+      "consulta": "TS=(handball OR \"team handball\" OR \"beach handball\" OR \"wheelchair handball\" OR handebol OR balonmano OR andebol) AND (\"systematic review\" OR \"scoping review\" OR \"meta-analysis\" OR review)",
+      "segundos": 0.0
+    }
+  ]
+}

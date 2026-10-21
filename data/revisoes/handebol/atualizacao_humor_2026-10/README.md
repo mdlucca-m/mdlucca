@@ -65,3 +65,12 @@ Pendências para o avaliador humano:
   handebolistas e BRUMS segundo uma citação secundária. Com o texto em mãos, o estudo tende a entrar.
 - Conferir os estudos incluídos só pelo resumo (Buchheit 2015, Diachenko e Tyshchenko 2025, Obregón Sibón et al.
   2017) e o preprint de Bugten et al. (2026).
+- A busca do robô (`../busca_humor_2026-10-21/`: 5.819 passagens, 3.438 distintos) trouxe três títulos sobre
+  handebol e emoção que não passaram pelas rodadas acima. São três trabalhos suecos com equipes femininas, sem
+  resumo nem DOI no registro:
+  - *Emotion, concentration and performance in a Swedish female handball team* (2014);
+  - *Emotion and concentration regulation training in Swedish female handball players* (2014);
+  - *Emotions and Performance in Elite Women Handball* (2018).
+
+  Pelo título, usam perfis emoção-desempenho do modelo IZOF ou instrumento próprio da equipe, o que tende à
+  exclusão por não medirem humor com instrumento declarado. Ainda assim, precisam de triagem.
