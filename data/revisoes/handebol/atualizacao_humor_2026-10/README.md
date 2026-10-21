@@ -9,6 +9,8 @@ atualizada tem **36 estudos e 38 relatórios**.
 - **`revisao_sistematica_humor_handebol_atualizada.docx`** e **`.pdf`** — o texto completo atualizado em ABNT.
   Inclui o fluxograma PRISMA para revisões atualizadas, as tabelas e figuras recalculadas, a extração completa
   (Apêndice A) e os relatórios excluídos ou não recuperados (Apêndice B).
+- **`revisao_sistematica_humor_formato_mdpi.pdf`** e **`revisao_sistematica_humor_versao_orientador.pdf`** — o mesmo
+  texto nos leiautes MDPI (citação numérica) e de leitura do orientador (Times 12, espaço 1,5, citação autor-data).
 - **`triagem_rodada1_533.json`** — primeira rodada, com a triagem por título e resumo dos 533 registros que
   passaram pela deduplicação e pelo filtro automático. As fontes foram PubMed, Europe PMC (resumo e texto
   completo) e Crossref. Cada registro tem decisão (`incluir`/`dúvida`/`excluir`), motivo em vocabulário fechado e
