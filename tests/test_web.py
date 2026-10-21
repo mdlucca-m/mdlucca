@@ -13,6 +13,8 @@ import contextlib
 import io
 import json
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import time
@@ -20,6 +22,7 @@ import threading
 import unittest
 import urllib.error
 import urllib.request
+from datetime import date, timedelta
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 
@@ -408,6 +411,88 @@ class TestApi(unittest.TestCase):
         for marcador in ("__BASE_CSS__", "__ICONS_JS__"):
             self.assertNotIn(marcador, html, f"marcador nao substituido: {marcador}")
         self.assertIn("const Icons", html)   # o menu monta os icones a partir daqui
+
+
+class TestOsCamposQueAFichaUsaParaMontarMeusPrazos(unittest.TestCase):
+    """`/api/researchers/<id>` precisa trazer `ended_on` do projeto e a
+    submissao mais recente do artigo -- sem isso a área do integrante não
+    tem como montar "Meus prazos" sozinha (ver `prazosPessoais` em
+    app.html), e repetiria a pergunta ao servidor pra cada campo."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.db_path = Path(cls.tmp.name) / "prazos.sqlite"
+        db = Database(cls.db_path)
+        db.migrate()
+        mid = db.member_id("Fulana Prazo", create=True)
+        db.execute(
+            "UPDATE members SET thesis_due_on = '2099-01-01', thesis_status = 'em_andamento' "
+            "WHERE id = ?", (mid,))
+        pid = db.execute(
+            "INSERT INTO projects (code, name, status, ended_on) VALUES"
+            " ('px', 'Projeto com prazo', 'em_andamento', '2099-02-01')").lastrowid
+        db.execute("INSERT INTO project_members (project_id, member_id, role)"
+                   " VALUES (?, ?, 'bolsista')", (pid, mid))
+        aid = db.execute(
+            "INSERT INTO articles (title, title_key, status) VALUES"
+            " ('Artigo parado', 'artigoparado', 'submetido')").lastrowid
+        db.execute("INSERT INTO article_authors (article_id, member_id, author_name,"
+                   " author_order) VALUES (?, ?, 'Fulana Prazo', 1)", (aid, mid))
+        db.execute("INSERT INTO submissions (article_id, attempt_no, journal, submitted_on)"
+                   " VALUES (?, 1, 'Revista X', '2020-01-01')", (aid,))
+        db.conn.commit()
+        auth.create_account(db, "Fulana Prazo", "fulana@udesc.br", "senhaforte123",
+                            role="integrante")
+        db.close()
+        cls.member_id = mid
+
+        api.Handler.db_path = cls.db_path
+        api.Handler.log_message = lambda *args, **kwargs: None
+        cls.server = ThreadingHTTPServer(("127.0.0.1", 0), api.Handler)
+        cls.port = cls.server.server_address[1]
+        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+        cls.thread.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        cls.server.server_close()
+        cls.tmp.cleanup()
+
+    def call(self, path, method="GET", body=None, cookie=None):
+        url = f"http://127.0.0.1:{self.port}{path}"
+        data = json.dumps(body).encode() if body is not None else None
+        headers = {"Content-Type": "application/json"} if data else {}
+        if cookie:
+            headers["Cookie"] = f"{api.COOKIE_NAME}={cookie}"
+        request = urllib.request.Request(url, data=data, method=method, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                payload = response.read().decode()
+                set_cookie = response.headers.get("Set-Cookie") or ""
+                token = set_cookie.split("=")[1].split(";")[0] if set_cookie else None
+                return response.status, json.loads(payload), token
+        except urllib.error.HTTPError as exc:
+            return exc.code, json.loads(exc.read().decode()), None
+
+    def entrar(self):
+        status, _, token = self.call("/api/auth/login", "POST",
+                                     {"login": "fulana@udesc.br", "senha": "senhaforte123"})
+        self.assertEqual(status, 200)
+        return token
+
+    def test_o_projeto_traz_o_fim_do_projeto(self):
+        token = self.entrar()
+        _, body, _ = self.call(f"/api/researchers/{self.member_id}", cookie=token)
+        self.assertEqual(body["project_list"][0]["ended_on"], "2099-02-01")
+
+    def test_o_artigo_traz_a_submissao_mais_recente(self):
+        token = self.entrar()
+        _, body, _ = self.call(f"/api/researchers/{self.member_id}", cookie=token)
+        artigo = body["articles"][0]
+        self.assertEqual(artigo["current_journal"], "Revista X")
+        self.assertEqual(artigo["last_submitted_on"], "2020-01-01")
 
 
 class TestOBancoTravadoNaTela(unittest.TestCase):
@@ -1126,6 +1211,110 @@ class TestOProjetoVinculadoAoArtigo(unittest.TestCase):
         bloco = self.bloco_da_aba("projetos")
         self.assertIn('field("Artigos vinculados"', bloco)
         self.assertIn('from: "articles_linked"', bloco)
+
+
+class TestMeusPrazosNaAreaDoIntegrante(unittest.TestCase):
+    """Pedido do Mateus: avisos com contagem regressiva, dentro do próprio
+    sistema, para tudo que está para vencer -- tese, bolsa, projeto e
+    artigo parado com a revista. Mesma leitura do `prazos()` do mural,
+    recortada para a pessoa logada (`prazosPessoais`, em app.html)."""
+
+    TEMPLATES = ROOT / "scripts" / "lape" / "templates"
+    NODE = shutil.which("node")
+
+    @classmethod
+    def setUpClass(cls):
+        texto = (cls.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        inicio = texto.index("function comoData(iso){")
+        fim = texto.index("function kpi(label, value){")
+        cls.corpo = texto[inicio:fim]
+
+    def rodar(self, me):
+        if self.NODE is None:
+            self.skipTest("node não está disponível nesta máquina")
+        script = self.corpo + "\nconsole.log(JSON.stringify(prazosPessoais(" + json.dumps(me) + ")));"
+        pronto = subprocess.run([self.NODE, "--input-type=module", "-e", script],
+                                capture_output=True, text=True)
+        if pronto.returncode != 0:
+            raise AssertionError(pronto.stderr)
+        return json.loads(pronto.stdout)
+
+    def hoje_mais(self, dias):
+        return (date.today() + timedelta(days=dias)).isoformat()
+
+    def test_tese_entra_com_os_dias_ate_a_data(self):
+        saida = self.rodar({"thesis_due_on": self.hoje_mais(5),
+                            "thesis_status": "em_andamento", "thesis_title": "Minha tese"})
+        self.assertEqual(len(saida), 1)
+        self.assertEqual(saida[0]["dias"], 5)
+        self.assertEqual(saida[0]["icone"], "tese")
+
+    def test_tese_concluida_nao_entra(self):
+        saida = self.rodar({"thesis_due_on": self.hoje_mais(5), "thesis_status": "concluida"})
+        self.assertEqual(saida, [])
+
+    def test_bolsa_so_entra_dentro_de_180_dias(self):
+        perto = self.rodar({"scholarship_until": self.hoje_mais(180), "scholarship": "CAPES"})
+        longe = self.rodar({"scholarship_until": self.hoje_mais(181), "scholarship": "CAPES"})
+        self.assertEqual(len(perto), 1)
+        self.assertEqual(longe, [])
+
+    def test_projeto_encerrando_entra_so_se_em_andamento(self):
+        saida = self.rodar({"project_list": [
+            {"status": "em_andamento", "ended_on": self.hoje_mais(15), "name": "Projeto A"},
+            {"status": "concluido", "ended_on": self.hoje_mais(15), "name": "Projeto B"},
+        ]})
+        self.assertEqual(len(saida), 1)
+        self.assertIn("Projeto A", saida[0]["detalhe"])
+
+    def test_artigo_so_entra_apos_120_dias_sem_resposta(self):
+        saida = self.rodar({"articles": [
+            {"status": "submetido", "first_submission_on": self.hoje_mais(-60),
+             "title": "Artigo recente", "current_journal": "Revista A"},
+            {"status": "submetido", "first_submission_on": self.hoje_mais(-200),
+             "title": "Artigo antigo", "current_journal": "Revista B"},
+        ]})
+        self.assertEqual(len(saida), 1)
+        self.assertIn("Artigo antigo", saida[0]["titulo"])
+        self.assertEqual(saida[0]["espera"], 200)
+
+    def test_ordem_vencido_primeiro_proximo_depois_espera_por_ultimo(self):
+        saida = self.rodar({
+            "thesis_due_on": self.hoje_mais(-3), "thesis_status": "em_andamento", "thesis_title": "T",
+            "scholarship_until": self.hoje_mais(10), "scholarship": "CAPES",
+            "articles": [{"status": "submetido", "first_submission_on": self.hoje_mais(-200),
+                         "title": "A", "current_journal": "J"}],
+        })
+        self.assertEqual([x["icone"] for x in saida], ["tese", "bolsa", "relogio"])
+
+    def test_contagem_regressiva_em_numero_e_unidade(self):
+        script = self.corpo + ("\nconsole.log(JSON.stringify([contagemDoPrazo(0),"
+            " contagemDoPrazo(1), contagemDoPrazo(-1), contagemDoPrazo(5),"
+            " contagemDoPrazo(-5), contagemDoPrazo(60)]));")
+        if self.NODE is None:
+            self.skipTest("node não está disponível nesta máquina")
+        pronto = subprocess.run([self.NODE, "--input-type=module", "-e", script],
+                                capture_output=True, text=True)
+        if pronto.returncode != 0:
+            raise AssertionError(pronto.stderr)
+        saida = json.loads(pronto.stdout)
+        self.assertEqual(saida[0], {"palavra": "hoje"})
+        self.assertEqual(saida[1], {"palavra": "amanhã"})
+        self.assertEqual(saida[2], {"palavra": "ontem"})
+        self.assertEqual(saida[3], {"numero": 5, "unidade": "dias"})
+        self.assertEqual(saida[4], {"numero": 5, "unidade": "dias atrás"})
+        self.assertEqual(saida[5], {"numero": 2, "unidade": "meses"})
+
+    def test_sem_prazo_nenhum_o_cartao_nao_aparece(self):
+        texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        corpo = texto[texto.index("function cartaoDePrazos("):texto.index("function kpi(")]
+        self.assertIn("if (!itens.length) return null;", corpo)
+
+    def test_o_cartao_pode_sumir_sem_quebrar_a_tela(self):
+        texto = (self.TEMPLATES / "app.html").read_text(encoding="utf-8")
+        corpo = texto[texto.index("VIEWS.perfil = {"):texto.index("function kpi(")]
+        self.assertIn("const cartaoPrazos = cartaoDePrazos(prazosPessoais(me));", corpo)
+        self.assertIn("if (cartaoPrazos) VIEW.appendChild(cartaoPrazos);", corpo)
 
 
 class TestTokensDoTema(unittest.TestCase):

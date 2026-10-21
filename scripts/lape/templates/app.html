@@ -90,6 +90,25 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .quem-agora b{font-size:13.5px}
 .quem-agora small{display:block;color:var(--ink-2);font-size:12px}
 .hint.aviso{color:var(--warning)}
+/* "Meus prazos": o cartão que chama atenção no topo do Meu perfil. A
+   contagem é o número grande -- é o que se lê primeiro, de relance --
+   e a cor segue a urgência (`tomDoPrazo`), não o tipo de prazo. */
+.prazos-pessoais{border-color:color-mix(in srgb,var(--warning) 35%,var(--border))}
+.prazos-topo{display:flex;align-items:center;gap:10px}
+.prazos-topo h3{margin:0;font-size:15px}
+.prazos-lista{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.prazo-item{display:flex;align-items:center;gap:12px;padding:9px 4px;
+  border-top:1px solid var(--border)}
+.prazo-item:first-child{border-top:none}
+.prazo-oque{flex:1;min-width:0}
+.prazo-oque b{display:block;font-size:13.5px}
+.prazo-oque small{display:block;color:var(--ink-2);font-size:12px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prazo-contagem{text-align:right;flex:none;color:var(--tom,var(--accent-strong))}
+.prazo-contagem b{display:block;font-size:17px;font-weight:800;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.prazo-contagem small{display:block;font-size:10.5px;color:var(--ink-muted);
+  text-transform:uppercase;letter-spacing:.03em}
 /* Banco de horas: saldo em destaque, e uma fileira de colunas divergentes
    (crédito sobe, déficit desce) alinhadas numa linha de base central --
    a mesma ideia do acelerômetro, só que semana a semana em vez de um
@@ -498,6 +517,53 @@ function dt(iso){
   return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : String(iso);
 }
 function isoDate(value){ return value ? String(value).slice(0, 10) : ""; }
+
+/* ---------- prazos (mesma conta do mural, versão pessoal) ----------
+   `diasAte`/`porExtenso`/`haQuanto`/`tomDoPrazo` são os mesmos de
+   mural.js -- a área do integrante não carrega aquele arquivo, então a
+   conta é refeita aqui, não importada. */
+function comoData(iso){
+  if (!iso) return null;
+  const texto = String(iso);
+  const p = texto.slice(0, 10).split("-");
+  if (p.length !== 3) return null;
+  const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  return isNaN(d.getTime()) ? null : d;
+}
+function meiaNoite(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function diasAte(iso){
+  const d = comoData(iso);
+  if (!d) return null;
+  return Math.round((meiaNoite(d) - meiaNoite(new Date())) / 86400000);
+}
+/* A contagem regressiva em dois pedaços -- um número grande e a unidade
+   embaixo dele -- e não a frase inteira ("em 3 dias") que o mural usa:
+   aqui o número É o destaque visual, lido antes do texto ao lado. */
+function contagemDoPrazo(dias){
+  if (dias === 0) return {palavra: "hoje"};
+  if (dias === 1) return {palavra: "amanhã"};
+  if (dias === -1) return {palavra: "ontem"};
+  if (dias < 0){
+    const d = Math.abs(dias);
+    return {numero: d, unidade: d === 1 ? "dia atrás" : "dias atrás"};
+  }
+  if (dias < 45) return {numero: dias, unidade: dias === 1 ? "dia" : "dias"};
+  const meses = Math.round(dias / 30.44);
+  return {numero: meses, unidade: meses === 1 ? "mês" : "meses"};
+}
+/* O tom acompanha a urgência, e só ela: vermelho é prazo vencido, nunca
+   decoração. */
+function tomDoPrazo(dias){
+  if (dias === null) return "azul";
+  if (dias < 0) return "critico";
+  if (dias <= 7) return "alerta";
+  if (dias <= 30) return "ambar";
+  return "azul";
+}
+function tomToken(tom){
+  return {azul: "accent-strong", ambar: "series-4", alerta: "warning", critico: "critical"}[tom]
+    || "accent-strong";
+}
 function rank(role){ return {leitura: 0, integrante: 1, coordenacao: 2, admin: 3}[role] || 0; }
 function can(minimum){ return ME && rank(ME.user_role) >= rank(minimum); }
 
@@ -842,6 +908,8 @@ VIEWS.perfil = {
     VIEW.appendChild(tituloDaTela("perfil", "Meu perfil"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Estes dados alimentam o índice de pesquisadores, a rede de colaboração e as métricas do painel."}));
+    const cartaoPrazos = cartaoDePrazos(prazosPessoais(me));
+    if (cartaoPrazos) VIEW.appendChild(cartaoPrazos);
     VIEW.appendChild(cartaoFotoDePerfil(me));
     VIEW.appendChild(h("div", {class: "grid g4 sec"}, [
       kpi("Artigos", me.n_articles), kpi("Publicados", me.n_published),
@@ -974,6 +1042,73 @@ VIEWS.perfil = {
     ]));
   },
 };
+
+/* Os prazos da PRÓPRIA pessoa: tese, bolsa, projeto em que está e artigo
+   parado com a revista -- a mesma leitura do `prazos()` do mural, só que
+   recortada para quem está logado, e não para o laboratório inteiro. */
+const ESPERA_LONGA = 120; /* dias com o periódico antes de virar pendência */
+function prazosPessoais(me){
+  const itens = [];
+  if (me.thesis_due_on && (me.thesis_status || "") !== "concluida"){
+    itens.push({titulo: "Trabalho de conclusão",
+      detalhe: me.thesis_title || "Título em definição",
+      dias: diasAte(me.thesis_due_on), icone: "tese"});
+  }
+  if (me.scholarship_until){
+    const d = diasAte(me.scholarship_until);
+    if (d !== null && d <= 180){
+      itens.push({titulo: "Fim de bolsa", detalhe: me.scholarship || "Bolsa",
+        dias: d, icone: "bolsa"});
+    }
+  }
+  (me.project_list || []).forEach(function (p){
+    if (p.status !== "em_andamento" || !p.ended_on) return;
+    itens.push({titulo: "Encerramento de projeto", detalhe: p.name,
+      dias: diasAte(p.ended_on), icone: "projeto"});
+  });
+  (me.articles || []).forEach(function (a){
+    if (a.status !== "submetido" && a.status !== "em_revisao") return;
+    const enviado = a.last_submitted_on || a.first_submission_on;
+    const d = diasAte(enviado);
+    if (d === null || -d < ESPERA_LONGA) return;
+    itens.push({titulo: "Sem resposta da revista — " + a.title,
+      detalhe: a.current_journal || a.journal || "Periódico não informado",
+      dias: null, espera: Math.abs(d), icone: "relogio"});
+  });
+  const comData = itens.filter(function (x){ return x.dias !== null; })
+    .sort(function (a, b){ return a.dias - b.dias; });
+  const semData = itens.filter(function (x){ return x.dias === null; })
+    .sort(function (a, b){ return b.espera - a.espera; });
+  return comData.concat(semData);
+}
+
+/* O cartão só aparece quando há algo a avisar -- sem prazo nenhum, uma
+   seção vazia dizendo "meus prazos" não informa nada, só ocupa a tela
+   que a foto e os KPIs usam melhor. */
+function cartaoDePrazos(itens){
+  if (!itens.length) return null;
+  return h("div", {class: "card sec prazos-pessoais"}, [
+    h("div", {class: "prazos-topo"}, [
+      Icons.badge("prazo", "alerta", 26),
+      h("h3", {text: "Meus prazos"}),
+    ]),
+    h("ul", {class: "prazos-lista"}, itens.map(function (x){
+      const tom = x.dias !== null ? tomDoPrazo(x.dias) : "alerta";
+      const c = x.dias !== null ? contagemDoPrazo(x.dias)
+        : {numero: x.espera, unidade: x.espera === 1 ? "dia parado" : "dias parados"};
+      const contagem = h("div", {class: "prazo-contagem", style: "--tom:var(--" + tomToken(tom) + ")"},
+        c.palavra ? [h("b", {text: c.palavra})]
+                 : [h("b", {text: String(c.numero)}), h("small", {text: c.unidade})]);
+      return h("li", {class: "prazo-item"}, [
+        Icons.badge(x.icone, tom, 22),
+        h("div", {class: "prazo-oque"}, [
+          h("b", {text: x.titulo}), h("small", {text: x.detalhe}),
+        ]),
+        contagem,
+      ]);
+    })),
+  ]);
+}
 
 function kpi(label, value){
   return h("div", {class: "kpi"}, [

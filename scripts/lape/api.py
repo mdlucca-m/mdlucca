@@ -1493,12 +1493,22 @@ def route_researcher_detail(ctx: "Context", member_id: str) -> Any:
         raise ApiError(404, f"pesquisador {member_id} não encontrado")
     person = rows[0]
     person["project_list"] = db.dicts(
-        "SELECT p.id, p.code, p.name, p.status, p.funder, pm.role"
+        "SELECT p.id, p.code, p.name, p.status, p.funder, p.ended_on, pm.role"
         " FROM project_members pm JOIN projects p ON p.id = pm.project_id"
         " WHERE pm.member_id = ? ORDER BY p.status, p.name", (int(member_id),))
+    # `current_journal`/`last_submitted_on` vem da submissao mais recente, nao
+    # do artigo: e o mesmo par de subconsultas que `metrics.articles_by_status`
+    # ja usa para a mesma pergunta ("ha quanto tempo esta parado com ESTE
+    # periodico"), repetido aqui porque a ficha pessoal precisa da mesma
+    # resposta para montar "Meus prazos" na area do integrante.
     person["articles"] = db.dicts(
         "SELECT a.id, a.internal_code, a.title, a.status, a.year_published, a.journal, a.doi,"
-        "       a.scopus_citations, a.wos_citations, a.openalex_citations, aa.author_order"
+        "       a.scopus_citations, a.wos_citations, a.openalex_citations, aa.author_order,"
+        "       a.first_submission_on,"
+        "       (SELECT s.journal FROM submissions s WHERE s.article_id = a.id"
+        "          ORDER BY s.attempt_no DESC LIMIT 1) AS current_journal,"
+        "       (SELECT s.submitted_on FROM submissions s WHERE s.article_id = a.id"
+        "          ORDER BY s.attempt_no DESC LIMIT 1) AS last_submitted_on"
         " FROM article_authors aa JOIN articles a ON a.id = aa.article_id"
         " WHERE aa.member_id = ?"
         " ORDER BY COALESCE(a.year_published, 9999) DESC, a.title", (int(member_id),))
