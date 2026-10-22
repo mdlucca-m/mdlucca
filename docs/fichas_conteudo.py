@@ -1331,11 +1331,150 @@ TRONCO = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# UNILATERAL E SALTO — sete pedidos e o oitavo por minha conta
+# ════════════════════════════════════════════════════════════════════════════
+# Os sete cobrem perna unilateral, plano frontal, empurrar vertical, ombro e
+# três pliometrias. Deixam de fora puxar, core e DOBRA DE QUADRIL. O oitavo é o
+# stiff unilateral porque a falta de posterior não é uma lacuna qualquer nesta
+# ficha: são 62 contatos pliométricos, e quem freia aterrissagem é o
+# isquiotibial, excentricamente, quase sempre numa perna só.
+UNILATERAL_SALTO = {
+    "arquivo": "ELASE-unilateral-e-salto.pdf",
+    "meta_titulo": "ELASE - Unilateral e salto",
+    "meta_assunto": "Plano frontal, unilateral e pliometria; oito exercicios",
+    "titulo": "Unilateral e salto",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Oito exercícios &nbsp;&middot;&nbsp; cinco unilaterais e três "
+                 "saltos &nbsp;&middot;&nbsp; metade da sessão acontece no plano "
+                 "frontal",
+    "rotulo_carga": "CARGA",
+    "larguras": [180, 44, 44, 58],
+    "abertura":
+        "<b>Sete vieram pedidos; o oitavo era meu. Escolhi o stiff unilateral</b>, "
+        "e o motivo está na conta: são <b>três exercícios de salto e 62 "
+        "contatos</b>, e nenhum exercício de posterior de coxa — que é justamente "
+        "quem freia a aterrissagem, numa perna só. Faltava <b>o tecido que os "
+        "outros sete mais cobram</b>.",
+    "aquecimento_titulo": "Aquecimento — mais longo do que o de costume",
+    "aquecimento_nota": "Metade desta ficha acontece no plano frontal, a direção "
+                        "que o aquecimento de sala costuma pular: glúteo médio e "
+                        "adutor têm de chegar prontos.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de tornozelo, quadril e adutor", "6 min",
+         "a do app + cossaco"],
+        ["Bicicleta ou esteira, ritmo leve", "4 min", "até suar, sem cansar"],
+        ["Deslocamento lateral com elástico", "2 × 10 cada",
+         "acorda o glúteo médio"],
+        ["Saltinhos no lugar e laterais, sem carga", "2 × 10",
+         "o tornozelo tem de chegar pronto"],
+    ],
+    "exercicios": [
+        ("Agachamento no banco unilateral",
+         "força &middot; perna unilateral — 6 em CADA perna",
+         "4 × 6", "2,5 min", "RIR 2"),
+        ("Agachamento lateral com barra",
+         "força &middot; plano frontal — 6 para CADA lado",
+         "3 × 6", "2 min", "RIR 2"),
+        ("Desenvolvimento com barra",
+         "força &middot; empurrar vertical — SEM perna",
+         "4 × 6", "2,5 min", "RIR 2"),
+        ("Afundo com salto",
+         "pliometria &middot; alternado — 3 de cada perna",
+         "3 × 6", "2 min", "sem carga"),
+        ("Salto lateral",
+         "pliometria &middot; plano frontal — 3 de cada lado",
+         "4 × 6", "90 s", "sem carga"),
+        ("Agachamento com salto",
+         "pliometria &middot; bilateral — sem quicar",
+         "4 × 5", "2 min", "sem carga"),
+        ("Remada alta",
+         "força &middot; ombro — pegada ABERTA, ver o verso",
+         "3 × 8", "90 s", "RIR 2"),
+        ("Stiff unilateral com halteres",
+         "O MISTERIOSO &middot; posterior — 8 em CADA perna",
+         "3 × 8", "90 s", "RIR 2"),
+    ],
+    "nota_tabela":
+        "Nada sai por percentual: não existe 1RM honesto de agachamento numa perna "
+        "só — tudo por <b>RIR 2</b>. <b>Nos cinco unilaterais, anote os DOIS "
+        "lados:</b> é a melhor leitura de assimetria do mês.",
+    "caixa_duracao":
+        "<b>Duração prevista: 75 a 90 minutos</b> — 28 séries, e unilateral vale "
+        "por dois em tempo de sala. <b>Com menos de 65 minutos:</b> agachamento "
+        "lateral em 2 séries e salto lateral em 3. Nunca corte a pausa, nem o "
+        "stiff.",
+    "verso": [
+        ("h", "O oitavo, e por que esse"),
+        ("caixa", "<b>Stiff unilateral com halteres.</b> Os sete deixam de fora "
+                  "puxar, core e dobra de quadril — e a dobra de quadril é a única "
+                  "falta que esta ficha <b>cria</b> em vez de só não cobrir: são "
+                  "62 aterrissagens, e aterrissagem é posterior de coxa trabalhando "
+                  "ao contrário. <b>Perderam para ele:</b> remada unilateral e "
+                  "prancha lateral — nenhuma devolve o que os saltos tiram.",
+         VERDE_CLARO, VERDE),
+        ("espaco", 2),
+        ("caixa", "<b>21 séries de perna, 4 de empurrar, 3 de ombro e ZERO de "
+                  "puxar.</b> Isto não é corpo inteiro: é um dia de perna com dois "
+                  "exercícios de ombro no meio, e tudo bem que seja. O zero é que "
+                  "não pode passar batido — a remada alta <b>eleva</b> a escápula, "
+                  "não a retrai. <b>O próximo dia de sala precisa ter puxada.</b>"),
+        ("caixa", "<b>62 contatos pliométricos num dia só.</b> O sistema reparte "
+                  "entre 45 e 140 na SEMANA INTEIRA, conforme o bloco: esta ficha "
+                  "gasta de 44% a 138% de uma semana num treino. <b>Com quadra "
+                  "pesada no mesmo dia ou no seguinte, salto lateral em 2 "
+                  "séries</b> — é o que tem mais contato por série.",
+         AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Agachamento no banco unilateral", "Pé de apoio chapado, o outro à "
+             "frente sem tocar o chão. <b>Senta no banco, não cai nele</b> — toca e "
+             "sobe sem largar o peso. A altura certa é a maior que você controla com "
+             "o joelho apontando para o segundo dedo. <b>Comece pela perna mais "
+             "fraca; o lado bom para no número que o fraco fez.</b>"),
+            ("Agachamento lateral com barra", "Pés bem afastados e apontados à "
+             "frente. Desce sobre UMA perna com a outra estendida, <b>os dois "
+             "calcanhares no chão</b>: se o calcanhar levanta, feche a abertura antes "
+             "de diminuir a profundidade. Barra leve — o limite é amplitude."),
+            ("Desenvolvimento com barra", "<b>Sem impulso de perna:</b> se o joelho "
+             "dobra, virou push press e é outro exercício. Glúteo e abdômen "
+             "apertados para a lombar não arquear; a barra passa rente ao rosto e a "
+             "cabeça <b>atravessa</b> para a frente dos braços no fim."),
+            ("Os três saltos", "<b>Afundo:</b> troca de perna no ar, joelho de "
+             "trás descendo sem bater. <b>Lateral:</b> impulsiona numa perna, "
+             "aterrissa na outra e <b>para 1 segundo</b> antes de voltar — é o "
+             "salto mais parecido com um bloqueio deslocando. <b>Agachamento:</b> "
+             "aterrissa, estabiliza e recomeça, sem quicar. Nos três, o <b>joelho "
+             "não entra para dentro</b>, e aterrissagem que faz barulho é série "
+             "que acabou."),
+            ("Remada alta", "<b>O maior risco de ombro desta ficha para quem "
+             "ataca</b> — e ficou em 7º, não em 4º como foi listada: assim os três "
+             "saltos a separam do desenvolvimento, e o ombro não faz dois "
+             "exercícios acima da cabeça colados. Pegada na largura dos ombros ou "
+             "<b>mais aberta</b>, barra parando no <b>esterno</b>, <b>cotovelo "
+             "nunca acima da linha do ombro</b>. Deu dor, troque por face pull."),
+            ("Stiff unilateral — o misterioso", "Em pé numa perna, halteres à "
+             "frente, quadril para trás, perna livre estendendo atrás como "
+             "contrapeso: <b>tronco e perna de trás formam uma linha</b>. Desce até "
+             "onde a lombar fica reta e volta apertando o glúteo. Aqui se erra mais "
+             "por amplitude demais do que por carga demais."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>Com jogo nas próximas 48 horas, esta não é a ficha da "
+                  "véspera:</b> 21 séries de perna e 62 contatos pedem dois dias "
+                  "para sair. A versão de véspera é só o agachamento com salto, "
+                  "3 × 3, e o stiff em 2 séries leves.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
           "contraste": CONTRASTE, "corpo_inteiro": CORPO_INTEIRO,
-          "tronco": TRONCO}
+          "tronco": TRONCO, "unilateral_salto": UNILATERAL_SALTO}
 
 
 def main():
