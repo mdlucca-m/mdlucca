@@ -23,6 +23,9 @@ atualizada tem **36 estudos e 38 relatórios**.
   - N8 entrou pelo resumo, porque os metadados da revista indicam texto em inglês.
   - O N9 (resumo de congresso da mesma amostra de Ratz-Sulyok et al., 2026) não está neste arquivo. Ele é tratado
     como relatório adicional e montado a partir do H34.
+- **`leitura_integral_fichas.json`** — fichas da leitura integral dos 38 relatórios incluídos (desenho, momentos, instrumento,
+  todos os resultados de humor com números, limitações declaradas e fragilidades observadas, tamanhos de efeito e
+  qualidade revista), base das Figuras 5 a 7, da Tabela 6 e do Apêndice C.
 - **`excluidos_e_nao_recuperados.json`** — excluídos depois da leitura do texto completo e registros não
   recuperados na segunda rodada.
 - **`../busca_humor_2026-10-21/`** — saída do robô `scripts/lape/busca_revisao.py` com as estratégias S1 a S5,
