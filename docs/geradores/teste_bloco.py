@@ -13,7 +13,8 @@ import sys
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter, column_index_from_string
 
-CAMINHO = "/home/user/mdlucca/docs/ELASE-bloco-forca-potencia-12a16-10.xlsx"
+CAMINHO = (sys.argv[1] if len(sys.argv) > 1
+           else "/home/user/mdlucca/docs/ELASE-bloco-forca-potencia-12a16-10.xlsx")
 wb = load_workbook(CAMINHO)          # fórmulas, não valores
 falhas, passes = [], 0
 
@@ -30,14 +31,15 @@ rm = wb["1RM"]
 dias = ["Segunda", "Terça", "Quarta", "Quinta"]
 
 # ── A aba 1RM ─────────────────────────────────────────────────────────────
-refs = [rm.cell(row=r, column=1).value for r in range(4, 13)]
-ok(len(refs) == 9 and all(refs), "a aba 1RM tem os nove exercícios de referência", refs)
+refs = [rm.cell(row=r, column=1).value for r in range(4, 15)]
+ok(len(refs) == 11 and all(refs), "a aba 1RM tem os nove exercícios de referência", refs)
 ok(refs == ["Agachamento", "Agachamento frontal", "Supino", "Stiff com barra",
-            "Remada serrote", "Arranco", "Clean", "Clean pull", "Push press"],
+            "Remada serrote", "Remada curvada", "Puxada fechada",
+            "Arranco", "Clean", "Clean pull", "Push press"],
    "com a MESMA grafia da lista do app da comissão", refs)
 
 exemplo = {rm.cell(row=r, column=1).value: rm.cell(row=r, column=2).value
-           for r in range(4, 13)}
+           for r in range(4, 15)}
 ok(all(isinstance(v, (int, float)) and v > 0 for v in exemplo.values()),
    "a coluna EXEMPLO vem preenchida, para o formato aparecer funcionando", exemplo)
 vazias = [get_column_letter(c) for c in range(3, 3 + 14)
@@ -46,9 +48,9 @@ ok(not vazias, "e as colunas dos atletas vêm vazias, para ele preencher", vazia
 
 # ── As fórmulas de carga, dia a dia ───────────────────────────────────────
 PADRAO = re.compile(
-    r"^=IF\(\$I(\d+)=\"\",\"\",IFERROR\(IF\(INDEX\('1RM'!([A-Z]+)\$4:\2\$12,"
-    r"MATCH\(\$H\1,'1RM'!\$A\$4:\$A\$12,0\)\)=\"\",\"\","
-    r"ROUND\(INDEX\('1RM'!\2\$4:\2\$12,MATCH\(\$H\1,'1RM'!\$A\$4:\$A\$12,0\)\)"
+    r"^=IF\(\$I(\d+)=\"\",\"\",IFERROR\(IF\(INDEX\('1RM'!([A-Z]+)\$4:\2\$14,"
+    r"MATCH\(\$H\1,'1RM'!\$A\$4:\$A\$14,0\)\)=\"\",\"\","
+    r"ROUND\(INDEX\('1RM'!\2\$4:\2\$14,MATCH\(\$H\1,'1RM'!\$A\$4:\$A\$14,0\)\)"
     r"\*\$I\1/2\.5,0\)\*2\.5\),\"\"\)\)$")
 
 total_celulas = 0

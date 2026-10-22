@@ -604,7 +604,8 @@ const servidor = http.createServer((req, res) => {
   await pag.fill("#waTexto", [
     `🏐 CARGAS ELASE VOLEIBOL`, `Rafa · ${hojeBR}`, ``,
     `1. Agachamento — 162,5 kg`, `2. Supino — 110 kg`, `3. Push press — 70 kg`,
-    `4. Levantamento terra — 180 kg`, `5. Clean — 1400 kg`,
+    `4. Remada curvada — 90 kg`, `5. Puxada fechada — 85 kg`,
+    `6. Levantamento terra — 180 kg`, `7. Clean — 1400 kg`,
   ].join("\n"));
   await pag.click("#btLerWA");
   await pag.waitForTimeout(400);
@@ -626,6 +627,8 @@ const servidor = http.createServer((req, res) => {
     const t = ultimo1RM(id, "Agachamento");
     return {ag: melhor1RM(id, "Agachamento"), sup: melhor1RM(id, "Supino"),
             pp: melhor1RM(id, "Push press"),
+            curvada: melhor1RM(id, "Remada curvada"),
+            puxada: melhor1RM(id, "Puxada fechada"),
             terra: melhor1RM(id, "Levantamento terra"),
             origem: t && t.origem, data: t && t.data, hoje: hojeISO()};
   });
@@ -633,6 +636,9 @@ const servidor = http.createServer((req, res) => {
   ok(cargas.sup === 110 && antesDoLance === null,
      "inclusive num exercício que ainda não tinha marca", `${antesDoLance} → ${cargas.sup}`);
   ok(cargas.pp === 70, "push press também — a lista de referências é uma só", cargas.pp);
+  ok(cargas.curvada === 90 && cargas.puxada === 85,
+     "e a remada curvada e a puxada fechada, acrescentadas depois, entram igual",
+     `curvada ${cargas.curvada}, puxada ${cargas.puxada}`);
   ok(cargas.terra === null, "e o que não foi lido não entra chutado", cargas.terra);
   ok(cargas.origem === "atleta", "com a origem registrada", cargas.origem);
   ok(cargas.data === cargas.hoje, "e a data do cabeçalho, não a de hoje por acaso",

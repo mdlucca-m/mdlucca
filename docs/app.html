@@ -1257,7 +1257,8 @@ const testesDe = id => ((Store.get("testes", id) || {}).lista || [])
    das cargas que o atleta manda: duas listas divergindo é um 1RM entrando com
    nome que nenhuma tela procura. */
 const REFS_1RM = ["Agachamento","Agachamento frontal","Supino","Stiff com barra",
-                  "Remada serrote","Arranco","Clean","Clean pull","Push press"];
+                  "Remada serrote","Remada curvada","Puxada fechada",
+                  "Arranco","Clean","Clean pull","Push press"];
 function ultimo1RM(id, exercicio){
   /* O MAIS RECENTE, não o maior. No empate de data, o último lançado — quem
      digitou depois sabia mais. Percorre a lista na ordem de lançamento em vez de

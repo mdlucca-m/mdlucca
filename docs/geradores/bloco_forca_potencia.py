@@ -6,6 +6,8 @@ Uma entrada só: o 1RM de cada atleta na aba 1RM. Todo percentual das quatro
 sessões vira quilo por fórmula, arredondado de 2,5 em 2,5 kg — que é o que a
 anilha permite. Mudou o 1RM, mudou a sessão inteira.
 """
+import sys
+
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -30,10 +32,12 @@ BORDA_CAB  = Border(left=fino, right=fino, top=medio, bottom=medio)
 # A ordem e a grafia são protocolo: a fórmula de cada sessão procura o nome
 # nesta coluna. Um nome diferente aqui é uma carga que não aparece.
 REFS = ["Agachamento", "Agachamento frontal", "Supino", "Stiff com barra",
-        "Remada serrote", "Arranco", "Clean", "Clean pull", "Push press"]
+        "Remada serrote", "Remada curvada", "Puxada fechada",
+        "Arranco", "Clean", "Clean pull", "Push press"]
 EXEMPLO = {"Agachamento":150, "Agachamento frontal":125, "Supino":110,
-           "Stiff com barra":120, "Remada serrote":80, "Arranco":70,
-           "Clean":95, "Clean pull":110, "Push press":75}
+           "Stiff com barra":120, "Remada serrote":80, "Remada curvada":90,
+           "Puxada fechada":85, "Arranco":70, "Clean":95, "Clean pull":110,
+           "Push press":75}
 
 N_ATLETAS = 14          # elenco de voleibol cabe; sobra coluna é só deixar vazia
 
@@ -448,6 +452,9 @@ for ws in wb:
     ws.page_setup.fitToWidth = 1
     ws.sheet_properties.pageSetUpPr.fitToPage = True
 
-CAMINHO = "/home/user/mdlucca/docs/ELASE-bloco-forca-potencia-12a16-10.xlsx"
+# O caminho vem por argumento para dar para conferir uma mudança sem escrever
+# por cima da planilha de um bloco que já foi treinado.
+CAMINHO = (sys.argv[1] if len(sys.argv) > 1
+           else "/home/user/mdlucca/docs/ELASE-bloco-forca-potencia-12a16-10.xlsx")
 wb.save(CAMINHO)
 print("ok:", CAMINHO)
