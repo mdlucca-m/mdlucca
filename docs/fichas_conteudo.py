@@ -1199,10 +1199,143 @@ CORPO_INTEIRO = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# TRONCO — cinco exercícios a 4 x 6
+# ════════════════════════════════════════════════════════════════════════════
+# Os cinco vieram pedidos, e todos ficaram. O que mudou foi a ORDEM: a remada
+# alta saiu do meio para o fim (é a de maior risco de ombro de quem ataca) e a
+# puxada fechada entrou entre a remada curvada e o stiff — os dois exercícios
+# que carregam a lombar. Oito séries de coluna carregada numa sessão só é o
+# número que manda nesta ficha, não a dorsal nem o posterior.
+TRONCO = {
+    "arquivo": "ELASE-tronco-4x6.pdf",
+    "meta_titulo": "ELASE - Tronco, cinco exercicios a 4 x 6",
+    "meta_assunto": "Um de empurrar, tres de puxar, um de dobra de quadril",
+    "titulo": "Tronco",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Quinta, 22/10 &nbsp;&middot;&nbsp; cinco exercícios, todos "
+                 "4 × 6 &nbsp;&middot;&nbsp; um de empurrar, três de puxar, um "
+                 "de dobra de quadril",
+    "rotulo_carga": "CARGA",
+    "larguras": [196, 44, 44, 40],
+    "abertura":
+        "<b>Cinco exercícios no mesmo 4 × 6 — e dois deles seguram a lombar.</b> "
+        "A remada curvada é um isométrico de lombar com carga à frente do corpo, e "
+        "o stiff é a mesma coluna trabalhando em movimento: <b>oito séries de "
+        "coluna carregada numa sessão só</b>. É por isso que a puxada fechada "
+        "entra entre os dois, e é por isso que o stiff está a 68% e não a 75%. O "
+        "tecido que limita esta ficha não é a dorsal nem o posterior — é a lombar.",
+    "aquecimento_titulo": "Aquecimento — antes do primeiro exercício de cada padrão",
+    "aquecimento_nota": "O supino abre a sessão e depende de escápula firme: "
+                        "manguito e torácica vêm antes dele, não depois.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de torácica, ombro e quadril", "6 min", "a mesma do app"],
+        ["Bicicleta ou esteira, ritmo leve", "4 min", "até suar, sem cansar"],
+        ["Rotadores externos com elástico", "2 × 12", "leve, acorda o manguito"],
+        ["Barra vazia e 55% no padrão de cada exercício", "1 × 8 e 1 × 5",
+         "1 min entre elas"],
+    ],
+    "exercicios": [
+        ("Supino reto com barra",
+         "força &middot; empurrar horizontal — sobrariam 2 repetições",
+         "4 × 6", "2,5 min", "75%"),
+        ("Remada curvada com barra",
+         "força &middot; puxar horizontal — tronco PARADO, ler o verso",
+         "4 × 6", "2,5 min", "RIR 2"),
+        ("Puxada fechada no pulley alto",
+         "força &middot; puxar vertical — pegada neutra ou supinada",
+         "4 × 6", "2 min", "RIR 2"),
+        ("Stiff com barra",
+         "força &middot; dobra de quadril — excêntrica de 3 s",
+         "4 × 6", "2,5 min", "68%"),
+        ("Remada alta",
+         "força &middot; ombro — pegada ABERTA, ler o verso antes",
+         "4 × 6", "90 s", "RIR 2"),
+    ],
+    "nota_tabela":
+        "Anote a carga de cada exercício. Na <b>remada curvada e no stiff, anote "
+        "também se a lombar aguentou as quatro séries</b> — é a informação desta "
+        "folha que mais decide a próxima. <b>Esta ficha não tem perna, core nem "
+        "nada unilateral:</b> nenhum dos cinco acha diferença entre os seus dois "
+        "lados, e isso pesa na hora de montar o resto da semana.",
+    "caixa_duracao":
+        "<b>Duração prevista: 60 a 70 minutos</b> — cinco exercícios, vinte "
+        "séries, pausa cheia. <b>Com menos de 50 minutos:</b> 3 séries na puxada "
+        "e na remada alta. Corte a série, nunca a pausa — e <b>não corte o stiff "
+        "para encaixar mais puxada</b>: ele é a única coisa parecida com perna "
+        "que esta ficha tem.",
+    "verso": [
+        ("h", "Por que a ordem mudou"),
+        ("grade", ["", "O QUE", "POR QUE VEM AQUI"], [
+            ["1º", "Supino",
+             "o único de empurrar, e o que mais precisa de escápula firme. Depois "
+             "de três puxadas a base dele já não é a mesma"],
+            ["2º", "Remada curvada",
+             "a puxada mais pesada e a que mais exige lombar inteira. Vem cedo "
+             "por isso"],
+            ["3º", "Puxada fechada",
+             "<b>está aqui para separar a remada curvada do stiff</b> — é a única "
+             "puxada da ficha que não põe carga na coluna"],
+            ["4º", "Stiff",
+             "a segunda carga de lombar do dia. Vem depois de uma pausa dela, "
+             "não colado na primeira"],
+            ["5º", "Remada alta",
+             "<b>era a 3ª na sua lista.</b> É a de maior risco de ombro da ficha: "
+             "vai por último, com carga leve e sem nada depois que ela possa "
+             "estragar"],
+        ], [0.08, 0.26, 0.66]),
+        ("espaco", 2),
+        ("caixa", "<b>A conta: 4 séries de empurrar, 12 de puxar, 4 de dobra de "
+                  "quadril.</b> Três para um a favor de puxar é o lado certo para "
+                  "pender em quem ataca — mas <b>um dia assim corrige, uma semana "
+                  "assim só troca o desequilíbrio de lugar</b>. Se o resto da "
+                  "semana também puxar, ponha empurrar de volta."),
+        ("espaco", 2),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Supino a 75%", "Seis a 75% têm de deixar cerca de <b>duas na "
+             "reserva</b> — é esse o alvo, não a falha. Se a sexta sobe sozinha, a "
+             "carga sobe na próxima; se a quinta já raspa, o 1RM é que está "
+             "desatualizado."),
+            ("Remada curvada", "<b>Tronco entre 15° e 30° acima da horizontal, e "
+             "PARADO.</b> A barra vem ao <b>umbigo</b>, não ao peito. O erro que "
+             "todo mundo comete é levantar o tronco para a barra subir — quando "
+             "isso acontece a carga está alta demais e o exercício virou meio "
+             "levantamento terra. <b>Lombar arredondou, a série acabou.</b>"),
+            ("Puxada fechada", "Pegada <b>neutra ou supinada</b>, na largura dos "
+             "ombros: para quem ataca, a pronada fechada fecha o espaço do ombro "
+             "sem precisar. Puxe até a barra encostar na <b>parte alta do "
+             "peito</b>, cotovelo descendo para trás, e volte controlando. "
+             "<b>Tronco parado</b> — se o corpo balança, a dorsal parou de "
+             "trabalhar e o peso está sendo jogado."),
+            ("Stiff a 68%", "Mais leve que o de costume por dois motivos somados: "
+             "<b>seis repetições com excêntrica de 3 s</b>, e a lombar chegando "
+             "nele com quatro séries de remada curvada atrás. Barra rente à perna, "
+             "quadril para trás, joelho quase travado. <b>Desce até onde a lombar "
+             "fica reta — nem um centímetro além.</b>"),
+            ("Remada alta", "<b>É o exercício de maior risco de ombro desta ficha "
+             "para quem ataca</b>, e faz diferença como você faz: pegada na "
+             "largura dos ombros ou <b>mais aberta</b>, barra parando na altura do "
+             "<b>esterno</b> e não do queixo, e o <b>cotovelo nunca acima da linha "
+             "do ombro</b>. Deu dor ou pinçamento, troque por face pull — a ficha "
+             "não perde nada."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>Se você fez terra ou agachamento pesado nas últimas 48 "
+                  "horas</b>, mude duas coisas: <b>stiff em 3 séries a 60%</b> e "
+                  "remada curvada com o peito apoiado no banco inclinado. Remada "
+                  "curvada e stiff no mesmo dia já é bastante coluna; <b>somados a "
+                  "um terra recente, é bastante demais</b>.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
-          "contraste": CONTRASTE, "corpo_inteiro": CORPO_INTEIRO}
+          "contraste": CONTRASTE, "corpo_inteiro": CORPO_INTEIRO,
+          "tronco": TRONCO}
 
 
 def main():
