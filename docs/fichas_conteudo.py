@@ -1345,9 +1345,8 @@ UNILATERAL_SALTO = {
     "meta_assunto": "Plano frontal, unilateral e pliometria; oito exercicios",
     "titulo": "Unilateral e salto",
     "titulo_verso": "Como usar esta ficha",
-    "protocolo": "Oito exercícios &nbsp;&middot;&nbsp; cinco unilaterais e três "
-                 "saltos &nbsp;&middot;&nbsp; metade da sessão acontece no plano "
-                 "frontal",
+    "protocolo": "Sexta, 23/10 &nbsp;&middot;&nbsp; cinco unilaterais e três "
+                 "saltos &nbsp;&middot;&nbsp; metade da sessão no plano frontal",
     "rotulo_carga": "CARGA",
     "larguras": [180, 44, 44, 58],
     "abertura":
