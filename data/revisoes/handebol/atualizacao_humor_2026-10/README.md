@@ -23,6 +23,9 @@ atualizada tem **36 estudos e 38 relatórios**.
   - N8 entrou pelo resumo, porque os metadados da revista indicam texto em inglês.
   - O N9 (resumo de congresso da mesma amostra de Ratz-Sulyok et al., 2026) não está neste arquivo. Ele é tratado
     como relatório adicional e montado a partir do H34.
+- **`tabela_extracao_completa_humor_handebol.xlsx`** — tabela de extração completa dos 38 relatórios: citação e referência
+  ABNT, autores, título, revista, ISSN, Qualis 2017-2020 e 2021-2024 (Sucupira, 23/10/2026), DOI, resumo original, objetivo,
+  tipo de estudo, delineamento, população, amostra, variáveis psicológicas, instrumentos, resultados, lacunas e síntese.
 - **`leitura_integral_fichas.json`** — fichas da leitura integral dos 38 relatórios incluídos (desenho, momentos, instrumento,
   todos os resultados de humor com números, limitações declaradas e fragilidades observadas, tamanhos de efeito e
   qualidade revista), base das Figuras 5 a 7, da Tabela 6 e do Apêndice C.
