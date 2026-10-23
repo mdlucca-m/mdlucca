@@ -26,9 +26,10 @@ atualizada tem **36 estudos e 38 relatórios**.
 - **`tabela_extracao_completa_humor_handebol.xlsx`** — tabela de extração completa dos 38 relatórios: citação e referência
   ABNT, autores, título, revista, ISSN, Qualis 2017-2020 e 2021-2024 (Sucupira, 23/10/2026), DOI, resumo original, objetivo,
   tipo de estudo, delineamento, população, amostra, variáveis psicológicas, instrumentos, resultados, lacunas e síntese.
-- **`artigos_perfil_humor_handebol.xlsx`** — todos os registros com handebol e humor localizados nas três buscas (172, sem
-  duplicatas), com situação na revisão, motivo, instrumento, perfil de humor (POMS ou BRUMS), link de acesso aberto (Unpaywall)
-  e resumo; aba própria para os 51 com perfil de humor.
+- **`artigos_perfil_humor_handebol.xlsx`** — somente artigos completos em periódicos com handebol e humor (142, sem
+  duplicatas; teses, dissertações, TCCs, anais, resumos de congresso e preprints na aba de removidos), com situação, motivo,
+  instrumento, perfil de humor (POMS ou BRUMS), link de acesso aberto (Unpaywall)
+  e resumo; aba própria para os 43 com perfil de humor.
 - **`triagem_rodada3_busca3.json`** — busca de 23/10/2026 (DOAJ, CORE, PubMed, Europe PMC e Crossref, com consultas de perfil
   de humor): 50 registros novos triados; 8 dissertações, teses ou TCCs medem humor em handebol e aguardam avaliação.
 - **`leitura_integral_fichas.json`** — fichas da leitura integral dos 38 relatórios incluídos (desenho, momentos, instrumento,
