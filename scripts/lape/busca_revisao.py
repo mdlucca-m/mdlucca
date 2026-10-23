@@ -5,8 +5,9 @@ traduz cada uma para a sintaxe de cada base, coleta os registros, funde as
 duplicatas e grava tudo em data/revisoes/handebol/busca_<revisao>_<data>/.
 
 Bases abertas: OpenAlex (chave gratuita OPENALEX_API_KEY recomendada), Crossref, Europe PMC, PubMed,
-Semantic Scholar (busca booleana em lote; SEMANTIC_SCHOLAR_API_KEY opcional) e Dialnet (pagina de busca
-publica, sem operadores booleanos, para a producao ibero-americana).
+Semantic Scholar (busca booleana em lote; SEMANTIC_SCHOLAR_API_KEY opcional), CORE (repositorios e
+periodicos de acesso aberto; CORE_API_KEY recomendada) e Dialnet (pagina de busca publica, sem operadores
+booleanos, para a producao ibero-americana).
 Bases com chave, que so respondem por inteiro de dentro da rede da universidade
 ou com a assinatura dela: Scopus (SCOPUS_API_KEY, SCOPUS_INST_TOKEN) e Web of
 Science (WOS_API_KEY). Sem a chave a base e pulada e o relatorio diz isso -- a
@@ -90,6 +91,8 @@ def sintaxe(base: str, grupos: list[list[str]]) -> str:
             return "(" + " OR ".join(partes) + ")"
         elif base == "semanticscholar":
             return "(" + " | ".join(partes) + ")"
+        elif base == "core":
+            return "(" + " OR ".join(f"(title:{p} OR abstract:{p})" for p in partes) + ")"
         return "(" + " OR ".join(partes) + ")"
     if base == "semanticscholar":  # sintaxe da busca em lote: + (E), | (OU)
         return " + ".join(or_(g) for g in grupos)
@@ -246,6 +249,27 @@ def busca_semanticscholar(estr_id, grupos, maximo):
     return out[:maximo], total
 
 
+def busca_core(estr_id, grupos, maximo):
+    q = sintaxe("core", grupos)
+    h = {"Authorization": f"Bearer {os.environ['CORE_API_KEY']}"} if os.environ.get("CORE_API_KEY") else {}
+    out, total, offset = [], 0, 0
+    while len(out) < maximo:
+        d = http_json("https://api.core.ac.uk/v3/search/works/?" + urlencode({"q": q, "limit": 100, "offset": offset}), h,
+                      tentativas=4, espera=5)
+        total = d.get("totalHits", 0)
+        res = d.get("results") or []
+        for w in res:
+            au = "; ".join(a.get("name", "") for a in (w.get("authors") or [])[:6])
+            rev = ((w.get("journals") or [{}])[0] or {}).get("title", "") or w.get("publisher", "")
+            out.append(_reg("CORE", estr_id, str(w.get("id", "")), w.get("doi") or "", "", w.get("title"),
+                            w.get("yearPublished") or "", rev, au))
+        offset += 100
+        if not res or offset >= total:
+            break
+        time.sleep(1)
+    return out[:maximo], total
+
+
 def _dialnet_pagina(consulta: str, inicio: int) -> str:
     url = "https://dialnet.unirioja.es/buscar/documentos?" + urlencode({"querysDismax.DOCUMENTAL_TODO": consulta, "registrosPorPagina": 50, "inicio": inicio})
     with urlopen(Request(url, headers={"User-Agent": _ua()}), timeout=40) as r:
@@ -290,9 +314,9 @@ def busca_dialnet(estr_id, grupos, maximo):
 
 
 BASES = {"openalex": busca_openalex, "crossref": busca_crossref, "europepmc": busca_europepmc, "pubmed": busca_pubmed, "scopus": busca_scopus, "wos": busca_wos,
-         "semanticscholar": busca_semanticscholar, "dialnet": busca_dialnet}
+         "semanticscholar": busca_semanticscholar, "core": busca_core, "dialnet": busca_dialnet}
 NOMES = {"openalex": "OpenAlex", "crossref": "Crossref", "europepmc": "Europe PMC", "pubmed": "PubMed", "scopus": "Scopus", "wos": "Web of Science",
-         "semanticscholar": "Semantic Scholar", "dialnet": "Dialnet"}
+         "semanticscholar": "Semantic Scholar", "core": "CORE", "dialnet": "Dialnet"}
 
 
 # ----------------------------------------------------------------- fusao

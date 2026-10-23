@@ -62,6 +62,11 @@ class TestSintaxe(unittest.TestCase):
         q = busca.sintaxe("semanticscholar", self.GRUPOS)
         self.assertEqual(q, '(handball | "team handball") + (mood)')
 
+    def test_core_procura_no_titulo_e_no_resumo(self):
+        q = busca.sintaxe("core", [["handball"], ["mood"]])
+        self.assertIn("title:handball", q)
+        self.assertIn("abstract:mood", q)
+
     def test_toda_base_tem_nome(self):
         self.assertEqual(set(busca.BASES), set(busca.NOMES))
 
