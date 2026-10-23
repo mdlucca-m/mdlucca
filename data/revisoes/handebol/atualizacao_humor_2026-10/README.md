@@ -2,7 +2,9 @@
 
 Material da atualização, feita em outubro de 2026, da revisão sistemática *Estados de humor em atletas de handebol
 no treinamento e na competição* (PCC, PRISMA 2020). A versão anterior tinha 26 estudos e 27 relatórios. A versão
-atualizada tem **36 estudos e 38 relatórios**.
+atualizada tem **34 estudos e 35 relatórios**, somente artigos completos publicados em periódicos (o preprint de
+Bugten et al., o trabalho em anais de Nugraha et al. e o resumo de congresso de Ratz-Sulyok et al. foram excluídos
+por esse critério em 23/10/2026).
 
 ## O que tem aqui
 
@@ -23,7 +25,7 @@ atualizada tem **36 estudos e 38 relatórios**.
   - N8 entrou pelo resumo, porque os metadados da revista indicam texto em inglês.
   - O N9 (resumo de congresso da mesma amostra de Ratz-Sulyok et al., 2026) não está neste arquivo. Ele é tratado
     como relatório adicional e montado a partir do H34.
-- **`tabela_extracao_completa_humor_handebol.xlsx`** — tabela de extração completa dos 38 relatórios: citação e referência
+- **`tabela_extracao_completa_humor_handebol.xlsx`** — tabela de extração completa dos 35 relatórios: citação e referência
   ABNT, autores, título, revista, ISSN, Qualis 2017-2020 e 2021-2024 (Sucupira, 23/10/2026), DOI, resumo original, objetivo,
   tipo de estudo, delineamento, população, amostra, variáveis psicológicas, instrumentos, resultados, lacunas e síntese.
 - **`artigos_perfil_humor_handebol.xlsx`** — somente artigos completos em periódicos com handebol e humor (142, sem
