@@ -34,6 +34,10 @@ por esse critério em 23/10/2026).
   e resumo; aba própria para os 43 com perfil de humor.
 - **`triagem_rodada3_busca3.json`** — busca de 23/10/2026 (DOAJ, CORE, PubMed, Europe PMC e Crossref, com consultas de perfil
   de humor): 50 registros novos triados; 8 dissertações, teses ou TCCs medem humor em handebol e aguardam avaliação.
+- **`triagem_rodada4_busca4.json`** — quarta busca de 24/10/2026 (segunda rodada de citações via Crossref, OpenCitations,
+  Europe PMC e Semantic Scholar, mais Redalyc, SciELO e Consensus): 5.702 registros de citação, 40 triados e 3 procurados.
+  Nenhum artigo novo elegível: Diachenko e Tyshchenko (2023) excluído pelo idioma (ucraniano), Dyadechko (2016) não
+  recuperado e o restante são teses ou dissertações. A revisão mantém 34 estudos em 35 relatórios.
 - **`leitura_integral_fichas.json`** — fichas da leitura integral dos 38 relatórios incluídos (desenho, momentos, instrumento,
   todos os resultados de humor com números, limitações declaradas e fragilidades observadas, tamanhos de efeito e
   qualidade revista), base das Figuras 5 a 7, da Tabela 6 e do Apêndice C.
