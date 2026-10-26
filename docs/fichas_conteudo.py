@@ -1469,11 +1469,307 @@ UNILATERAL_SALTO = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# FORÇA PURA A e B — 4 x 4, última série até a falha
+# ════════════════════════════════════════════════════════════════════════════
+# Os sete exercícios vieram agrupados com um ponto depois de "stiff". Uma troca
+# só — stiff por remada alta — desfaz dois encontros ruins: terra e stiff na
+# mesma sessão (duas dobras de quadril pesadas até a falha) e remada alta colada
+# no desenvolvimento (dois exercícios acima da cabeça seguidos).
+FALHA_TECNICA = (
+    "<b>Falha técnica, não falha muscular.</b> A série acaba na primeira "
+    "repetição em que a barra desacelera visivelmente ou a lombar sai da posição "
+    "— não quando o peso para de subir. Em barra pesada sobre a coluna, a última "
+    "repetição que você <i>consegue</i> fazer costuma ser a primeira que você "
+    "não devia ter feito.")
+
+FORCA_4X4_A = {
+    "arquivo": "ELASE-forca-pura-A.pdf",
+    "meta_titulo": "ELASE - Forca pura A, 4 x 4",
+    "meta_assunto": "Terra, supino, barra fixa e remada alta; ultima serie ate a falha",
+    "titulo": "Força pura · A",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Primeiro de dois &nbsp;&middot;&nbsp; quatro multiarticulares, "
+                 "todos 4 × 4 &nbsp;&middot;&nbsp; a última série vai até a falha",
+    "rotulo_carga": "CARGA",
+    "larguras": [206, 44, 44, 40],
+    "abertura":
+        "<b>Quatro repetições é território de força pura: a carga manda e a "
+        "técnica é o freio.</b> As três primeiras séries saem com a quarta "
+        "repetição difícil mas limpa; <b>só na quarta série você vai até o fim</b> "
+        "— e “fim” quer dizer coisas diferentes em cada exercício, que é "
+        "o que o verso explica. No terra, fim é a lombar; no supino e na barra "
+        "fixa, é o músculo.",
+    "aquecimento_titulo": "Aquecimento — rampa de carga, não alongamento",
+    "aquecimento_nota": "A 87% não existe primeira série fria. A rampa não é "
+                        "aquecimento: é parte do exercício.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de quadril, torácica e ombro", "6 min", "a mesma do app"],
+        ["Bicicleta ou esteira, ritmo leve", "4 min", "até suar, sem cansar"],
+        ["Rotadores externos com elástico", "2 × 12", "antes do supino"],
+        ["Rampa: 40%, 60%, 75% e 85% do 1º exercício", "5, 3, 2 e 1", "2 min entre elas"],
+    ],
+    "exercicios": [
+        ("Levantamento terra",
+         "força pura &middot; dobra de quadril — falha TÉCNICA",
+         "4 × 4", "3 min", "4RM"),
+        ("Supino reto com barra",
+         "força pura &middot; empurrar horizontal — com ajudante",
+         "4 × 4", "3 min", "87%"),
+        ("Barra fixa com carga",
+         "força pura &middot; puxar vertical — carga pendurada",
+         "4 × 4", "2,5 min", "4RM"),
+        ("Remada alta",
+         "força &middot; ombro — ler o verso antes de carregar",
+         "4 × 4", "2 min", "4RM"),
+    ],
+    "nota_tabela":
+        "Só o supino sai por percentual: terra, barra fixa e remada alta ainda não "
+        "têm 1RM no sistema, então a carga deles é o <b>4RM</b> — aquela em que a "
+        "quarta repetição sai e a quinta não. <b>Anote o que você usou e quantas "
+        "repetições saíram na última série</b>: é esse número que decide a carga "
+        "da próxima vez.",
+    "caixa_duracao":
+        "<b>Duração prevista: 65 a 75 minutos</b> — 16 séries só, mas com pausa de "
+        "3 minutos, que a 87% não é luxo: é o que permite a série seguinte existir. "
+        "<b>Com menos de 55 minutos:</b> corte a remada alta inteira. Nunca corte "
+        "a pausa.",
+    "verso": [
+        ("h", "O que “falhar” quer dizer em cada um"),
+        ("grade", ["EXERCÍCIO", "ATÉ ONDE IR NA ÚLTIMA SÉRIE"], [
+            ["Levantamento terra",
+             "<b>Falha técnica.</b> A série acaba quando a barra desacelera ou a "
+             "lombar arredonda — mesmo que ainda houvesse força. Cada repetição "
+             "começa parada no chão"],
+            ["Supino reto com barra",
+             "<b>Falha muscular, com alguém na barra.</b> É o único da ficha em "
+             "que falhar é seguro, e só com ajudante. Sozinho, pare em 1 de sobra"],
+            ["Barra fixa com carga",
+             "<b>Falha muscular.</b> Falhar aqui custa descer do apoio. Sem queixo "
+             "passando a barra, a repetição não conta"],
+            ["Remada alta",
+             "<b>Falha técnica, e ela chega cedo:</b> a série acaba no primeiro "
+             "cotovelo que passa da linha do ombro"],
+        ], [0.27, 0.73]),
+        ("espaco", 3),
+        ("caixa", FALHA_TECNICA, AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Levantamento terra", "<b>Cada repetição começa do chão, do zero.</b> "
+             "Emendar com a lombar cansada é onde a coluna arredonda. A 4 "
+             "repetições a carga é próxima do seu máximo — é o exercício da ficha "
+             "em que parar cedo custa menos do que parar tarde."),
+            ("Supino reto com barra", "87% e quatro repetições. <b>Com alguém na "
+             "barra</b> — essa é a condição para a quarta série ir até o fim; sem "
+             "ajudante, termine com uma repetição de sobra e anote isso."),
+            ("Barra fixa com carga", "Pendure a carga no cinto. <b>Queixo passando "
+             "a barra</b>, descida controlada até o cotovelo estender. Se quatro "
+             "repetições com carga ainda não saem, faça só com o peso do corpo e "
+             "anote quantas foram."),
+            ("Remada alta", "<b>O maior risco de ombro das duas fichas, e a quatro "
+             "repetições é a versão mais pesada dele.</b> Pegada na largura dos "
+             "ombros ou mais aberta, barra parando no <b>esterno</b>, "
+             "<b>cotovelo nunca acima da linha do ombro</b>."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>Se a remada alta a 4 repetições incomodar o ombro, não "
+                  "insista:</b> troque por <b>4 × 8 com 2 repetições de sobra</b>, "
+                  "ou por face pull. Força pura no ombro não compra salto nenhum — "
+                  "compra só risco em quem ataca centenas de bolas por semana.",
+         VERDE_CLARO, VERDE),
+        ("espaco", 2),
+    ],
+}
+
+FORCA_4X4_B = {
+    "arquivo": "ELASE-forca-pura-B.pdf",
+    "meta_titulo": "ELASE - Forca pura B, 4 x 4",
+    "meta_assunto": "Agachamento, desenvolvimento e stiff; ultima serie ate a falha",
+    "titulo": "Força pura · B",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Segundo de dois &nbsp;&middot;&nbsp; três multiarticulares, "
+                 "todos 4 × 4 &nbsp;&middot;&nbsp; a última série vai até a falha",
+    "rotulo_carga": "CARGA",
+    "larguras": [206, 44, 44, 40],
+    "abertura":
+        "<b>Três exercícios, doze séries, e nenhuma delas barata.</b> Esta é a "
+        "sessão mais curta das duas e a mais pesada por série: agachamento e stiff "
+        "carregam a mesma coluna, e o desenvolvimento entra entre eles de "
+        "propósito, para a lombar ter uma pausa de verdade antes do segundo turno. "
+        "<b>Em dois dos três, falhar é parar na técnica, não no músculo.</b>",
+    "aquecimento_titulo": "Aquecimento — rampa de carga, não alongamento",
+    "aquecimento_nota": "A 87% não existe primeira série fria. A rampa não é "
+                        "aquecimento: é parte do exercício.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Mobilidade de tornozelo, quadril e torácica", "6 min", "a mesma do app"],
+        ["Bicicleta ou esteira, ritmo leve", "4 min", "até suar, sem cansar"],
+        ["Agachamento profundo sustentado", "3 × 30 s", "abre o fundo do agachamento"],
+        ["Rampa: 40%, 60%, 75% e 85% do agachamento", "5, 3, 2 e 1", "2 min entre elas"],
+    ],
+    "exercicios": [
+        ("Agachamento",
+         "força pura &middot; perna — falha TÉCNICA",
+         "4 × 4", "3 min", "87%"),
+        ("Desenvolvimento com barra",
+         "força pura &middot; empurrar vertical — SEM perna",
+         "4 × 4", "2,5 min", "4RM"),
+        ("Stiff com barra",
+         "força pura &middot; dobra de quadril — sem tempo lento",
+         "4 × 4", "3 min", "87%"),
+    ],
+    "nota_tabela":
+        "Agachamento e stiff saem do seu 1RM; o desenvolvimento ainda não tem "
+        "referência no sistema, então vai pelo <b>4RM</b> — a carga em que a quarta "
+        "repetição sai e a quinta não. <b>Anote quantas repetições saíram na última "
+        "série de cada um.</b>",
+    "caixa_duracao":
+        "<b>Duração prevista: 55 a 65 minutos</b> — doze séries com 3 minutos de "
+        "pausa. Parece pouco tempo de sala para o quanto cansa, e é mesmo: a conta "
+        "aqui não é de volume, é de carga. <b>Não encha a sessão com acessório</b> "
+        "— o que sobra de energia depois do stiff é o que vai faltar no treino "
+        "seguinte.",
+    "verso": [
+        ("h", "O que “falhar” quer dizer em cada um"),
+        ("grade", ["EXERCÍCIO", "ATÉ ONDE IR NA ÚLTIMA SÉRIE"], [
+            ["Agachamento",
+             "<b>Falha técnica.</b> A série acaba quando a subida desacelera ou o "
+             "tronco cai à frente. Com barra nas costas, falhar de verdade é "
+             "despejar a barra — e isso não é treino, é acidente"],
+            ["Desenvolvimento com barra",
+             "<b>Falha muscular.</b> Dá para falhar com segurança, desde que a "
+             "barra tenha onde ser apoiada. Se o joelho dobrar para ajudar, a "
+             "série já tinha acabado"],
+            ["Stiff com barra",
+             "<b>Falha técnica, e é a mais cedo das três:</b> a série acaba na "
+             "primeira repetição em que a lombar sai da posição, mesmo que a barra "
+             "ainda suba"],
+        ], [0.27, 0.73]),
+        ("espaco", 3),
+        ("caixa", FALHA_TECNICA, AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Agachamento", "87% e quatro repetições, dentro do rack com os pinos "
+             "na altura certa. Profundidade: a mesma de sempre — <b>encurtar a "
+             "descida para subir mais peso não é progresso</b>, é outro exercício."),
+            ("Desenvolvimento com barra", "<b>Sem impulso de perna:</b> se o joelho "
+             "dobra, virou push press. Glúteo e abdômen apertados para a lombar não "
+             "arquear; a barra passa rente ao rosto e a cabeça atravessa para a "
+             "frente dos braços no fim."),
+            ("Stiff com barra", "<b>Sem excêntrica lenta aqui.</b> Nas outras "
+             "fichas o stiff vem com descida de 3 s; a 87% e quatro repetições, "
+             "somar tempo sob tensão é somar risco de lombar sem somar força. "
+             "Barra rente à perna, quadril para trás, <b>desce só até onde a "
+             "lombar fica reta</b>."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>Por que o stiff ficou aqui e não com o terra.</b> Na lista "
+                  "que você mandou, terra e stiff caíam na mesma sessão — duas "
+                  "dobras de quadril pesadas até a falha, no mesmo dia, na mesma "
+                  "lombar. Trocando stiff por remada alta entre as duas fichas, "
+                  "cada sessão fica com <b>uma</b> dobra de quadril, e a remada "
+                  "alta sai de perto do desenvolvimento. Foi a única mudança.",
+         VERDE_CLARO, VERDE),
+        ("espaco", 2),
+    ],
+}
+
+# ════════════════════════════════════════════════════════════════════════════
+# REGENERATIVO — corpo inteiro a 70%, seis exercícios
+# ════════════════════════════════════════════════════════════════════════════
+# A 70% do 1RM dá para fazer umas doze repetições. Fazendo seis, sobra metade —
+# e é essa sobra que faz a sessão regenerar em vez de cobrar. O que cansa não é
+# o percentual: é a distância até a falha, e aqui ela é enorme de propósito.
+REGENERATIVO = {
+    "arquivo": "ELASE-regenerativo-70.pdf",
+    "meta_titulo": "ELASE - Treino regenerativo a 70%",
+    "meta_assunto": "Seis exercicios, corpo inteiro, longe da falha",
+    "titulo": "Regenerativo",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Seis exercícios &nbsp;&middot;&nbsp; corpo inteiro a 70% do 1RM "
+                 "&nbsp;&middot;&nbsp; nenhuma série perto da falha",
+    "rotulo_carga": "CARGA",
+    "larguras": [206, 44, 44, 40],
+    "abertura":
+        "<b>70% do seu 1RM — o número que já está na sua tabela de cargas.</b> A "
+        "essa carga você faria umas doze repetições; aqui você faz seis. "
+        "<b>Metade sobra, e a sobra é o treino</b>: o que cansa não é o percentual, "
+        "é a distância até a falha. Se alguma série ficar difícil, a carga está "
+        "errada para hoje — baixe, não insista.",
+    "aquecimento_titulo": "Aquecimento — curto, porque a sessão inteira já é leve",
+    "aquecimento_nota": "Sem rampa de carga: a primeira série já é a carga de "
+                        "trabalho, e ela é leve.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou esteira, ritmo leve", "6 min", "até suar, sem cansar"],
+        ["Mobilidade de quadril, torácica e ombro", "5 min", "a mesma do app"],
+        ["Barra vazia no padrão de cada exercício", "1 × 8", "sem pausa entre elas"],
+    ],
+    "exercicios": [
+        ("Agachamento", "perna &middot; a profundidade de sempre",
+         "3 × 6", "90 s", "70%"),
+        ("Supino reto com barra", "empurrar horizontal",
+         "3 × 6", "90 s", "70%"),
+        ("Remada curvada com barra", "puxar horizontal &middot; tronco parado",
+         "3 × 6", "90 s", "70%"),
+        ("Stiff com barra", "dobra de quadril &middot; SEM excêntrica lenta",
+         "3 × 6", "90 s", "70%"),
+        ("Desenvolvimento com barra", "empurrar vertical &middot; sem perna",
+         "3 × 6", "90 s", "70%"),
+        ("Puxada fechada no pulley alto", "puxar vertical &middot; pegada neutra",
+         "3 × 6", "90 s", "70%"),
+    ],
+    "nota_tabela":
+        "Cinco dos seis saem direto da sua tabela de 1RM. Só o <b>desenvolvimento</b> "
+        "ainda não tem referência no sistema: nele, use <b>70% da carga que você "
+        "usaria para 6 repetições difíceis</b>. Anote tudo — carga leve registrada "
+        "é o que prova que a semana foi leve de verdade.",
+    "caixa_duracao":
+        "<b>Duração prevista: 45 a 50 minutos</b> — 18 séries leves com pausa curta. "
+        "Esta é a única ficha em que <b>passar do tempo é sinal de que algo saiu "
+        "errado</b>: se você está descansando mais, a carga está pesada demais "
+        "para o que esta sessão deveria ser.",
+    "verso": [
+        ("h", "Como saber se foi regenerativo mesmo"),
+        ("caixa", "<b>A prova é amanhã, não hoje.</b> Se você acordar com dor "
+                  "muscular nova, esta sessão não regenerou nada — ela treinou, e "
+                  "no dia errado. Da próxima vez, 60% em vez de 70%. "
+                  "<b>Sessão regenerativa que deixa marca não é regenerativa, é "
+                  "uma sessão leve mal dosada.</b>", VERDE_CLARO, VERDE),
+        ("espaco", 3),
+        ("h", "As três regras"),
+        ("grade", ["", "A REGRA", "POR QUÊ"], [
+            ["1", "<b>Nenhuma série perto da falha</b>",
+             "a sexta repetição tem de parecer a segunda. Se a última custar, "
+             "baixe a carga na série seguinte — sem esperar o fim da sessão"],
+            ["2", "<b>Sem excêntrica lenta, sem pausa no fundo</b>",
+             "tempo sob tensão é justamente o que produz dor muscular, e dor "
+             "muscular é o oposto do que se foi buscar aqui"],
+            ["3", "<b>Sem acessório, sem “só mais uma”</b>",
+             "seis exercícios cobrem o corpo inteiro: perna, empurrar e puxar nas "
+             "duas direções, e a dobra de quadril. O que sobra de vontade é para "
+             "o treino de força"],
+        ], [0.06, 0.32, 0.62]),
+        ("espaco", 3),
+        ("h", "Quando usar esta ficha"),
+        ("caixa", "No dia seguinte a um treino pesado, entre as duas sessões de "
+                  "força pura, ou numa semana de jogo em que a sala não pode somar "
+                  "fadiga. <b>Ela não substitui o descanso</b> — substitui o dia "
+                  "parado para quem fica pior parado do que se movendo."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
           "contraste": CONTRASTE, "corpo_inteiro": CORPO_INTEIRO,
-          "tronco": TRONCO, "unilateral_salto": UNILATERAL_SALTO}
+          "tronco": TRONCO, "unilateral_salto": UNILATERAL_SALTO,
+          "forca_a": FORCA_4X4_A, "forca_b": FORCA_4X4_B,
+          "regenerativo": REGENERATIVO}
 
 
 def main():
