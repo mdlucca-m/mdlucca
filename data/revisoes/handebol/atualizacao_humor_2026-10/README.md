@@ -94,3 +94,5 @@ Pendências para o avaliador humano:
 
   Pelo título, usam perfis emoção-desempenho do modelo IZOF ou instrumento próprio da equipe, o que tende à
   exclusão por não medirem humor com instrumento declarado. Ainda assim, precisam de triagem.
+
+- **`revisao_sistematica_humor_modelo_lape.docx/.pdf`** (27/10/2026): versão para a reunião de quinta-feira, na estrutura da revisão de mapeamento do grupo: introdução de cerca de duas páginas com pergunta, objetivo, hipótese e QP1 a QP5; método em 2.1 a 2.4 com Tabela 1 (estratégia de busca) e Tabela 2 (PCC); resultados e discussão por questão de pesquisa, com 6 figuras, Quadro 1 e Tabela 3 (agenda); Apêndices A a D.
