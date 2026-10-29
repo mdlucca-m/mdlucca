@@ -1763,13 +1763,126 @@ REGENERATIVO = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# FORÇA PURA 2 A 3 — cinco exercícios, pausa de 2 min
+# ════════════════════════════════════════════════════════════════════════════
+# A pausa é que define esta ficha. Duas a três repetições MÁXIMAS pedem 93 a 95%
+# e 3 a 5 min de pausa; com 2 min, a 3ª e a 4ª série despencam. A 88% dá para
+# fazer cinco repetições, então duas ou três saem rápidas e com reserva — e aí
+# dois minutos bastam. A ordem é a que ele mandou, sem troca.
+FORCA_2A3 = {
+    "arquivo": "ELASE-forca-pura-2a3.pdf",
+    "meta_titulo": "ELASE - Forca pura, 2 a 3 repeticoes",
+    "meta_assunto": "Cinco exercicios a 88%, pausa de 2 minutos",
+    "titulo": "Força pura · 2 a 3",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Cinco exercícios &nbsp;&middot;&nbsp; 4 × 2-3 repetições "
+                 "&nbsp;&middot;&nbsp; 2 minutos de pausa em todos",
+    "rotulo_carga": "CARGA",
+    "larguras": [206, 44, 44, 40],
+    "abertura":
+        "<b>Duas ou três repetições rápidas, com sobra — não duas ou três no "
+        "limite.</b> A diferença está na pausa: dois minutos. Repetição máxima a "
+        "93% pede de 3 a 5 minutos para a série seguinte existir, e com 2 minutos "
+        "a terceira e a quarta despencariam. A 88% a barra sobe rápida nas quatro "
+        "séries, que é exatamente o que esta sessão vai buscar: <b>velocidade "
+        "sob carga alta</b>, não o máximo do dia.",
+    "aquecimento_titulo": "Aquecimento — a rampa é parte do exercício",
+    "aquecimento_nota": "A 88% não existe primeira série fria. A rampa sobe até "
+                        "perto da carga e para: nada de série extra de 10.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou esteira, ritmo leve", "4 min", "até suar, sem cansar"],
+        ["Mobilidade de torácica, ombro e quadril", "6 min", "a mesma do app"],
+        ["Rotadores externos com elástico", "2 × 12", "antes do supino"],
+        ["Rampa: 40%, 60%, 75% e 85%", "5, 3, 2 e 1", "2 min entre elas"],
+    ],
+    "exercicios": [
+        ("Supino reto com barra", "força pura &middot; empurrar horizontal",
+         "4 × 2-3", "2 min", "88%"),
+        ("Agachamento", "força pura &middot; perna — a profundidade de sempre",
+         "4 × 2-3", "2 min", "88%"),
+        ("Puxada fechada sentado", "força pura &middot; puxar vertical — tronco parado",
+         "4 × 2-3", "2 min", "88%"),
+        ("Desenvolvimento com barra", "força pura &middot; empurrar vertical — SEM perna",
+         "4 × 2-3", "2 min", "5RM"),
+        ("Remada alta com barra", "força &middot; ombro — a técnica trava a carga",
+         "4 × 2-3", "2 min", "5RM"),
+    ],
+    "nota_tabela":
+        "Supino, agachamento e puxada fechada saem do seu 1RM. Desenvolvimento e "
+        "remada alta ainda não têm referência no sistema: neles use a "
+        "<b>carga de 5 repetições</b> e faça 2 ou 3 — sobra o mesmo tanto. "
+        "<b>Anote quantas repetições saíram em cada série</b>; três em todas as "
+        "quatro é sinal de subir a carga na próxima.",
+    "caixa_duracao":
+        "<b>Duração prevista: 55 a 65 minutos</b> — 20 séries e no máximo 60 "
+        "repetições no total. É pouca repetição e muito peso, e o relógio engana: "
+        "<b>o que cansa aqui não aparece na sala, aparece no dia seguinte.</b> Não "
+        "acrescente acessório.",
+    "verso": [
+        ("h", "O que esta ficha é, e o que ela não é"),
+        ("grade", ["", "CARGA", "REPETIÇÕES", "PAUSA"], [
+            ["<b>Esta ficha</b>",
+             "<b>88%</b> — dá para fazer 5",
+             "<b>2 ou 3</b>, sobrando 2 ou 3",
+             "<b>2 min</b> bastam"],
+            ["Força máxima de verdade",
+             "93 a 95%",
+             "2 ou 3 no limite",
+             "3 a 5 min, sem desconto"],
+        ], [0.26, 0.26, 0.26, 0.22]),
+        ("espaco", 3),
+        ("caixa", "<b>Por que a pausa decide a carga, e não o contrário.</b> "
+                  "Depois de uma série pesada, o que repõe a energia da próxima "
+                  "leva de 3 a 5 minutos. Com 2 minutos, a reposição fica pela "
+                  "metade — e a 93% isso aparece na terceira série como repetição "
+                  "perdida. A 88% não aparece, porque havia reserva. "
+                  "<b>Se você quiser as 2-3 repetições no limite, a pausa tem de "
+                  "ir para 3 minutos; mantendo 2, a carga fica em 88%.</b> As duas "
+                  "coisas juntas é que não funcionam.", AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Supino e agachamento", "<b>Os dois a 88%, e os dois com o rack "
+             "montado.</b> A barra tem de subir rápida: se a segunda repetição já "
+             "sai lenta, a carga passou do ponto desta ficha. No agachamento, a "
+             "profundidade é a de sempre — encurtar a descida para somar peso é "
+             "outro exercício, não progresso."),
+            ("Puxada fechada sentado", "Pegada <b>neutra ou supinada</b> na largura "
+             "dos ombros. Puxe até a barra encostar na <b>parte alta do peito</b>, "
+             "cotovelo descendo para trás, e volte controlando. <b>Tronco "
+             "parado</b>: a 88% a tentação de jogar o corpo para trás é grande, e "
+             "aí a dorsal parou de trabalhar."),
+            ("Desenvolvimento com barra", "<b>Sem impulso de perna:</b> se o joelho "
+             "dobra, virou push press e a carga não é mais essa. Glúteo e abdômen "
+             "apertados para a lombar não arquear; a barra passa rente ao rosto e "
+             "a cabeça atravessa para a frente dos braços no fim."),
+            ("Remada alta com barra", "Aqui <b>quem trava a carga é a técnica, não "
+             "a força</b>: pegada na largura dos ombros ou mais aberta, barra "
+             "parando no <b>esterno</b>, <b>cotovelo nunca acima da linha do "
+             "ombro</b>. Com essa regra o peso que sobe é menor do que você "
+             "aguentaria — e é assim mesmo. Deu dor ou pinçamento, troque por "
+             "face pull."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>A conta: 8 séries de empurrar, 4 de puxar vertical, 4 de "
+                  "ombro e 4 de perna.</b> A ficha pende para o lado de empurrar, "
+                  "e o desenvolvimento vem colado na remada alta — dois exercícios "
+                  "de ombro seguidos, no fim da sessão. Mantive a ordem que você "
+                  "mandou; se quiser separar os dois, a puxada fechada passa para "
+                  "o 4º lugar e resolve."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
           "contraste": CONTRASTE, "corpo_inteiro": CORPO_INTEIRO,
           "tronco": TRONCO, "unilateral_salto": UNILATERAL_SALTO,
           "forca_a": FORCA_4X4_A, "forca_b": FORCA_4X4_B,
-          "regenerativo": REGENERATIVO}
+          "regenerativo": REGENERATIVO, "forca_2a3": FORCA_2A3}
 
 
 def main():
