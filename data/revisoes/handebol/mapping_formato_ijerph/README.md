@@ -9,7 +9,7 @@ com a linguagem e a metodologia dos artigos modelo do Lape: Andrade et al. (2023
   modelos); 4. Discussão (4.1 a 4.4 por tópicos, 4.5 Limitações e Estudos Futuros, 4.6 Inovações, Pontos Fortes e
   Aplicações Práticas); 5. Conclusões, em tópicos.
 - Análise descritiva, como nos modelos; saíram do texto a triangulação temporal e a razão sinal/ruído.
-- 13 figuras e 7 tabelas. Novas: tamanho amostral (Figura 3), coocorrência dos domínios (Figura 7), linha do tempo
+- 15 figuras (em 4K, sete em 3D: barras, esferas e pizzas) e 7 tabelas; introdução com 80 referências citadas.
   das intervenções (Figura 11), indicadores das intervenções (Figura 12) e domínio × direção do achado (Figura 13).
 - Citações autor-data no texto (APA) e referências em ordem alfabética.
 
