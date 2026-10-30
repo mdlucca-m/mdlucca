@@ -1876,13 +1876,151 @@ FORCA_2A3 = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# QUADRIL E PLANO FRONTAL — sete exercícios
+# ════════════════════════════════════════════════════════════════════════════
+# Três vieram sem prescrição (stiff na polia, rotação de tronco e hang clean) e
+# dois são quase o mesmo exercício: agachamento lateral com e sem banco. A ordem
+# é a dele. O que a ficha acrescenta é (a) prescrição para os três que faltavam,
+# (b) uma diferença de execução que faz os dois últimos valerem como dois, e
+# (c) a conta dos 52 contatos, todos no mesmo plano.
+QUADRIL_FRONTAL = {
+    "arquivo": "ELASE-quadril-plano-frontal.pdf",
+    "meta_titulo": "ELASE - Quadril e plano frontal",
+    "meta_assunto": "Preparacao, hang clean, forca pura e saltos laterais",
+    "titulo": "Quadril e plano frontal",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Sete exercícios &nbsp;&middot;&nbsp; preparação, neuromuscular, "
+                 "força pura e salto &nbsp;&middot;&nbsp; nesta ordem",
+    "rotulo_carga": "CARGA",
+    "larguras": [186, 48, 44, 58],
+    "abertura":
+        "<b>A sessão tem três blocos e eles estão na ordem certa.</b> Os dois "
+        "primeiros exercícios são leves de propósito: na polia, eles acordam a "
+        "dobra de quadril e o tronco <b>antes</b> do hang clean, que é o mais "
+        "técnico do dia e o que mais precisa de corpo pronto. Depois vem a força "
+        "pura, e no fim o plano frontal. <b>Nada aqui empurra</b> — é um dia de "
+        "quadril, tronco e lateral.",
+    "aquecimento_titulo": "Aquecimento — antes dos dois da polia",
+    "aquecimento_nota": "Os dois primeiros exercícios já são preparação. Isto aqui "
+                        "é o que vem antes deles.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou esteira, ritmo leve", "5 min", "até suar, sem cansar"],
+        ["Mobilidade de tornozelo, quadril e torácica", "6 min", "a mesma do app"],
+        ["Deslocamento lateral com elástico", "2 × 10 cada", "acorda o glúteo médio"],
+        ["Barra vazia no padrão do hang clean", "2 × 5", "antes de carregar"],
+    ],
+    "exercicios": [
+        ("Stiff unilateral na polia",
+         "preparação &middot; 8 em CADA perna",
+         "3 × 8", "60 s", "RIR 4"),
+        ("Rotação de tronco na bola com polia",
+         "preparação &middot; tronco — 10 de CADA lado",
+         "3 × 10", "60 s", "RIR 4"),
+        ("Hang clean",
+         "neuromuscular &middot; LPO — a barra decide",
+         "5 × 3", "2,5 min", "72%"),
+        ("Remada curvada com barra",
+         "força pura &middot; puxar — tronco PARADO",
+         "4 × 3", "2,5 min", "88%"),
+        ("Elevação pélvica",
+         "força pura &middot; extensão de quadril",
+         "4 × 3", "2,5 min", "5RM"),
+        ("Agachamento lateral no banco",
+         "potência &middot; plano frontal — com salto lateral",
+         "4 × 6-8", "2 min", "sem carga"),
+        ("Agachamento lateral com salto",
+         "coordenação &middot; plano frontal — sem banco",
+         "4 × 6", "90 s", "sem carga"),
+    ],
+    "nota_tabela":
+        "O hang clean sai de <b>72% do seu 1RM de clean</b> e a remada curvada de "
+        "88% do dela — as duas já estão na sua tabela de cargas. A elevação "
+        "pélvica ainda não tem referência: use a <b>carga de 5 repetições</b> e "
+        "faça 3. <b>No stiff unilateral, anote os dois lados.</b> Nos dois "
+        "últimos, anote quantos saltos saíram limpos, não quantos você fez.",
+    "caixa_duracao":
+        "<b>Duração prevista: 70 a 85 minutos</b> — 27 séries em três blocos "
+        "bem diferentes. <b>Com menos de 60 minutos:</b> corte o agachamento "
+        "lateral sem banco para 2 séries — é o que mais repete o que já foi "
+        "feito no exercício anterior. Nunca corte o hang clean nem a pausa dele.",
+    "verso": [
+        ("h", "Os três blocos, e por que nessa ordem"),
+        ("grade", ["", "O QUE", "POR QUE AQUI"], [
+            ["1º", "<b>Polia</b> — stiff unilateral e rotação de tronco",
+             "leves de propósito. Acordam a dobra de quadril e o tronco antes do "
+             "exercício mais técnico do dia, em vez de somar cansaço"],
+            ["2º", "<b>Hang clean</b>",
+             "o mais neural e o mais técnico: velocidade de barra morre com "
+             "fadiga, então ele vem antes da força pura, não depois"],
+            ["3º", "<b>Força pura</b> — remada curvada e elevação pélvica",
+             "4 × 3 a 88%. Carga alta com poucas repetições cansa pouco em "
+             "volume e muito em sistema nervoso — daí virem depois do clean"],
+            ["4º", "<b>Plano frontal</b> — os dois agachamentos laterais",
+             "por último, como você montou. É a escolha que custa qualidade de "
+             "salto e ganha salto sob fadiga — ler a caixa abaixo"],
+        ], [0.07, 0.31, 0.62]),
+        ("espaco", 3),
+        ("caixa", "<b>Os dois últimos são o mesmo movimento, e só valem por dois "
+                  "se forem feitos diferente.</b> <b>Com banco:</b> desce até "
+                  "tocar, <b>para</b>, e sai no salto lateral — profundo, "
+                  "controlado, força. <b>Sem banco:</b> contato curto, sem parada, "
+                  "um salto puxando o outro — raso, rápido, coordenação. Feitos "
+                  "iguais, são oito séries da mesma coisa.", VERDE_CLARO, VERDE),
+        ("caixa", "<b>52 contatos, todos laterais.</b> São 28 no banco e 24 sem "
+                  "banco — e ao contrário das outras fichas, todos caem no mesmo "
+                  "plano e no mesmo joelho. <b>Se houver quadra pesada no mesmo "
+                  "dia ou no seguinte, o sem banco vai para 2 séries.</b> "
+                  "Aterrissagem lateral com glúteo médio cansado é onde o joelho "
+                  "entra para dentro.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Os dois da polia", "<b>Stiff unilateral:</b> em pé numa perna, cabo "
+             "baixo, quadril para trás, perna livre estendendo atrás como "
+             "contrapeso. <b>Rotação de tronco:</b> costas na bola, cabo na altura "
+             "do peito, braços estendidos — gira o <b>tronco</b>, não os braços, e "
+             "o quadril fica parado. Nos dois, carga leve: eles preparam a sessão, "
+             "não são a sessão."),
+            ("Hang clean", "Da altura do joelho, com recepção completa. "
+             "<b>Velocidade da barra manda: se cair, a série acabou</b>, mesmo "
+             "sobrando repetição. 72% do seu clean é leve de propósito — aqui se "
+             "treina o gesto rápido, não o máximo."),
+            ("Remada curvada com barra", "<b>Tronco entre 15° e 30° acima da "
+             "horizontal, e PARADO.</b> A barra vem ao umbigo. A 88% e três "
+             "repetições, o erro é levantar o tronco para a barra subir — aí a "
+             "carga está alta demais. <b>Lombar arredondou, a série acabou.</b>"),
+            ("Elevação pélvica", "Costas no banco, barra sobre o quadril com "
+             "proteção. Sobe empurrando pelo <b>calcanhar</b> até o tronco ficar "
+             "reto e segura 1 segundo em cima. Se a lombar arqueia para subir "
+             "mais, você passou do ponto — a amplitude termina onde o quadril "
+             "termina, não onde a lombar continua."),
+            ("Os dois agachamentos laterais", "Pés bem afastados, apontados à "
+             "frente, <b>os dois calcanhares no chão</b>. Desce sobre uma perna "
+             "com a outra estendida, e sai lateralmente. <b>O joelho não entra "
+             "para dentro na aterrissagem</b> — se entrar, diminua a distância do "
+             "salto antes de diminuir a profundidade. Aterrissagem que faz "
+             "barulho é série que acabou."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>A conta: 8 séries de plano frontal, 7 de quadril, 5 de LPO, "
+                  "4 de puxar, 3 de tronco — e ZERO de empurrar.</b> Para um dia "
+                  "de quadril e lateral está certo, e é bom que o ombro descanse. "
+                  "Só não pode ser o retrato da semana: o próximo dia de sala "
+                  "precisa de empurrar."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
           "contraste": CONTRASTE, "corpo_inteiro": CORPO_INTEIRO,
           "tronco": TRONCO, "unilateral_salto": UNILATERAL_SALTO,
           "forca_a": FORCA_4X4_A, "forca_b": FORCA_4X4_B,
-          "regenerativo": REGENERATIVO, "forca_2a3": FORCA_2A3}
+          "regenerativo": REGENERATIVO, "forca_2a3": FORCA_2A3,
+          "quadril_frontal": QUADRIL_FRONTAL}
 
 
 def main():
