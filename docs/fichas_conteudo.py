@@ -2027,7 +2027,7 @@ FORCA_90_95 = {
     "meta_assunto": "Agachamento, hang pull e supino no limite, mais bloco especifico",
     "titulo": "Força pura · 90 a 95%",
     "titulo_verso": "Como usar esta ficha",
-    "protocolo": "Três levantamentos no limite &nbsp;&middot;&nbsp; 4 × 2-3 "
+    "protocolo": "Quatro levantamentos no limite &nbsp;&middot;&nbsp; 4 × 2-3 "
                  "&nbsp;&middot;&nbsp; mais um bloco específico, curto",
     "rotulo_carga": "CARGA",
     "larguras": [196, 46, 44, 48],
@@ -2036,8 +2036,8 @@ FORCA_90_95 = {
         "parte da prescrição — não sobra de tempo.</b> A 90-95% duas ou três "
         "repetições são as que existem: a 95% cabem duas, a 90% cabem três ou "
         "quatro. Com pausa curta a terceira e a quarta série não aconteceriam, e "
-        "a sessão viraria fadiga sob carga máxima. <b>Doze séries pesadas, trinta "
-        "repetições no dia inteiro</b> — é para ser assim.",
+        "a sessão viraria fadiga sob carga máxima. <b>Dezesseis séries pesadas, "
+        "quarenta repetições no dia inteiro</b> — é para ser assim.",
     "aquecimento_titulo": "Aquecimento — a rampa é longa, e é obrigatória",
     "aquecimento_nota": "A 95% a rampa não é aquecimento: é o que torna a primeira "
                         "série possível. Ela sobe em singles e para antes da carga.",
@@ -2056,8 +2056,11 @@ FORCA_90_95 = {
          "força pura &middot; LPO — puxada alta, sem recepção",
          "4 × 2-3", "4 min", "90-95%"),
         ("Supino reto com barra",
-         "força pura &middot; empurrar — com ajudante na barra",
-         "4 × 2-3", "4 min", "90-95%"),
+         "força pura &middot; empurrar — ALTERNA com o 4",
+         "4 × 2-3", "2 min", "90-95%"),
+        ("Puxada fechada sentado",
+         "força pura &middot; puxar — ALTERNA com o 3",
+         "4 × 2-3", "2 min", "90-95%"),
         ("Salto de ataque com aproximação",
          "específico &middot; expressão — aproximação completa",
          "4 × 3", "2 min", "máximo"),
@@ -2067,15 +2070,19 @@ FORCA_90_95 = {
     ],
     "nota_tabela":
         "<b>A carga sobe dentro da faixa, série a série:</b> 1ª com 3 repetições a "
-        "90%, 2ª com 3 a 92%, 3ª com 2 a 94%, 4ª com 2 a 95%. Os três "
+        "90%, 2ª com 3 a 92%, 3ª com 2 a 94%, 4ª com 2 a 95%. Os quatro "
         "levantamentos já estão na sua tabela de 1RM — o hang pull sai do "
-        "<b>clean pull</b>. Anote a carga e quantas repetições saíram: a 95%, "
-        "duas limpas valem mais que três arrastadas.",
+        "<b>clean pull</b>. <b>Supino e puxada fechada são alternados</b>: 2 min "
+        "de um para o outro, o que dá 4 min entre as séries de cada um. Anote a "
+        "carga e quantas repetições saíram: a 95%, duas limpas valem mais que "
+        "três arrastadas.",
     "caixa_duracao":
         "<b>Duração prevista: 75 a 90 minutos</b> — e mais da metade é pausa. "
-        "Doze séries pesadas a 4 minutos dão 50 minutos só de descanso, e isso "
-        "não é desperdício: é o que faz a quarta série valer. <b>Com menos de 70 "
-        "minutos, tire um exercício inteiro</b> — nunca encurte a pausa.",
+        "Dezesseis séries pesadas com 4 minutos entre as de cada exercício, e "
+        "isso não é desperdício: é o que faz a quarta série valer. <b>Com menos "
+        "de 70 minutos, tire um exercício inteiro</b> — nunca encurte a pausa. "
+        "Alternar o supino com a puxada é o que fez o quarto levantamento caber "
+        "sem alongar a sessão.",
     "verso": [
         ("h", "Por que a pausa dobrou"),
         ("grade", ["FICHA", "CARGA", "REPETIÇÕES", "PAUSA"], [
@@ -2105,10 +2112,14 @@ FORCA_90_95 = {
              "Por não ter recepção, ele aguenta mais carga que o clean: o "
              "percentual aqui é do seu <b>clean pull</b>, não do clean. Se a barra "
              "para de acelerar, a série acabou."),
-            ("Supino reto com barra", "<b>Com alguém na barra, sempre.</b> A 95% é "
-             "o único dos três em que a falha pode ser completa com segurança, e "
-             "só por causa do ajudante. Sozinho: pare com uma repetição de sobra e "
-             "anote que foi assim."),
+            ("Supino e puxada, alternados", "<b>Com alguém na barra do supino, "
+             "sempre.</b> A 95% é o único levantamento da ficha em que a falha pode "
+             "ser completa com segurança, e só por causa do ajudante. Sozinho: pare "
+             "com uma repetição de sobra e anote. <b>Na puxada fechada a 90-95% o "
+             "corpo tende a subir do banco</b> — trave o apoio das coxas; se mesmo "
+             "assim você levanta do assento, a carga passou do ponto, e isso vale "
+             "mais que o percentual da tabela. Pegada neutra ou supinada, tronco "
+             "parado, barra até a parte alta do peito."),
             ("O bloco específico", "<b>Curto de propósito.</b> Depois de doze "
              "séries no limite, o salto não vai bater a sua melhor marca, e não é "
              "para bater: o que se treina aqui é o <b>gesto logo depois da carga "
@@ -2118,12 +2129,14 @@ FORCA_90_95 = {
              "acabou</b> — pare, não complete."),
         ]),
         ("espaco", 2),
-        ("caixa", "<b>A conta: 4 séries de perna, 4 de LPO, 4 de empurrar e 7 do "
-                  "bloco específico — nada de puxar.</b> Em três levantamentos não "
-                  "dá para cobrir tudo, e está certo que não cubra. Mas depois "
-                  "desta sessão a próxima precisa de puxada, e precisa de pelo "
-                  "menos 48 horas de distância: 90-95% cobra no sistema nervoso, "
-                  "não no músculo, e isso não aparece como dor no dia seguinte."),
+        ("caixa", "<b>A conta: 4 séries de perna, 4 de LPO, 4 de empurrar, 4 de "
+                  "puxar e 7 do bloco específico.</b> Com a puxada fechada os "
+                  "padrões fecham — e ela entrou alternada com o supino "
+                  "justamente para caber: solta, com 4 minutos de pausa próprios, "
+                  "custaria 16 minutos a mais de sala. <b>A próxima sessão pesada "
+                  "precisa de pelo menos 48 horas de distância:</b> 90-95% cobra "
+                  "no sistema nervoso, não no músculo, e isso não aparece como dor "
+                  "no dia seguinte — aparece como barra lenta dois dias depois."),
         ("espaco", 2),
     ],
 }
