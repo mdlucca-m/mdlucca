@@ -2013,6 +2013,121 @@ QUADRIL_FRONTAL = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# FORÇA PURA 90 A 95% — três levantamentos e o bloco específico
+# ════════════════════════════════════════════════════════════════════════════
+# A ficha de 29/10 dizia: ou 88% com 2 min de pausa, ou 2-3 repetições no limite
+# com 3 min. Ele veio com a outra ponta — 90 a 95% —, então a pausa sobe para 4
+# min, que é a consequência e não uma escolha minha. Os três têm referência de
+# 1RM no sistema, então a ficha inteira sai por percentual. "Exercícios
+# específicos" eu li como um bloco a acrescentar, e ele ficou curto de propósito.
+FORCA_90_95 = {
+    "arquivo": "ELASE-forca-pura-90-95.pdf",
+    "meta_titulo": "ELASE - Forca pura 90 a 95 por cento",
+    "meta_assunto": "Agachamento, hang pull e supino no limite, mais bloco especifico",
+    "titulo": "Força pura · 90 a 95%",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Três levantamentos no limite &nbsp;&middot;&nbsp; 4 × 2-3 "
+                 "&nbsp;&middot;&nbsp; mais um bloco específico, curto",
+    "rotulo_carga": "CARGA",
+    "larguras": [196, 46, 44, 48],
+    "abertura":
+        "<b>Esta é a sessão mais pesada da sua pasta, e a pausa de 4 minutos é "
+        "parte da prescrição — não sobra de tempo.</b> A 90-95% duas ou três "
+        "repetições são as que existem: a 95% cabem duas, a 90% cabem três ou "
+        "quatro. Com pausa curta a terceira e a quarta série não aconteceriam, e "
+        "a sessão viraria fadiga sob carga máxima. <b>Doze séries pesadas, trinta "
+        "repetições no dia inteiro</b> — é para ser assim.",
+    "aquecimento_titulo": "Aquecimento — a rampa é longa, e é obrigatória",
+    "aquecimento_nota": "A 95% a rampa não é aquecimento: é o que torna a primeira "
+                        "série possível. Ela sobe em singles e para antes da carga.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou esteira, ritmo leve", "5 min", "até suar, sem cansar"],
+        ["Mobilidade de tornozelo, quadril e torácica", "6 min", "a mesma do app"],
+        ["Rotadores externos com elástico", "2 × 12", "antes do supino"],
+        ["Rampa: 40, 60, 75, 85 e 90%", "5, 3, 2, 1 e 1", "2 a 3 min entre elas"],
+    ],
+    "exercicios": [
+        ("Agachamento livre",
+         "força pura &middot; perna — rack com os pinos na altura",
+         "4 × 2-3", "4 min", "90-95%"),
+        ("Hang pull",
+         "força pura &middot; LPO — puxada alta, sem recepção",
+         "4 × 2-3", "4 min", "90-95%"),
+        ("Supino reto com barra",
+         "força pura &middot; empurrar — com ajudante na barra",
+         "4 × 2-3", "4 min", "90-95%"),
+        ("Salto de ataque com aproximação",
+         "específico &middot; expressão — aproximação completa",
+         "4 × 3", "2 min", "máximo"),
+        ("Arremesso de medicine ball",
+         "específico &middot; acima da cabeça, com os dois braços",
+         "3 × 4", "60 s", "3 kg"),
+    ],
+    "nota_tabela":
+        "<b>A carga sobe dentro da faixa, série a série:</b> 1ª com 3 repetições a "
+        "90%, 2ª com 3 a 92%, 3ª com 2 a 94%, 4ª com 2 a 95%. Os três "
+        "levantamentos já estão na sua tabela de 1RM — o hang pull sai do "
+        "<b>clean pull</b>. Anote a carga e quantas repetições saíram: a 95%, "
+        "duas limpas valem mais que três arrastadas.",
+    "caixa_duracao":
+        "<b>Duração prevista: 75 a 90 minutos</b> — e mais da metade é pausa. "
+        "Doze séries pesadas a 4 minutos dão 50 minutos só de descanso, e isso "
+        "não é desperdício: é o que faz a quarta série valer. <b>Com menos de 70 "
+        "minutos, tire um exercício inteiro</b> — nunca encurte a pausa.",
+    "verso": [
+        ("h", "Por que a pausa dobrou"),
+        ("grade", ["FICHA", "CARGA", "REPETIÇÕES", "PAUSA"], [
+            ["Força pura · 2 a 3 (29/10)", "88% — dá para fazer 5",
+             "2 ou 3, sobrando 2 ou 3", "2 min"],
+            ["<b>Esta ficha</b>", "<b>90 a 95%</b>",
+             "<b>2 ou 3, no limite</b>", "<b>4 min</b>"],
+        ], [0.30, 0.24, 0.26, 0.20]),
+        ("espaco", 3),
+        ("caixa", "<b>As duas fichas são a mesma escolha vista dos dois lados.</b> "
+                  "Repetição no limite e pausa curta não cabem juntas: a 95% o que "
+                  "repõe a energia da série seguinte leva de 3 a 5 minutos, e com "
+                  "2 a terceira série já perde repetição. Você pediu a carga alta, "
+                  "então a pausa veio junto. <b>Se o tempo de sala não permitir 4 "
+                  "minutos, a ficha certa é a de 29/10, não esta com pausa "
+                  "cortada.</b>", AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Agachamento livre", "<b>Rack com os pinos na altura de escapar.</b> "
+             "A 95% a diferença entre terminar a série e despejar a barra é uma "
+             "repetição, e a decisão tem de estar tomada antes: <b>a série acaba "
+             "quando a subida desacelera ou o tronco cai à frente</b>, não quando "
+             "a barra para. Profundidade igual à de sempre."),
+            ("Hang pull", "Da altura do joelho, <b>puxada alta sem recepção</b> — "
+             "tríplice extensão, ombros encolhendo no fim, barra rente ao corpo. "
+             "Por não ter recepção, ele aguenta mais carga que o clean: o "
+             "percentual aqui é do seu <b>clean pull</b>, não do clean. Se a barra "
+             "para de acelerar, a série acabou."),
+            ("Supino reto com barra", "<b>Com alguém na barra, sempre.</b> A 95% é "
+             "o único dos três em que a falha pode ser completa com segurança, e "
+             "só por causa do ajudante. Sozinho: pare com uma repetição de sobra e "
+             "anote que foi assim."),
+            ("O bloco específico", "<b>Curto de propósito.</b> Depois de doze "
+             "séries no limite, o salto não vai bater a sua melhor marca, e não é "
+             "para bater: o que se treina aqui é o <b>gesto logo depois da carga "
+             "máxima</b>, com o sistema nervoso ainda acordado. Aproximação "
+             "completa, alvo alto, três saltos por série e descanso de verdade "
+             "entre elas. <b>Se o salto piorar série após série, o bloco "
+             "acabou</b> — pare, não complete."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>A conta: 4 séries de perna, 4 de LPO, 4 de empurrar e 7 do "
+                  "bloco específico — nada de puxar.</b> Em três levantamentos não "
+                  "dá para cobrir tudo, e está certo que não cubra. Mas depois "
+                  "desta sessão a próxima precisa de puxada, e precisa de pelo "
+                  "menos 48 horas de distância: 90-95% cobra no sistema nervoso, "
+                  "não no músculo, e isso não aparece como dor no dia seguinte."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -2020,7 +2135,7 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "tronco": TRONCO, "unilateral_salto": UNILATERAL_SALTO,
           "forca_a": FORCA_4X4_A, "forca_b": FORCA_4X4_B,
           "regenerativo": REGENERATIVO, "forca_2a3": FORCA_2A3,
-          "quadril_frontal": QUADRIL_FRONTAL}
+          "quadril_frontal": QUADRIL_FRONTAL, "forca_90_95": FORCA_90_95}
 
 
 def main():
