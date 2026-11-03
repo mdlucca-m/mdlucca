@@ -16,5 +16,5 @@ com a linguagem e a metodologia dos artigos modelo do Lape: Andrade et al. (2023
 Gerador: `corrigidos/modelo_mdpi/gerar_ijerph.py` (figuras novas em `figs_ijerph.py`).
 
 ## Outras versões
-- `mapping_review_abnt.docx` / `.pdf`: versão ABNT (65 páginas), com o mesmo texto simplificado.
-- `mapping_review_documento.docx` / `.pdf`: mesmo conteúdo da versão em artigo, em documento simples (Times 12, espaço 1,5, margens de 3 e 2 cm), sem diagramação de artigo (86 páginas).
+- `mapping_review_abnt.docx` / `.pdf`: versão ABNT (66 páginas), com o mesmo texto simplificado.
+- `mapping_review_documento.docx` / `.pdf`: mesmo conteúdo da versão em artigo, em documento simples (Times 12, espaço 1,5, margens de 3 e 2 cm), sem diagramação de artigo (87 páginas).
