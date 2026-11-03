@@ -17,4 +17,4 @@ Gerador: `corrigidos/modelo_mdpi/gerar_ijerph.py` (figuras novas em `figs_ijerph
 
 ## Outras versões
 - `mapping_review_abnt.docx` / `.pdf`: versão ABNT (66 páginas), com o mesmo texto simplificado.
-- `mapping_review_documento.docx` / `.pdf`: mesmo conteúdo da versão em artigo, em documento simples (Times 12, espaço 1,5, margens de 3 e 2 cm), sem diagramação de artigo (87 páginas).
+- `mapping_review_documento.docx` / `.pdf`: mesmo conteúdo da versão em artigo, em documento simples (Times 12, espaço 1,5, margens de 3 e 2 cm), sem diagramação de artigo (86 páginas).
