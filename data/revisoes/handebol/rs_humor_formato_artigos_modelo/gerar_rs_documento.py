@@ -284,6 +284,20 @@ pPr.append(bd)
 
 # ================================================================== adaptadores (assinatura da versão ABNT, aparência MDPI)
 _fig_mdpi, _tab_mdpi = figura, tabela
+
+
+def _sombrear(t, linhas_cab=1, cor="E8ECF2"):
+    """Fundo cinza-claro no cabeçalho, para facilitar a leitura das tabelas."""
+    for r in range(linhas_cab):
+        for cel in t.rows[r].cells:
+            tcPr = cel._tc.get_or_add_tcPr()
+            for e in tcPr.findall(qn("w:shd")):
+                tcPr.remove(e)
+            sh = OxmlElement("w:shd")
+            sh.set(qn("w:val"), "clear")
+            sh.set(qn("w:color"), "auto")
+            sh.set(qn("w:fill"), cor)
+            tcPr.append(sh)
 ROT = {"Quadro 1": "Tabela 3", "Quadro A1": "Tabela A1", "Quadro C1": "Tabela B1", "Quadro D1": "Tabela C1"}
 
 
@@ -301,11 +315,12 @@ def tabela(rotulo, titulo, cab, linhas, larguras, alinhar=None, grupos=None, tam
     if nota:
         par = fmt(doc.add_paragraph(), primeira=0, antes=0, depois=8, alinhar=WD_ALIGN_PARAGRAPH.JUSTIFY, linha=10)
         runs(par, nota[0].upper() + nota[1:], tam=8)
+    _sombrear(t, 1)
     return t
 
 
 def tabela2(rotulo, titulo, grupos_cab, cab2, linhas, larguras, tam=9, nota=None, negrito_ult=True):
-    """Tabela MDPI com cabeçalho em dois níveis (células mescladas), como a Tabela 3 do artigo modelo.
+    """Tabela MDPI com cabeçalho em dois níveis (células mescladas), como a Tabela 7 do artigo modelo.
     grupos_cab: [(rótulo, número de colunas)] cobrindo todas as colunas; rótulo vazio = célula mesclada vertical."""
     leg = fmt(doc.add_paragraph(), primeira=0, antes=8, depois=4, alinhar=WD_ALIGN_PARAGRAPH.JUSTIFY, linha=10.8)
     runs(leg, f"**{rotulo}.** {titulo}.", tam=9)
@@ -377,6 +392,7 @@ def tabela2(rotulo, titulo, grupos_cab, cab2, linhas, larguras, tam=9, nota=None
         runs(par, nota, tam=8)
     else:
         doc.add_paragraph().paragraph_format.space_after = Pt(2)
+    _sombrear(t, 2)
     return t
 
 
@@ -826,18 +842,26 @@ ND7 = len({i for e in EST for i in [e["id"]] for x in (e.get("leitura") or {}).g
            if str(x.get("metrica", "")).startswith("d") and x.get("valor") is not None and x.get("dimensao") in DIMS6})
 VF6 = (f"{MAP6['vigor']['efeito']} cada" if MAP6["vigor"]["efeito"] == MAP6["fadiga"]["efeito"]
        else f"{MAP6['vigor']['efeito']} e {MAP6['fadiga']['efeito']}, respectivamente")
-P(f"Nas fichas da leitura integral, {NMAP6} estudos registraram efeitos por dimensão do humor (Figura 6). O vigor e a "
+P(f"Nas fichas da leitura integral, {NMAP6} estudos registraram efeitos por dimensão do humor (Tabela 4). O vigor e a "
   f"fadiga reuniram o maior número de estudos com mudança ou associação ({VF6}), seguidos da "
   f"depressão ({MAP6['depressão']['efeito']}); a perturbação total teve mais estudos com resultados mistos "
   f"({MAP6['PTH']['misto']}) que com mudança ({MAP6['PTH']['efeito']}). Apenas um estudo registrou mudança nas seis "
   f"dimensões do POMS ou da BRUMS {c('H29')}, e três não registraram diferença em nenhuma das dimensões relatadas "
   f"{c('H23', 'H28', 'N4')}.")
-figura("Figura6_Mapa_Dimensoes_RS.png", "Figura 6", "Mapa dos resultados por estudo e dimensão do humor, segundo a "
-       "leitura integral", larg=14.5,
-       nota="azul: mudança ou associação relatada; laranja: comparações com e sem diferença na mesma dimensão; cinza: sem "
-            "mudança ou associação; célula vazia: dimensão não medida ou sem efeito registrado na ficha; perturbação "
-            "total: escore total do POMS ou da BRUMS; valência afetiva: Feeling Scale ou SAM; estudos em ordem "
-            "cronológica.")
+_ROTD = {"tensão": "Tensão", "depressão": "Depressão", "raiva": "Raiva", "vigor": "Vigor", "fadiga": "Fadiga",
+         "confusão": "Confusão", "PTH": "Perturbação total", "afeto positivo": "Afeto positivo",
+         "afeto negativo": "Afeto negativo", "valência": "Valência afetiva"}
+_ld = []
+for _d in DIMS6:
+    _m = MAP6[_d]
+    _tot = _m['efeito'] + _m['misto'] + _m['nulo']
+    if _tot:
+        _ld.append([_ROTD[_d], str(_m['efeito']), str(_m['misto']), str(_m['nulo']), str(_tot)])
+tabela("Tabela 4", "Número de estudos com mudança ou associação, com resultados mistos e sem mudança em cada dimensão do "
+       "humor, segundo a leitura integral", ["Dimensão do humor", "Mudança ou associação", "Resultados mistos",
+       "Sem mudança", "Total de estudos"], _ld, [4.4, 3.0, 2.8, 2.6, 2.6], alinhar=["l", "c", "c", "c", "c"], tam=9,
+       nota="resultados mistos: comparações com e sem diferença na mesma dimensão; perturbação total: escore total do POMS "
+            "ou da BRUMS; valência afetiva: Feeling Scale ou SAM; um estudo pode medir mais de uma dimensão.")
 P(f"Por dimensão, a depressão, a raiva e a "
   f"confusão variaram com a modalidade no confinamento, com a fase do ciclo menstrual, com o horário e com o "
   f"encorajamento verbal {c('H24', 'H29', 'N3', 'O1')}, e a tensão não se alterou após a partida nem entre o jogo e os "
@@ -846,18 +870,17 @@ P(f"Por dimensão, a depressão, a raiva e a "
   f"negativo diferiram entre praticantes e inativos e associaram-se à solidão {c('H27', 'N2')}, mas apenas o afeto "
   f"positivo respondeu ao feedback negativo {c('H22')}. A valência afetiva mudou em três estudos e não diferiu entre "
   f"as fases do ciclo menstrual em um {c('N4')}.")
-P(f"A magnitude padronizada (d de Cohen) foi obtida em {ND7} estudos, com {len(D7)} comparações; a Figura 7 apresenta a de maior magnitude por estudo e dimensão. Três "
+P(f"A magnitude padronizada (d de Cohen) foi obtida em {ND7} estudos, com {len(D7)} comparações; a Figura 6 apresenta a de maior magnitude por estudo e dimensão. Três "
   f"estudos relataram o d {c('H27', 'H31', 'N5')}, e apenas um informou o intervalo de confiança {c('H31')}; nos "
   f"demais, o d foi calculado pelos revisores a partir de médias e DP. Os valores relatados variaram de 0,17 a 1,51, e "
   f"o maior deles corresponde ao vigor no jogo com encorajamento verbal {c('N5')}. Os maiores valores calculados "
   f"ocorreram em comparações não testadas ou sem significância segundo os autores, como a fadiga ao longo da "
   f"temporada {c('H3')} e a perturbação total entre modalidades {c('U150')}, e em comparações em que modalidade e "
   f"sexo se confundem {c('N3')}.")
-figura("Figura7_Magnitude_Efeitos_RS.png", "Figura 7", "Magnitude dos efeitos padronizados por dimensão do humor",
+figura("Figura7_Magnitude_Efeitos_RS.png", "Figura 6", "Magnitude dos efeitos padronizados por dimensão do humor",
        larg=14,
        nota="um ponto por estudo e dimensão, com o maior |d| entre as comparações; [k]: número de comparações; círculo "
-            "cheio: d relatado pelos autores; círculo vazado: d calculado pelos revisores a partir de médias e DP; barra horizontal: margem de incerteza "
-            "relatada pelos autores; linhas tracejadas: "
+            "cheio: d relatado pelos autores; círculo vazado: d calculado pelos revisores a partir de médias e DP; linhas tracejadas: "
             "limiares de efeito pequeno, moderado e grande; cores conforme a direção do efeito sobre o humor; os "
             "relatórios " + c('H31', 'H32') + " descrevem a mesma amostra, e apenas o primeiro consta da figura.")
 
@@ -908,7 +931,7 @@ INTERV = [
      "Programa de regulação psicoemocional contra grupo controle", "n.r.", "Questionário SAN; momentos n.r.",
      "Melhora de até 38% no bem-estar, na atividade e no humor, relatada apenas no resumo"),
 ]
-P(f"Doze estudos manipularam uma condição e mediram o humor como desfecho (Tabela 4): encorajamento verbal em três "
+P(f"Doze estudos manipularam uma condição e mediram o humor como desfecho (Tabela 5): encorajamento verbal em três "
   f"{c('H25', 'H29', 'N5')}, feedback em dois {c('H22', 'H23')}, programas psicológicos em dois {c('H10', 'N8')}, "
   f"música em dois {c('H14', 'H24')}, intervenção nutricional em dois {c('H15', 'H28')} e informação sobre a duração "
   f"do esforço em um {c('H4')}. Cinco compararam condições nos mesmos participantes {c('H4', 'H10', 'H24', 'H25', 'N5')}, "
@@ -919,7 +942,7 @@ lin6 = []
 for i, part, interv, dur, med, res in sorted(INTERV, key=lambda x: (NORM[x[0]][0], x[0])):
     e = QE[i]
     lin6.append([R.autor(K[i]), part, interv, dur, med, res, f"{e['qualidade']['pontuacao']}\n({RD.qualidade(e).lower()})"])
-tabela("Tabela 4", "Estudos de intervenção: participantes, intervenção e comparador, duração, medida de humor, resultado "
+tabela("Tabela 5", "Estudos de intervenção: participantes, intervenção e comparador, duração, medida de humor, resultado "
                    "principal e qualidade metodológica",
        ["Estudo", "Participantes", "Intervenção e comparador", "Duração", "Medida de humor e momento",
         "Principal resultado", "Qualidade (0 a 6)"], lin6, [1.9, 2.4, 3.2, 2.0, 2.3, 4.3, 1.2],
@@ -944,12 +967,12 @@ P(f"Com mediana de {br(_ti['n_md'], 1)} participantes por estudo de intervençã
   f"da amostra. Segundo os próprios autores, {_ti['tot'][0]} dos {_ti['tot'][1]} estudos relataram efeito favorável "
   f"({pc(_ti['tot'][0], _ti['tot'][1], 0)}), proporção que supera a obtida pela classificação dos revisores e que reflete "
   f"as divergências entre resumo e resultados registradas na leitura integral. Nenhum tipo de intervenção reuniu mais "
-  f"de três estudos. A Figura 8 apresenta a relação entre o "
+  f"de três estudos. A Figura 7 apresenta a relação entre o "
   f"tamanho da amostra e a qualidade e a proporção de estudos com efeito relatado por tipo de intervenção.")
-figura("ijrs_intervencoes_analise.png", "Figura 8", "Análise dos estudos de intervenção sobre o humor", larg=15.5,
-       nota="(A) tamanho da amostra em escala logarítmica e pontuação de qualidade, com rótulo do primeiro autor e cor "
-            "pelo tipo de intervenção; (B) proporção de estudos com efeito favorável relatado pelos autores, com a "
-            "margem de incerteza de cada proporção; n: número de estudos.")
+figura("ijrs_intervencoes_analise.png", "Figura 7", "Análise dos estudos de intervenção sobre o humor", larg=15.5,
+       nota="(A) tamanho da amostra em escala logarítmica e pontuação de qualidade, com cor pelo tipo de "
+            "intervenção; (B) proporção de estudos com efeito favorável relatado pelos autores; área do ponto: "
+            "número de estudos.")
 P(f"**QP5.** {QPS[5]}")
 RESQ = [QE[i]["qualidade"]["pontuacao"] for i in QE if i not in RD.MESMA_AMOSTRA and (QE[i].get("leitura") or {}).get("fonte") == "resumo"]
 P(f"A qualidade foi reavaliada na leitura integral, e as contagens a seguir refletem essa revisão. A pontuação "
@@ -957,12 +980,12 @@ P(f"A qualidade foi reavaliada na leitura integral, e as contagens a seguir refl
   f"reproduzíveis pelas médias e DP, graus de liberdade ou tamanhos de efeito incoerentes com as estatísticas relatadas, "
   f"estatísticas relatadas em bloco e divergências entre texto e tabelas {c('H16', 'H25', 'H28', 'H29', 'H34', 'N3')}, "
   f"e pelo item Q3, por instrumentos sem versão ou confiabilidade declarada {c('H15', 'H24', 'N8')}. Em um estudo, a leitura do texto completo elevou a pontuação {c('H10')}. A qualidade foi "
-  f"alta em {QUAL['Alta']} estudos, moderada em {QUAL['Moderada']} e baixa em {QUAL['Baixa']} (Figura 9). Todos os "
+  f"alta em {QUAL['Alta']} estudos, moderada em {QUAL['Moderada']} e baixa em {QUAL['Baixa']} (Figura 8). Todos os "
   f"estudos definiram o objetivo e a população, mas a amostra foi descrita integralmente em {QI['q2']['sim']}, o "
   f"instrumento foi nomeado e validado em {QI['q3']['sim']}, o momento da medida foi declarado em {QI['q4']['sim']}, "
   f"houve comparador, controle ou ajuste de confusão em {QI['q5']['sim']}, e a análise estatística foi adequada, com "
   f"medidas de variabilidade, em {QI['q6']['sim']}.")
-figura("Figura4_Qualidade_RS.png", "Figura 9", "Avaliação da qualidade metodológica dos estudos incluídos (QP5)",
+figura("Figura4_Qualidade_RS.png", "Figura 8", "Avaliação da qualidade metodológica dos estudos incluídos (QP5)",
        larg=13.5, nota="Q1 a Q6: itens adaptados para estudos observacionais e transversais; sim (+), incerto (?) e não "
                        "(−); pontuação de 5 a 6, qualidade alta; de 3 a 4, moderada; de 0 a 2, baixa.")
 _q = NJ["qual"]
@@ -971,20 +994,41 @@ P(f"Em termos proporcionais, o item Q1 foi atendido por todos os estudos, o Q3 p
   f"{pc(_it['Q3. Instrumento validado e nomeado'][0], NE, 1)}, o Q4 por {pc(_it['Q4. Momento da medida declarado'][0], NE, 1)}, "
   f"o Q2 e o Q5 por {pc(_it['Q2. Amostra descrita'][0], NE, 1)} cada, e o Q6 por apenas "
   f"{pc(_it['Q6. Análise estatística adequada'][0], NE, 1)}. A pontuação mediana foi {br(_q['md'], 0)}, e a "
-  f"qualidade não melhorou ao longo dos anos, o que indica que os estudos recentes não superaram, em média, as fragilidades de relato dos anteriores. A Figura 10 apresenta a "
+  f"qualidade não melhorou ao longo dos anos, o que indica que os estudos recentes não superaram, em média, as fragilidades de relato dos anteriores. A Figura 9 apresenta a "
   f"proporção de atendimento de cada item e a relação entre a pontuação e o ano de publicação.")
-figura("ijrs_qualidade_analise.png", "Figura 10", "Análise da qualidade metodológica dos estudos incluídos", larg=15.5,
-       nota="(A) proporção de estudos que atenderam a cada item, com a margem de incerteza de cada proporção; (B) "
-            "pontuação de qualidade segundo o ano de publicação, com a linha de tendência; área do círculo "
-            "proporcional ao tamanho da amostra.")
+figura("ijrs_qualidade_analise.png", "Figura 9", "Análise da qualidade metodológica dos estudos incluídos", larg=15.5,
+       nota="(A) proporção de estudos que atenderam a cada item; (B) pontuação de qualidade segundo o ano de "
+            "publicação; área do círculo proporcional ao tamanho da amostra.")
 P(f"As maiores pontuações concentraram-se nos ensaios randomizados e nos estudos cruzados e longitudinais publicados a "
   f"partir de 2020; as menores, nos estudos transversais e quase-experimentais e nos extraídos apenas do resumo, que "
   f"pontuaram de {min(RESQ)} a {max(RESQ)}. As três maiores amostras corresponderam a estudos transversais "
   f"{c('H20', 'H27', 'H34')}, e os estudos de intervenção reuniram de 6 a 73 participantes {c('H10', 'H23')}. Quanto às "
   f"lacunas, nenhuma intervenção testou estratégias de recuperação ou de sono, as intervenções verbais limitaram-se a "
   f"sessões isoladas, e apenas um estudo confirmou a fase do ciclo menstrual por teste hormonal {c('N4')}. As "
-  f"fragilidades de cada estudo constam do Apêndice C, e as lacunas, da Tabela 5.")
+  f"fragilidades de cada estudo constam do Apêndice C, e as lacunas, da Tabela 7.")
 
+P(f"A Tabela 6 sintetiza as respostas às cinco questões de pesquisa, com as figuras e as tabelas em que cada "
+  f"resultado é apresentado.")
+tabela("Tabela 6", "Síntese das respostas às cinco questões de pesquisa", ["Questão de pesquisa", "Principais resultados",
+       "Figuras e tabelas"],
+       [["QP1. Características dos estudos e das populações",
+         f"{NE} estudos ({NR} relatórios), publicados entre 2008 e 2026; {mil(SOMA)} participantes, com mediana de "
+         f"{br(MED, 0)} por estudo; Espanha ({PAIS['Espanha']}), Tunísia ({PAIS['Tunísia']}) e Brasil ({PAIS['Brasil']}) "
+         f"com mais estudos; amostras só femininas em {SEXO['feminino']} estudos", "Figuras 1 e 2"],
+        ["QP2. Instrumentos, dimensões e momento da medida",
+         f"POMS e versões em {FAM['POMS e versões']} estudos, com 30 a 65 itens; BRUMS em 3, PANAS em 4, Feeling Scale "
+         f"em 2 e SAM em 2; momento da medida declarado em {QI['q4']['sim']} estudos", "Figura 3"],
+        ["QP3. Variáveis relacionadas ao humor e resultados",
+         f"{DIRC['Efeito ou associação']} estudos com efeito ou associação, {DIRC['Misto']} com resultados mistos e "
+         f"{DIRC['Sem efeito']} sem efeito; vigor e fadiga foram as dimensões com mais mudanças", "Figuras 4 a 6; Tabelas 3 e 4"],
+        ["QP4. Intervenções sobre o humor",
+         "12 estudos: encorajamento verbal (3), feedback (2), programas psicológicos (2), música (2), nutrição (2) e "
+         "informação sobre o esforço (1); efeito em 8, resultados mistos em 3 e sem efeito em 1, segundo a "
+         "classificação dos revisores", "Figura 7; Tabela 5"],
+        ["QP5. Qualidade metodológica e lacunas",
+         f"Qualidade alta em {QUAL['Alta']} estudos, moderada em {QUAL['Moderada']} e baixa em {QUAL['Baixa']}; análise "
+         f"estatística adequada em {QI['q6']['sim']}; nenhuma intervenção de recuperação ou de sono", "Figuras 8 e 9"]],
+       [4.0, 9.6, 2.3], alinhar=["l", "l", "l"], tam=8.5)
 H1("4. Discussão")
 P(f"O objetivo desta revisão sistemática foi investigar e analisar o estado da arte das evidências científicas sobre os "
   f"estados de humor em atletas de handebol no treinamento e na competição e avaliar a qualidade metodológica dos "
@@ -1257,8 +1301,8 @@ P(f"O delineamento da presente revisão sistemática também tem limitações. A
   f"publicados. As diferenças entre os estudos impediram a combinação estatística dos resultados {R.cite('hopkins2009')}, e a síntese seguiu "
   f"as recomendações para revisões sem essa combinação {R.cite('campbell2020')}. Entre os pontos fortes, estão a busca em oito bases sem restrição de data, a releitura integral dos relatórios, que corrigiu onze decisões anteriores e "
   f"revisou dados e pontuações de qualidade, e a rastreabilidade de cada resultado até o trecho literal da fonte.")
-P("A Tabela 5 apresenta as lacunas identificadas e as sugestões para estudos futuros sobre o humor no handebol.")
-tabela("Tabela 5", "Lacunas e sugestões para estudos futuros sobre o humor no handebol",
+P("A Tabela 7 apresenta as lacunas identificadas e as sugestões para estudos futuros sobre o humor no handebol.")
+tabela("Tabela 7", "Lacunas e sugestões para estudos futuros sobre o humor no handebol",
        ["Lacuna identificada", "Situação atual", "Recomendação"],
        [["Momento da medida", "Declarado com precisão em parte dos estudos; medidas prévias lidas como resposta",
          "Medidas antes e após jogos e sessões, com registro do horário e do contexto"],
@@ -1283,7 +1327,7 @@ tabela("Tabela 5", "Lacunas e sugestões para estudos futuros sobre o humor no h
         ["Desempenho em jogo", "Poucos estudos relacionaram humor e rendimento",
          "Humor medido por instrumento validado e indicadores de jogo sob pressão"]],
        [3.4, 5.9, 7.6], alinhar=["l", "l", "l"], tam=9.5)
-P(f"Além das lacunas da Tabela 5, convém adotar instrumentos comuns a outras modalidades coletivas, o que permitiria "
+P(f"Além das lacunas da Tabela 7, convém adotar instrumentos comuns a outras modalidades coletivas, o que permitiria "
   f"comparar o handebol com o futebol, o basquetebol e o voleibol {R.cite('rebelo2024voleibol', 'bird2025basquete')}, e "
   f"considerar o calendário congestionado e a variação individual da carga como moderadores do humor "
   f"{R.cite('buchel2026congestao')}.")
@@ -1305,7 +1349,7 @@ P(f"No cenário pós-pandemia, em que a saúde mental e emocional dos atletas pi
 P("Com base nas recomendações dos estudos incluídos nesta revisão, estratificaram-se informações relevantes para "
   "pesquisadores e gestores esportivos e para técnicos, psicólogos do esporte e atletas, a fim de orientar a prática e "
   "identificar lacunas a serem investigadas em pesquisas futuras. Dada a certeza baixa ou muito baixa, as recomendações "
-  "constituem orientações prudentes. Os cuidados e as observações a serem considerados são apresentados na Tabela 6.")
+  "constituem orientações prudentes. Os cuidados e as observações a serem considerados são apresentados na Tabela 8.")
 REC_P = [f"Medidas repetidas por sessão ou registros momentâneos, com instrumento validado e horário fixo "
          f"{R.cite('majer2026esm', 'reifsteck2021')}.",
          f"Declaração do momento da medida em relação ao jogo, à sessão ou ao teste {R.cite('beedie2000', 'lochbaum2021')}.",
@@ -1332,7 +1376,7 @@ REC_T = [f"Monitoramento breve e regular do humor, com instrumento validado e em
          f"Música autosselecionada antes da tarefa, ainda não testada no handebol {R.cite('delleli2023pretaskmusic')}."]
 lin6r = [[("•  " + a_) if a_ else "", ("•  " + b_) if b_ else ""] for a_, b_ in zip(REC_P, REC_T)]
 assert len(REC_P) == len(REC_T)
-tabela("Tabela 6", "Recomendações para pesquisadores e gestores esportivos e para técnicos, psicólogos do esporte e "
+tabela("Tabela 8", "Recomendações para pesquisadores e gestores esportivos e para técnicos, psicólogos do esporte e "
        "atletas", ["Pesquisadores e Gestores Esportivos", "Técnicos, Psicólogos do Esporte e Atletas"], lin6r, [8.0, 8.0],
        alinhar=["l", "l"], tam=9)
 
