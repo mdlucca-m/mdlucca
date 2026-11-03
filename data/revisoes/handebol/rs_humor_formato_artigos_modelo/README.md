@@ -9,4 +9,4 @@ Versão da revisão sistemática no formato do artigo modelo (Atmosphere, 2025; 
 
 ## Outras versões
 - `REVISAO SISTEMATICA HUMOR DOCUMENTO.docx` / `.pdf`: mesmo conteúdo, em documento simples (Times 12, espaço 1,5), sem diagramação de artigo (71 páginas).
-- `REVISAO SISTEMATICA HUMOR ABNT.docx` / `.pdf`: versão ABNT (modelo Lape), com a mesma linguagem simplificada e os Métodos detalhados (63 páginas).
+- `REVISAO SISTEMATICA HUMOR ABNT.docx` / `.pdf`: versão ABNT (modelo Lape), com a mesma linguagem simplificada e os Métodos detalhados (64 páginas).

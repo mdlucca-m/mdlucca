@@ -448,7 +448,7 @@ P(f"**Resumo:** Esta revisão investiga e analisa o estado da arte das evidênci
   f"durante a prática, com certeza baixa em escolares e muito baixa em atletas. A qualidade foi alta em {QUAL['Alta']} "
   f"estudos, moderada em {QUAL['Moderada']} e baixa em {QUAL['Baixa']}, e a análise estatística foi adequada em apenas "
   f"{QI['q6']['sim']}. Conclui-se que o humor de atletas de handebol responde à carga, ao contexto competitivo e à "
-  f"interação com treinador e colegas, mas a evidência é escassa, heterogênea e raramente experimental. Com base nas "
+  f"interação com treinador e colegas, mas a evidência é escassa, variada e raramente experimental. Com base nas "
   f"evidências sintetizadas, técnicos, psicólogos do esporte e pesquisadores podem utilizar essas informações para "
   f"aprimorar o monitoramento do humor e planejar estudos experimentais no treinamento e na competição.",
   primeira=0, tam=9.5, antes=4, linha=11.5)
@@ -492,7 +492,7 @@ P(f"A medida do humor no esporte originou-se, de fato, de um problema aplicado: 
   f"monitoramento {R.cite('majer2026esm')}. As escalas de afeto positivo e negativo {R.cite('watson1988')} e de valência "
   f"afetiva durante o esforço {R.cite('hardy1989', 'ekkekakis2019')} medem, contudo, aspectos diferentes, e tratá-las "
   f"como equivalentes ao perfil de humor compromete a síntese.")
-P(f"Se a medida se consolidou, a relação entre humor e desempenho permanece em debate. Metanálises associaram vigor "
+P(f"Se a medida se consolidou, a relação entre humor e desempenho permanece em debate. Revisões que combinaram estatisticamente os resultados de vários estudos associaram vigor "
   f"elevado e baixos escores de tensão, depressão, raiva, fadiga e confusão a melhor desempenho, com efeitos pequenos a "
   f"moderados, dependentes do tipo de esporte e do momento da medida {R.cite('beedie2000', 'lochbaum2021', 'lochbaum2022')}. "
   f"Os perfis de humor revelaram padrões de risco em atletas de elite e de formação "
@@ -526,7 +526,7 @@ P(f"Apesar dessa relevância, a evidência permanece dispersa. A revisão de map
   f"{R.cite('selmi2023poms')}, mas as revisões em outras modalidades coletivas diluíram o humor em escores compostos de "
   f"bem-estar {R.cite('rebelo2024voleibol')} ou não lhe dedicaram eixo próprio {R.cite('veillette2025hoquei')}, e o "
   f"protocolo de revisão sobre o monitoramento de atletas de handebol antecipou poucos estudos elegíveis e dados "
-  f"heterogêneos {R.cite('henze2025athmon')}. Até o momento, não foram identificadas revisões abrangentes na literatura "
+  f"muito diferentes entre si {R.cite('henze2025athmon')}. Até o momento, não foram identificadas revisões abrangentes na literatura "
   f"que reúnam as evidências sobre os estados de humor em atletas de handebol. Também não foram encontradas revisões que "
   f"formulem questões específicas sobre o tema e avaliem a qualidade metodológica dos estudos, como forma de elucidar o "
   f"estado da arte sobre o que foi estudado e quais lacunas permanecem, o que pode ser respondido por uma revisão "
@@ -606,7 +606,7 @@ H2("2.4. Extração e Análise dos Dados")
 P(f"A triagem de títulos e resumos foi realizada em duas passagens independentes, assistidas por modelo de linguagem "
   f"submetido aos critérios do protocolo, com as categorias incluir, excluir e dúvida; os registros em dúvida seguiram "
   f"para o texto completo, e as divergências foram resolvidas por uma terceira avaliação {R.cite('ouzzani2016')} "
-  f"(concordância de 0,988; κ = 0,959) {R.cite('cohen1960', 'landis1977')}. Esse coeficiente expressa a consistência "
+  f"(concordância de 98,8% entre as duas passagens). Essa concordância expressa a consistência "
   f"do procedimento, e não a concordância entre avaliadores humanos {R.cite('mchugh2012')}. Foram extraídos autoria, "
   f"ano, país, tamanho, sexo, idade e nível da amostra, delineamento, contexto e momento da medida, instrumento e "
   f"dimensões do humor, variáveis relacionadas, intervenção, resultados e direção do achado, e cada resultado foi "
@@ -636,9 +636,9 @@ P(f"As variáveis relacionadas ao humor foram agrupadas em seis grupos: competi�
 P(f"A síntese foi organizada segundo as cinco questões de pesquisa. Foram calculados a frequência absoluta e o "
   f"percentual de estudos em cada categoria, a mediana do tamanho da amostra e o número de estudos por ano de "
   f"publicação.")
-P(f"A síntese foi narrativa e estruturada conforme a diretriz SWiM {R.cite('campbell2020')}, com agrupamento por "
-  f"instrumento, variável relacionada e delineamento e com a direção do achado como métrica padronizada. A metanálise "
-  f"não foi realizada, por decisão anterior à inspeção dos dados, pois os estudos diferem em instrumento, momento da "
+P(f"A síntese foi narrativa, isto é, descrita em texto, tabelas e figuras, conforme as recomendações para revisões sem combinação estatística dos resultados {R.cite('campbell2020')}, com agrupamento por "
+  f"instrumento, variável relacionada e delineamento e com a direção do achado como critério comum de comparação. Os resultados "
+  f"não foram combinados em uma única estimativa estatística, decisão tomada antes da análise dos dados, pois os estudos diferem em instrumento, momento da "
   f"medida, delineamento e desfecho {R.cite('hopkins2009')}. Os dados foram analisados por estatística "
   f"descritiva e apresentados em figuras e tabelas.")
 P(f"Com base em {R.autor('fernandez2019')}, um aspecto metodológico fundamental para o êxito de uma revisão é a "
@@ -706,7 +706,7 @@ P(f"Em competição, o humor foi avaliado antes e depois do jogo {c('H2', 'U049'
 figura("Figura3_Instrumentos_Relacoes_RS.png", "Figura 3", "Instrumentos, variáveis relacionadas ao humor e direção dos "
        "achados (QP2 a QP4)", larg=13.5,
        nota="(A) família de instrumento; (B) direção do achado por família de instrumento; (C) gráfico de direção do "
-            "efeito por variável relacionada ao humor, conforme a diretriz SWiM; um estudo pode relacionar o humor a mais "
+            "efeito por variável relacionada ao humor; um estudo pode relacionar o humor a mais "
             "de uma variável.")
 
 P(f"**QP3.** {QPS[3]}")
@@ -793,7 +793,7 @@ for g, ids, txt in GRUPOS5:
     dd = Counter(RD.DIR_CURTA[e["direcao"]] for e in INC if e["id"] in ids and e["id"] not in RD.MESMA_AMOSTRA)
     lin5.append([g, R.cite(*[K[i] for i in ids]).strip("()"), txt,
                  f"{dd['Efeito ou associação']} / {dd['Misto']} / {dd['Sem efeito'] + dd['Descritivo'] + dd['Não determinável']}"])
-tabela("Quadro 1", "Síntese estruturada dos achados por grupo de variáveis (diretriz SWiM)",
+tabela("Quadro 1", "Síntese dos achados por grupo de variáveis",
        ["Grupo de variáveis", "Estudos", "Principais achados", "Efeito / misto / outros"], lin5, [3.2, 5.4, 5.4, 2.0],
        alinhar=["l", "l", "l", "c"], tam=8.5, quadro=True,
        nota="outros: sem efeito, descritivo ou não determinável; um estudo pode compor mais de um grupo.")
@@ -1059,7 +1059,7 @@ P(f"A variação de dimensões isoladas sem alteração da perturbação total {
   f"soma {R.cite('lane2000', 'parsonssmith2017')}. Há, porém, explicações alternativas. A estabilidade da "
   f"perturbação total pode refletir falta de poder {c('H3')}, e o ajuste individual da carga pela comissão técnica impede "
   f"atribuí-la à boa adaptação {c('H17')}. As alterações de humor no overreaching não funcional ou no overtraining "
-  f"apoiam-se, além disso, em evidência limitada e heterogênea {R.cite('valdesalici2026nfor')}, e nenhum estudo "
+  f"apoiam-se, além disso, em evidência limitada e variada {R.cite('valdesalici2026nfor')}, e nenhum estudo "
   f"documentou a transição até o overtraining com queda prolongada do desempenho {R.cite('weakley2022ots')}.")
 P(f"Quanto ao desempenho, a ausência de correlação com a condição física {c('H9')} não permite conclusões, e as medidas "
   f"mensais do POMS tiveram sensibilidade inferior a 20% para mudanças do desempenho físico {c('N1')}. A resolução "
@@ -1144,12 +1144,12 @@ P(f"A leitura integral impõe ressalvas. No estudo com escolares com sobrepeso, 
   f"{c('H25')}, e o ensaio com feedback negativo, o mais rigoroso, tem resumo que inverte o resultado principal "
   f"{c('H22')}. A direção do efeito verbal é plausível, e sua magnitude, incerta.")
 P(f"As intervenções nutricionais não sustentam efeito sobre o humor. Com néctar de jamelão, a perturbação total caiu "
-  f"apenas no grupo suplementado, sem diferença entre os grupos, e esse grupo partiu de valores piores, o que favorece a "
-  f"regressão à média {c('H15')}. Nos planos alimentares, a tabela não mostra efeito do tempo nem interação, embora o "
+  f"apenas no grupo suplementado, sem diferença entre os grupos, e esse grupo partiu de valores piores, e valores extremos tendem a se aproximar da média na medida seguinte, "
+  f"mesmo sem efeito da intervenção {c('H15')}. Nos planos alimentares, a tabela não mostra efeito do tempo nem interação, embora o "
   f"resumo e as conclusões afirmem mudanças significativas {c('H28')}. O efeito da cafeína sobre o humor foi maior em "
   f"boxeadores de elite que em atletas recreacionais {R.cite('jodra2020caffeine')}, o que sugere modulação pelo nível do atleta.")
 P(f"As intervenções psicológicas e musicais foram descritas de modo insuficiente. O programa de "
-  f"autorregulação selecionou os seis jogadores com pior humor, sem grupo controle, o que favorece a regressão à média, e "
+  f"autorregulação selecionou os seis jogadores com pior humor, sem grupo controle, e escores extremos tendem a melhorar na medida seguinte mesmo sem tratamento; além disso, "
   f"a melhora mantida na fase sem tratamento não distingue o efeito do programa do efeito do tempo {c('H10')}. No "
   f"aquecimento com música, a figura mostra humor praticamente inalterado nos dois grupos, em contradição com a diferença "
   f"significativa informada {c('H14')}, e o programa de regulação psicoemocional só foi acessível pelo resumo, sem "
@@ -1165,8 +1165,8 @@ P(f"As intervenções psicológicas estruturadas, ainda raras no handebol {c('H1
   f"depressão e a fadiga psicológica em atletas de alto nível {R.cite('zhang2025mindfulness')} e melhorou a regulação "
   f"emocional (g = 0,81, com sete estudos) {R.cite('li2026regulacao')}. No handebol de elite, reduziu a frustração "
   f"percebida {R.cite('e199')}, o que torna promissora a inclusão do humor como desfecho nesses ensaios.")
-P(f"A literatura recente de outras modalidades contextualiza esses resultados. Na metanálise de "
-  f"{R.autor('reinebo2024')}, o treino de habilidades psicológicas (g = 0,83), as abordagens baseadas em mindfulness e "
+P(f"A literatura recente de outras modalidades contextualiza esses resultados. Na revisão de "
+  f"{R.autor('reinebo2024')}, que combinou estatisticamente os resultados dos estudos, o treino de habilidades psicológicas (g = 0,83), as abordagens baseadas em mindfulness e "
   f"aceitação (g = 0,67) e a imagética (g = 0,75) superaram os controles no desempenho, e, em 24 ensaios com 853 "
   f"atletas, as intervenções psicológicas reduziram a ansiedade-estado (SMD = −0,99), com maior efeito do treino de "
   f"habilidades psicológicas tradicional {R.cite('liansiedade2025')}. Nos esportes coletivos praticados por adultos sem "
@@ -1229,9 +1229,9 @@ P(f"*Outras intervenções e marcadores biológicos.* Os ensaios nutricionais n�
 P(f"A cautela no julgamento da certeza é coerente com a literatura metanalítica. Na síntese de "
   f"{R.autor('reinebo2024')}, os efeitos moderados das intervenções psicológicas sobre o desempenho deixaram de ser "
   f"significativos quando os ensaios não randomizados e os desfechos subjetivos foram removidos na análise de "
-  f"sensibilidade, e, na metanálise sobre a ansiedade, a escolha do instrumento alterou a magnitude estimada "
+  f"sensibilidade, e, na revisão sobre a ansiedade, que também combinou os resultados, a escolha do instrumento alterou a magnitude estimada "
   f"{R.cite('liansiedade2025')}. As duas condições, delineamento não randomizado e desfecho autorrelatado com "
-  f"instrumentos heterogêneos, caracterizam a maior parte dos estudos desta revisão, o que justifica a certeza baixa ou "
+  f"instrumentos diferentes, caracterizam a maior parte dos estudos desta revisão, o que justifica a certeza baixa ou "
   f"muito baixa atribuída aos achados principais.")
 
 H2("4.5. Limitações e Estudos Futuros")
@@ -1254,8 +1254,8 @@ P(f"O delineamento da presente revisão sistemática também tem limitações. A
   f"em periódico. O protocolo não foi registrado prospectivamente, a "
   f"avaliação com seis itens não substitui instrumentos formais de risco de viés, o julgamento da certeza não seguiu "
   f"perfil de evidência formal, e os tamanhos de efeito calculados pelos revisores dependem da exatidão dos dados "
-  f"publicados. A heterogeneidade impediu a metanálise {R.cite('hopkins2009')}, e a síntese seguiu a diretriz SWiM "
-  f"{R.cite('campbell2020')}. Entre os pontos fortes, estão a busca em oito bases sem restrição de data, a releitura integral dos relatórios, que corrigiu onze decisões anteriores e "
+  f"publicados. As diferenças entre os estudos impediram a combinação estatística dos resultados {R.cite('hopkins2009')}, e a síntese seguiu "
+  f"as recomendações para revisões sem essa combinação {R.cite('campbell2020')}. Entre os pontos fortes, estão a busca em oito bases sem restrição de data, a releitura integral dos relatórios, que corrigiu onze decisões anteriores e "
   f"revisou dados e pontuações de qualidade, e a rastreabilidade de cada resultado até o trecho literal da fonte.")
 P("A Tabela 5 apresenta as lacunas identificadas e as sugestões para estudos futuros sobre o humor no handebol.")
 tabela("Tabela 5", "Lacunas e sugestões para estudos futuros sobre o humor no handebol",
@@ -1341,7 +1341,7 @@ P("Conclui-se que as evidências científicas sobre os estados de humor em atlet
   "competição são escassas, recentes e predominantemente observacionais. Os principais pontos dos achados são:")
 for _b in [f"Os {NE} estudos, publicados entre 2008 e 2026, concentraram-se na Espanha, na Tunísia e no Brasil, com "
            f"amostras pequenas, predominantemente femininas e, em parte, compostas por escolares;",
-           f"O POMS e suas versões dominaram a medida, em versões heterogêneas e com momento da medida declarado em "
+           f"O POMS e suas versões dominaram a medida, em versões diferentes e com momento da medida declarado em "
            f"apenas {QI['q4']['sim']} estudos;",
            "O humor associou-se à carga, sobretudo por meio de dimensões isoladas como a fadiga e o vigor, ao resultado "
            "do jogo, às habilidades psicológicas e ao convívio social, com certeza baixa a muito baixa;",
@@ -1349,7 +1349,7 @@ for _b in [f"Os {NE} estudos, publicados entre 2008 e 2026, concentraram-se na E
            "muito baixa em atletas, e as intervenções nutricionais, psicológicas e musicais não demonstraram efeito "
            "consistente;",
            f"A qualidade foi alta em {QUAL['Alta']} dos {NE} estudos, mas falhas de integridade do relato atravessaram "
-           f"todos os níveis de qualidade, e a heterogeneidade impediu a síntese quantitativa."]:
+           f"todos os níveis de qualidade, e as diferenças entre os estudos impediram a combinação estatística dos resultados."]:
     BUL(_b, marca="•")
 P("Com base nas evidências sintetizadas, técnicos e psicólogos do esporte podem priorizar o monitoramento regular do "
   "humor e a comunicação positiva do treinador, e os pesquisadores, medidas repetidas por sessão, momento declarado, "
