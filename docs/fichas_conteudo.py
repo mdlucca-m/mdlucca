@@ -2141,6 +2141,133 @@ FORCA_90_95 = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# PUXAR E UNILATERAL — seis exercícios, três blocos
+# ════════════════════════════════════════════════════════════════════════════
+# Nenhum intervalo veio na lista, então eles são meus. A ordem é a dele, e o
+# verso declara a cascata que ela cria: barra fixa ao máximo, remada curvada
+# pesada e hang clean dependem todos da mesma pegada e da mesma dorsal, nessa
+# ordem. Uma troca resolveria; não apliquei, só escrevi qual é.
+PUXAR_UNILATERAL = {
+    "arquivo": "ELASE-puxar-e-unilateral.pdf",
+    "meta_titulo": "ELASE - Puxar e unilateral",
+    "meta_assunto": "Tronco a 4 repeticoes, hang clean leve e perna unilateral",
+    "titulo": "Puxar e unilateral",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Seis exercícios &nbsp;&middot;&nbsp; tronco a 4 repetições, "
+                 "clean leve e perna unilateral &nbsp;&middot;&nbsp; nesta ordem",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 48],
+    "abertura":
+        "<b>Duas séries de puxar para cada uma de empurrar</b> — oito contra "
+        "quatro. Em quem ataca centenas de bolas por semana, é para esse lado que "
+        "a conta deve pender, e esta é a primeira ficha da sua pasta em que ela "
+        "pende tanto. O preço é que <b>três exercícios seguidos dependem da mesma "
+        "pegada</b>: barra fixa ao máximo, remada curvada pesada e hang clean. "
+        "O verso diz o que isso custa e qual troca resolveria.",
+    "aquecimento_titulo": "Aquecimento — ombro e pegada, nessa ordem",
+    "aquecimento_nota": "O desenvolvimento abre a sessão e a barra fixa vem logo "
+                        "atrás: o manguito entra aquecido, e a pegada também.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou esteira, ritmo leve", "4 min", "até suar, sem cansar"],
+        ["Mobilidade de torácica, ombro e quadril", "6 min", "a mesma do app"],
+        ["Rotadores externos com elástico", "2 × 12", "antes do desenvolvimento"],
+        ["Barra vazia: desenvolvimento e hang clean", "2 × 5 cada", "o padrão, sem peso"],
+    ],
+    "exercicios": [
+        ("Desenvolvimento com barra",
+         "força &middot; empurrar vertical — SEM perna",
+         "4 × 4", "2,5 min", "6RM"),
+        ("Barra fixa",
+         "força &middot; puxar vertical — máximo de repetições",
+         "4 × máx.", "2,5 min", "corpo"),
+        ("Remada curvada com barra",
+         "força &middot; puxar horizontal — tronco PARADO",
+         "4 × 4", "2,5 min", "87%"),
+        ("Hang clean",
+         "técnica &middot; LPO — carga baixa, seis seguidas",
+         "4 × 6", "2 min", "60%"),
+        ("Agachamento lateral com barra",
+         "força &middot; plano frontal — 6 para CADA lado",
+         "4 × 6", "90 s", "RIR 2"),
+        ("Stiff unilateral com halteres",
+         "força &middot; posterior — 6 em CADA perna",
+         "4 × 6", "90 s", "RIR 2"),
+    ],
+    "nota_tabela":
+        "Só a remada curvada e o hang clean saem da sua tabela de 1RM — o clean a "
+        "<b>60%</b>, que é a carga baixa que você pediu. No desenvolvimento use a "
+        "<b>carga de 6 repetições</b> e faça 4. Na barra fixa é o peso do corpo: "
+        "<b>passando de 10 repetições na primeira série, ponha carga no cinto.</b> "
+        "Anote os dois lados nos dois últimos, e anote quantas repetições saíram "
+        "em CADA série de barra fixa — é desse número que sai a progressão dela.",
+    "caixa_duracao":
+        "<b>Duração prevista: 65 a 80 minutos</b> — 24 séries em três blocos. "
+        "<b>Com menos de 55 minutos:</b> hang clean em 3 séries e agachamento "
+        "lateral em 3. Não corte a barra fixa nem a remada curvada — são elas que "
+        "fazem a conta pender para o lado certo.",
+    "verso": [
+        ("h", "A cascata da pegada"),
+        ("grade", ["", "O QUE", "DE QUE ELE PRECISA"], [
+            ["2º", "<b>Barra fixa</b>, ao máximo",
+             "pegada, dorsal e bíceps até o fim — é o exercício que mais esvazia "
+             "os três"],
+            ["3º", "<b>Remada curvada</b>, 4 × 4 a 87%",
+             "os mesmos três, agora com carga alta e lombar inteira"],
+            ["4º", "<b>Hang clean</b>, 4 × 6",
+             "pegada outra vez, e posição de dorso. Em seis repetições seguidas, "
+             "a mão costuma soltar antes do resto"],
+        ], [0.07, 0.30, 0.63]),
+        ("espaco", 3),
+        ("caixa", "<b>Quem vem primeiro leva a carga boa; os outros dois levam o "
+                  "resto.</b> Do jeito que está, a barra fixa ao máximo esvazia a "
+                  "pegada antes da remada pesada e do clean. <b>Se a remada "
+                  "curvada é a prioridade do dia, troque a 2ª pela 3ª</b> — remada "
+                  "carregada primeiro, barra fixa ao máximo depois, que é quando "
+                  "falhar não atrapalha mais ninguém. Mantive a sua ordem; a troca "
+                  "é de uma linha.", AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Desenvolvimento com barra", "<b>Sem impulso de perna:</b> se o joelho "
+             "dobra, virou push press. Glúteo e abdômen apertados para a lombar "
+             "não arquear; a barra passa rente ao rosto e a cabeça atravessa para "
+             "a frente dos braços no fim."),
+            ("Barra fixa — o que é “máximo”", "<b>Falha técnica, não "
+             "muscular:</b> a série acaba na primeira repetição em que o queixo "
+             "não passa a barra, ou em que o corpo começa a balançar para ajudar. "
+             "<b>As repetições vão cair de série para série — é para caírem.</b> "
+             "Anote as quatro: 10-7-5-4 numa semana e 10-8-6-5 na outra é "
+             "progresso, mesmo com a primeira série igual."),
+            ("Remada curvada com barra", "<b>Tronco entre 15° e 30° acima da "
+             "horizontal, e PARADO.</b> A barra vem ao umbigo, não ao peito. O erro "
+             "é levantar o tronco para a barra subir — aí a carga está alta demais, "
+             "e depois da barra fixa ela vai parecer mais alta do que é. "
+             "<b>Lombar arredondou, a série acabou.</b>"),
+            ("Hang clean a 60%", "Carga baixa e <b>seis repetições seguidas</b>: "
+             "aqui não se treina potência, treina-se o padrão repetido até ficar "
+             "automático. Da altura do joelho, tríplice extensão, cotovelos "
+             "fechando rápido. <b>Se a pegada soltar antes das seis, a série "
+             "acabou</b> — magnésio ajuda, repetição mal pega não."),
+            ("Os dois últimos", "<b>Agachamento lateral:</b> pés bem afastados e "
+             "apontados à frente, desce sobre uma perna com a outra estendida, os "
+             "dois calcanhares no chão. <b>Stiff unilateral:</b> em pé numa perna, "
+             "quadril para trás, perna livre estendendo atrás como contrapeso. Nos "
+             "dois, <b>comece pelo lado mais fraco e o lado bom para no número que "
+             "o fraco fez</b>."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>A conta: 8 séries de puxar, 4 de empurrar, 4 de LPO, 4 de "
+                  "plano frontal e 4 de posterior unilateral.</b> Dois para um a "
+                  "favor de puxar, que é o que as últimas fichas vinham devendo. "
+                  "<b>Nada de agachamento bilateral e nada de dobra de quadril com "
+                  "barra</b> — a perna aqui é toda unilateral, e isso é escolha, "
+                  "não esquecimento."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -2148,7 +2275,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "tronco": TRONCO, "unilateral_salto": UNILATERAL_SALTO,
           "forca_a": FORCA_4X4_A, "forca_b": FORCA_4X4_B,
           "regenerativo": REGENERATIVO, "forca_2a3": FORCA_2A3,
-          "quadril_frontal": QUADRIL_FRONTAL, "forca_90_95": FORCA_90_95}
+          "quadril_frontal": QUADRIL_FRONTAL, "forca_90_95": FORCA_90_95,
+          "puxar_unilateral": PUXAR_UNILATERAL}
 
 
 def main():
