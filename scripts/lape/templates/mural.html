@@ -320,6 +320,15 @@ svg.globo-neon { overflow: visible; }
   border-radius: 999px; font-variant-numeric: tabular-nums; white-space: nowrap;
   color: var(--tom, var(--accent)); border: 1px solid color-mix(in srgb, var(--tom, var(--accent)) 42%, transparent);
   background: color-mix(in srgb, var(--tom, var(--accent)) 13%, transparent); }
+/* A contagem regressiva da lâmina de Prazos: um número grande, lido antes
+   da frase ao lado -- mesma escala de `--zoom` da etiqueta de data, para
+   continuar legível no 4K. */
+.contagem-prazo { flex: none; text-align: center; min-width: clamp(50px, 4.4vw, 74px);
+  color: var(--tom, var(--accent)); }
+.contagem-prazo b { display: block; font-size: clamp(17px, 1.6vw, calc(27px * var(--zoom, 1))); line-height: 1;
+  font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.contagem-prazo small { display: block; font-size: clamp(8.5px, .62vw, calc(10.5px * var(--zoom, 1)));
+  text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); }
 
 /* tabela do slide de áreas */
 /* largura fixa: sem isso, um nome de projeto comprido empurra a última

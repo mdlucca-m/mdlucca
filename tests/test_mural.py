@@ -295,6 +295,56 @@ class TestOHorarioNaPauta(unittest.TestCase):
         self.assertIn("horaDe(e.start_at, e.all_day)", montagem)
 
 
+class TestAContagemRegressivaDoPrazo(unittest.TestCase):
+    """Pedido do Mateus: "gere uma contagem regressiva" -- um número
+    grande, lido antes da frase ao lado, em vez de só "em 12 dias" dentro
+    de uma pastilha pequena."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.fonte = _recorta("contagemDoPrazo")
+
+    def contar(self, dias):
+        return _no_node(self.fonte, f"contagemDoPrazo({dias})")
+
+    def test_hoje_amanha_ontem_sao_palavra_sem_numero(self):
+        self.assertEqual(self.contar(0), {"palavra": "hoje"})
+        self.assertEqual(self.contar(1), {"palavra": "amanhã"})
+        self.assertEqual(self.contar(-1), {"palavra": "ontem"})
+
+    def test_dias_futuros_viram_numero_e_unidade(self):
+        self.assertEqual(self.contar(5), {"numero": 5, "unidade": "dias"})
+
+    def test_dias_passados_viram_numero_com_atras(self):
+        self.assertEqual(self.contar(-5), {"numero": 5, "unidade": "dias atrás"})
+
+    def test_acima_de_45_dias_vira_meses(self):
+        self.assertEqual(self.contar(60), {"numero": 2, "unidade": "meses"})
+
+
+class TestOPrazoVencidoPisca(unittest.TestCase):
+    """O emblema do prazo vencido usa o mesmo halo que o tema já tem
+    (`.ibadge.pulsa`) -- é o item que pede ação agora, não decoração
+    espalhada pela lista inteira."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.js = (TEMPLATES / "mural.js").read_text(encoding="utf-8")
+
+    def corpo_de_linha_de_pauta(self):
+        inicio = self.js.index("function linhaDePauta(")
+        return self.js[inicio:self.js.index("\n}\n", inicio) + 3]
+
+    def test_so_o_vencido_ganha_o_halo(self):
+        corpo = self.corpo_de_linha_de_pauta()
+        self.assertIn('if (tom === "critico") emblema.classList.add("pulsa");', corpo)
+
+    def test_a_contagem_usa_o_numero_grande(self):
+        corpo = self.corpo_de_linha_de_pauta()
+        self.assertIn("contagemDoPrazo(item.dias)", corpo)
+        self.assertIn('class: "contagem-prazo"', corpo)
+
+
 class TestMontagemDoMural(unittest.TestCase):
     """A pagina sai inteira do renderizador, sem depender de rede."""
 

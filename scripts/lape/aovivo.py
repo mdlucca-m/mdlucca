@@ -345,6 +345,67 @@ def caminho(db: Database) -> list[dict[str, Any]]:
     ]
 
 
+def caminho_projetos(db: Database) -> list[dict[str, Any]]:
+    """Onde os projetos estão agora -- o mesmo retrato de `caminho()`, só
+    que do ciclo de vida do projeto (`projects.status`), não da escrita
+    do artigo. Também não é funil: "planejado" e "suspenso" não têm
+    ordem de progresso entre si, só são dois estados possíveis.
+    """
+    situacoes = {l["status"]: int(l["n"]) for l in db.dicts(
+        "SELECT status, COUNT(*) AS n FROM projects GROUP BY status")}
+    return [
+        {"code": "planejado", "rotulo": "Planejado",
+         "valor": situacoes.get("planejado", 0), "unidade": "projeto(s) planejado(s)",
+         "faz": "linha de pesquisa, coordenador e financiador já declarados, equipe a formar",
+         "ferramenta": "Projetos", "href": "/app#projetos"},
+        {"code": "em_andamento", "rotulo": "Em andamento",
+         "valor": situacoes.get("em_andamento", 0), "unidade": "projeto(s) em andamento",
+         "faz": "equipe, artigos vinculados e prazo de encerramento acompanhados",
+         "ferramenta": "Projetos", "href": "/app#projetos"},
+        {"code": "concluido", "rotulo": "Concluído",
+         "valor": situacoes.get("concluido", 0), "unidade": "projeto(s) concluído(s)",
+         "faz": "fica no histórico, com a produção que gerou",
+         "ferramenta": "Projetos", "href": "/app#projetos"},
+        {"code": "suspenso", "rotulo": "Suspenso",
+         "valor": situacoes.get("suspenso", 0), "unidade": "projeto(s) suspenso(s)",
+         "faz": "pausado sem ter sido encerrado -- volta à situação anterior quando alguém retomar",
+         "ferramenta": "Projetos", "href": "/app#projetos"},
+    ]
+
+
+def caminho_bolsa(db: Database) -> list[dict[str, Any]]:
+    """As submissões a editais de bolsa, pela situação -- o mesmo retrato
+    de `caminho()`, agora sobre o funil de fomento (ver `fomento.py`),
+    recortado para a modalidade "bolsa". Também não é funil de verdade:
+    "retirada" é uma saída do processo, não um degrau abaixo de "recusada".
+    """
+    situacoes = {l["situacao"]: int(l["n"]) for l in db.dicts(
+        "SELECT s.situacao, COUNT(*) AS n FROM submissoes_fomento s"
+        " JOIN editais e ON e.id = s.edital_id"
+        " WHERE e.modalidade = 'bolsa' GROUP BY s.situacao")}
+    # "Fomento" mora no painel (/#fomento, dashboard.js), nao na area do
+    # integrante -- e a tela que ja le este mesmo /api/fomento, com
+    # editais, vigencias e a taxa de aprovacao honesta (fomento.painel).
+    return [
+        {"code": "submetida", "rotulo": "Submetida",
+         "valor": situacoes.get("submetida", 0), "unidade": "submissão(ões) aguardando decisão",
+         "faz": "título, edital e proponente registrados, com o prazo do edital à vista",
+         "ferramenta": "Fomento", "href": "/#fomento"},
+        {"code": "aprovada", "rotulo": "Aprovada",
+         "valor": situacoes.get("aprovada", 0), "unidade": "aprovada(s)",
+         "faz": "o valor aprovado entra no total captado do ano",
+         "ferramenta": "Fomento", "href": "/#fomento"},
+        {"code": "recusada", "rotulo": "Recusada",
+         "valor": situacoes.get("recusada", 0), "unidade": "recusada(s)",
+         "faz": "entra na taxa de aprovação -- sem as recusas ela não existiria",
+         "ferramenta": "Fomento", "href": "/#fomento"},
+        {"code": "retirada", "rotulo": "Retirada",
+         "valor": situacoes.get("retirada", 0), "unidade": "retirada(s)",
+         "faz": "não conta como recusa nem como aprovação",
+         "ferramenta": "Fomento", "href": "/#fomento"},
+    ]
+
+
 # ----------------------------------------------------------------------
 # Os doze olhares
 # ----------------------------------------------------------------------

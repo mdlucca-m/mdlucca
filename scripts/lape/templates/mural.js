@@ -137,6 +137,22 @@ function dataCurta(iso) {
   return d.getDate() + " " + MESES_EXT[d.getMonth()].slice(0, 3) + " " + d.getFullYear();
 }
 
+/* A contagem regressiva em dois pedaços -- um número grande e a unidade
+   embaixo -- e não a frase inteira ("em 3 dias") que cabia bem numa
+   pastilha pequena: pedido do Mateus foi "contagem regressiva", lida de
+   longe, e um número é o que se lê antes de qualquer frase. */
+function contagemDoPrazo(dias) {
+  if (dias === 0) return { palavra: "hoje" };
+  if (dias === 1) return { palavra: "amanhã" };
+  if (dias === -1) return { palavra: "ontem" };
+  if (dias < 0) {
+    const d = Math.abs(dias);
+    return { numero: d, unidade: d === 1 ? "dia atrás" : "dias atrás" };
+  }
+  if (dias < 45) return { numero: dias, unidade: dias === 1 ? "dia" : "dias" };
+  const meses = Math.round(dias / 30.44);
+  return { numero: meses, unidade: meses === 1 ? "mês" : "meses" };
+}
 /* O tom acompanha a urgência, e só ela. Vermelho é prazo vencido — nunca
    decoração — para que a cor continue significando alguma coisa na tela. */
 function tomDoPrazo(dias) {
@@ -324,19 +340,26 @@ function prazos() {
 
 function linhaDePauta(item) {
   const tom = item.tom || (item.dias === null ? "alerta" : tomDoPrazo(item.dias));
+  /* O emblema pisca -- o mesmo halo que já existe no tema (`.ibadge.pulsa`,
+     usado no sino de notificação) -- só quando o prazo já venceu: é o
+     item que precisa de ação agora, e não decoração espalhada pela lista
+     inteira. */
+  const emblema = Icons.badge(item.icone, tom, null);
+  if (tom === "critico") emblema.classList.add("pulsa");
+  const c = item.dias !== null ? contagemDoPrazo(item.dias)
+    : { numero: Math.abs(item.espera), unidade: Math.abs(item.espera) === 1 ? "dia de espera" : "dias de espera" };
   const li = el("li", {}, [
     el("div", { class: "quando" }, [
       el("b", { text: dia(item.data) }), el("small", { text: mesCurto(item.data) }),
       item.hora ? el("small", { class: "hora", text: item.hora }) : null,
     ].filter(Boolean)),
-    Icons.badge(item.icone, tom, null),
+    emblema,
     el("div", { class: "oque" }, [
       el("b", { text: item.titulo }), el("small", { text: item.detalhe }),
     ]),
-    el("span", {
-      class: "contagem",
-      text: item.dias === null ? Math.abs(item.espera) + " dias de espera" : porExtenso(item.dias),
-    }),
+    el("div", { class: "contagem-prazo" },
+      c.palavra ? [el("b", { text: c.palavra })]
+               : [el("b", { text: String(c.numero) }), el("small", { text: c.unidade })]),
   ]);
   li.style.setProperty("--tom", "var(--" + tomToken(tom) + ")");
   return li;

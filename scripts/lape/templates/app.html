@@ -90,6 +90,25 @@ p.view{color:var(--ink-2);font-size:13.5px;margin:0 0 18px}
 .quem-agora b{font-size:13.5px}
 .quem-agora small{display:block;color:var(--ink-2);font-size:12px}
 .hint.aviso{color:var(--warning)}
+/* "Meus prazos": o cartão que chama atenção no topo do Meu perfil. A
+   contagem é o número grande -- é o que se lê primeiro, de relance --
+   e a cor segue a urgência (`tomDoPrazo`), não o tipo de prazo. */
+.prazos-pessoais{border-color:color-mix(in srgb,var(--warning) 35%,var(--border))}
+.prazos-topo{display:flex;align-items:center;gap:10px}
+.prazos-topo h3{margin:0;font-size:15px}
+.prazos-lista{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.prazo-item{display:flex;align-items:center;gap:12px;padding:9px 4px;
+  border-top:1px solid var(--border)}
+.prazo-item:first-child{border-top:none}
+.prazo-oque{flex:1;min-width:0}
+.prazo-oque b{display:block;font-size:13.5px}
+.prazo-oque small{display:block;color:var(--ink-2);font-size:12px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prazo-contagem{text-align:right;flex:none;color:var(--tom,var(--accent-strong))}
+.prazo-contagem b{display:block;font-size:17px;font-weight:800;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.prazo-contagem small{display:block;font-size:10.5px;color:var(--ink-muted);
+  text-transform:uppercase;letter-spacing:.03em}
 /* Banco de horas: saldo em destaque, e uma fileira de colunas divergentes
    (crédito sobe, déficit desce) alinhadas numa linha de base central --
    a mesma ideia do acelerômetro, só que semana a semana em vez de um
@@ -498,6 +517,53 @@ function dt(iso){
   return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : String(iso);
 }
 function isoDate(value){ return value ? String(value).slice(0, 10) : ""; }
+
+/* ---------- prazos (mesma conta do mural, versão pessoal) ----------
+   `diasAte`/`porExtenso`/`haQuanto`/`tomDoPrazo` são os mesmos de
+   mural.js -- a área do integrante não carrega aquele arquivo, então a
+   conta é refeita aqui, não importada. */
+function comoData(iso){
+  if (!iso) return null;
+  const texto = String(iso);
+  const p = texto.slice(0, 10).split("-");
+  if (p.length !== 3) return null;
+  const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  return isNaN(d.getTime()) ? null : d;
+}
+function meiaNoite(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function diasAte(iso){
+  const d = comoData(iso);
+  if (!d) return null;
+  return Math.round((meiaNoite(d) - meiaNoite(new Date())) / 86400000);
+}
+/* A contagem regressiva em dois pedaços -- um número grande e a unidade
+   embaixo dele -- e não a frase inteira ("em 3 dias") que o mural usa:
+   aqui o número É o destaque visual, lido antes do texto ao lado. */
+function contagemDoPrazo(dias){
+  if (dias === 0) return {palavra: "hoje"};
+  if (dias === 1) return {palavra: "amanhã"};
+  if (dias === -1) return {palavra: "ontem"};
+  if (dias < 0){
+    const d = Math.abs(dias);
+    return {numero: d, unidade: d === 1 ? "dia atrás" : "dias atrás"};
+  }
+  if (dias < 45) return {numero: dias, unidade: dias === 1 ? "dia" : "dias"};
+  const meses = Math.round(dias / 30.44);
+  return {numero: meses, unidade: meses === 1 ? "mês" : "meses"};
+}
+/* O tom acompanha a urgência, e só ela: vermelho é prazo vencido, nunca
+   decoração. */
+function tomDoPrazo(dias){
+  if (dias === null) return "azul";
+  if (dias < 0) return "critico";
+  if (dias <= 7) return "alerta";
+  if (dias <= 30) return "ambar";
+  return "azul";
+}
+function tomToken(tom){
+  return {azul: "accent-strong", ambar: "series-4", alerta: "warning", critico: "critical"}[tom]
+    || "accent-strong";
+}
 function rank(role){ return {leitura: 0, integrante: 1, coordenacao: 2, admin: 3}[role] || 0; }
 function can(minimum){ return ME && rank(ME.user_role) >= rank(minimum); }
 
@@ -842,6 +908,8 @@ VIEWS.perfil = {
     VIEW.appendChild(tituloDaTela("perfil", "Meu perfil"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Estes dados alimentam o índice de pesquisadores, a rede de colaboração e as métricas do painel."}));
+    const cartaoPrazos = cartaoDePrazos(prazosPessoais(me));
+    if (cartaoPrazos) VIEW.appendChild(cartaoPrazos);
     VIEW.appendChild(cartaoFotoDePerfil(me));
     VIEW.appendChild(h("div", {class: "grid g4 sec"}, [
       kpi("Artigos", me.n_articles), kpi("Publicados", me.n_published),
@@ -974,6 +1042,73 @@ VIEWS.perfil = {
     ]));
   },
 };
+
+/* Os prazos da PRÓPRIA pessoa: tese, bolsa, projeto em que está e artigo
+   parado com a revista -- a mesma leitura do `prazos()` do mural, só que
+   recortada para quem está logado, e não para o laboratório inteiro. */
+const ESPERA_LONGA = 120; /* dias com o periódico antes de virar pendência */
+function prazosPessoais(me){
+  const itens = [];
+  if (me.thesis_due_on && (me.thesis_status || "") !== "concluida"){
+    itens.push({titulo: "Trabalho de conclusão",
+      detalhe: me.thesis_title || "Título em definição",
+      dias: diasAte(me.thesis_due_on), icone: "tese"});
+  }
+  if (me.scholarship_until){
+    const d = diasAte(me.scholarship_until);
+    if (d !== null && d <= 180){
+      itens.push({titulo: "Fim de bolsa", detalhe: me.scholarship || "Bolsa",
+        dias: d, icone: "bolsa"});
+    }
+  }
+  (me.project_list || []).forEach(function (p){
+    if (p.status !== "em_andamento" || !p.ended_on) return;
+    itens.push({titulo: "Encerramento de projeto", detalhe: p.name,
+      dias: diasAte(p.ended_on), icone: "projeto"});
+  });
+  (me.articles || []).forEach(function (a){
+    if (a.status !== "submetido" && a.status !== "em_revisao") return;
+    const enviado = a.last_submitted_on || a.first_submission_on;
+    const d = diasAte(enviado);
+    if (d === null || -d < ESPERA_LONGA) return;
+    itens.push({titulo: "Sem resposta da revista — " + a.title,
+      detalhe: a.current_journal || a.journal || "Periódico não informado",
+      dias: null, espera: Math.abs(d), icone: "relogio"});
+  });
+  const comData = itens.filter(function (x){ return x.dias !== null; })
+    .sort(function (a, b){ return a.dias - b.dias; });
+  const semData = itens.filter(function (x){ return x.dias === null; })
+    .sort(function (a, b){ return b.espera - a.espera; });
+  return comData.concat(semData);
+}
+
+/* O cartão só aparece quando há algo a avisar -- sem prazo nenhum, uma
+   seção vazia dizendo "meus prazos" não informa nada, só ocupa a tela
+   que a foto e os KPIs usam melhor. */
+function cartaoDePrazos(itens){
+  if (!itens.length) return null;
+  return h("div", {class: "card sec prazos-pessoais"}, [
+    h("div", {class: "prazos-topo"}, [
+      Icons.badge("prazo", "alerta", 26),
+      h("h3", {text: "Meus prazos"}),
+    ]),
+    h("ul", {class: "prazos-lista"}, itens.map(function (x){
+      const tom = x.dias !== null ? tomDoPrazo(x.dias) : "alerta";
+      const c = x.dias !== null ? contagemDoPrazo(x.dias)
+        : {numero: x.espera, unidade: x.espera === 1 ? "dia parado" : "dias parados"};
+      const contagem = h("div", {class: "prazo-contagem", style: "--tom:var(--" + tomToken(tom) + ")"},
+        c.palavra ? [h("b", {text: c.palavra})]
+                 : [h("b", {text: String(c.numero)}), h("small", {text: c.unidade})]);
+      return h("li", {class: "prazo-item"}, [
+        Icons.badge(x.icone, tom, 22),
+        h("div", {class: "prazo-oque"}, [
+          h("b", {text: x.titulo}), h("small", {text: x.detalhe}),
+        ]),
+        contagem,
+      ]);
+    })),
+  ]);
+}
 
 function kpi(label, value){
   return h("div", {class: "kpi"}, [
@@ -1560,55 +1695,206 @@ const SAIBA_MAIS_CAMINHO = {
   ],
 };
 
+/* O desenho do funil é o mesmo para as quatro telas de "caminho" (artigo,
+   projeto, bolsa, ética) -- só mudam os dados, os ícones e as dicas.
+   `e.valor` pode faltar (a ética não tem contador nenhum: ver mais
+   abaixo) -- aí o cartão não mostra número nenhum, só o passo. */
+function funilDeEtapas(etapas, icones, tons, cores, saibaMais){
+  const lista = h("ol", {class: "caminho-funil"});
+  etapas.forEach(function (e, i){
+    const tom = cores[i % cores.length];
+    const proximoTom = cores[(i + 1) % cores.length];
+    const dicas = saibaMais[e.code] || [];
+
+    const saiba = dicas.length ? h("details", {class: "etapa-saiba"}, [
+      h("summary", {text: "Saiba mais"}),
+      h("ul", {}, dicas.map(function (t){ return h("li", {text: t}); })),
+    ]) : null;
+
+    const card = h("div", {class: "card etapa", style: "--tom:" + tom + ";--i:" + i}, [
+      h("div", {class: "etapa-topo"}, [
+        Icons.badge(icones[e.code] || "achado", tons[i % tons.length], 22),
+        h("div", {class: "etapa-titulo"}, [
+          h("h3", {text: e.rotulo}),
+          h("div", {class: "hint", text: "No LAPE: " + e.faz}),
+        ]),
+      ]),
+      e.valor === undefined ? null : h("div", {class: "etapa-meio"}, [
+        h("span", {class: "num-grande", text: C.fmt(e.valor)}),
+        h("small", {text: e.unidade + (e.detalhe !== undefined
+          ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "")}),
+      ]),
+      h("div", {class: "etapa-baixo"}, [
+        saiba,
+        h("a", {href: e.href}, [h("button", {class: "ghost", type: "button", text: e.ferramenta + " →"})]),
+      ]),
+    ]);
+    const item = h("li", {class: "etapa-item"}, [card]);
+    if (i < etapas.length - 1){
+      item.appendChild(h("div", {class: "etapa-conector", style: "--tom:" + tom + ";--tom2:" + proximoTom}));
+    }
+    lista.appendChild(item);
+  });
+  return lista;
+}
+
 VIEWS.caminho = {
   label: "Caminho do artigo", group: "Produção",
   async render(){
     const dados = await api("/api/caminho");
-    const etapas = dados.etapas || [];
     VIEW.innerHTML = "";
     VIEW.appendChild(tituloDaTela("caminho", "Caminho do artigo"));
     VIEW.appendChild(h("p", {class: "view",
       text: "Seis etapas, da pesquisa bibliográfica à publicação: o que há em cada uma agora, e a tela do LAPE que a faz."}));
-
-    const lista = h("ol", {class: "caminho-funil"});
-    etapas.forEach(function (e, i){
-      const tom = COR_CAMINHO[i % COR_CAMINHO.length];
-      const proximoTom = COR_CAMINHO[(i + 1) % COR_CAMINHO.length];
-      const dicas = SAIBA_MAIS_CAMINHO[e.code] || [];
-
-      const saiba = dicas.length ? h("details", {class: "etapa-saiba"}, [
-        h("summary", {text: "Saiba mais"}),
-        h("ul", {}, dicas.map(function (t){ return h("li", {text: t}); })),
-      ]) : null;
-
-      const card = h("div", {class: "card etapa", style: "--tom:" + tom + ";--i:" + i}, [
-        h("div", {class: "etapa-topo"}, [
-          Icons.badge(ICONE_CAMINHO[e.code] || "achado", TOM_CAMINHO[i % TOM_CAMINHO.length], 22),
-          h("div", {class: "etapa-titulo"}, [
-            h("h3", {text: e.rotulo}),
-            h("div", {class: "hint", text: "No LAPE: " + e.faz}),
-          ]),
-        ]),
-        h("div", {class: "etapa-meio"}, [
-          h("span", {class: "num-grande", text: C.fmt(e.valor)}),
-          h("small", {text: e.unidade + (e.detalhe !== undefined
-            ? " · " + C.fmt(e.detalhe) + " " + e.detalhe_rotulo : "")}),
-        ]),
-        h("div", {class: "etapa-baixo"}, [
-          saiba,
-          h("a", {href: e.href}, [h("button", {class: "ghost", type: "button", text: e.ferramenta + " →"})]),
-        ]),
-      ]);
-      const item = h("li", {class: "etapa-item"}, [card]);
-      if (i < etapas.length - 1){
-        item.appendChild(h("div", {class: "etapa-conector", style: "--tom:" + tom + ";--tom2:" + proximoTom}));
-      }
-      lista.appendChild(item);
-    });
-    VIEW.appendChild(lista);
+    VIEW.appendChild(funilDeEtapas(dados.etapas || [], ICONE_CAMINHO, TOM_CAMINHO, COR_CAMINHO, SAIBA_MAIS_CAMINHO));
     VIEW.appendChild(h("p", {class: "hint sec", text:
       "Cada etapa conta uma coisa diferente — referência, registro triado, artigo — e por isso não há "
       + "porcentagem entre elas: a forma de funil aqui é só a metáfora do processo, não conta nenhuma."}));
+  },
+};
+
+/* ==================================================================== */
+/* Caminho do projeto — o ciclo de vida (/api/caminho-projetos), não os  */
+/* passos para cadastrar um: projects.status já é um estado real, e      */
+/* "planejado"/"suspenso" não têm ordem de progresso entre si.           */
+/* ==================================================================== */
+const ICONE_CAMINHO_PROJETOS = {planejado: "calendario", em_andamento: "projeto",
+  concluido: "trofeu", suspenso: "aviso"};
+const TOM_CAMINHO_PROJETOS = ["azul", "verde", "magenta", "ambar"];
+const COR_CAMINHO_PROJETOS = ["var(--series-1)", "var(--series-3)", "var(--series-5)", "var(--series-4)"];
+const SAIBA_MAIS_CAMINHO_PROJETOS = {
+  planejado: [
+    "Linha de pesquisa, coordenador e financiador declarados cedo são o que entra no organograma e no funil de fomento.",
+    "Já existe um edital associado? A submissão se registra em Fomento — é o que alimenta a taxa de aprovação do laboratório.",
+  ],
+  em_andamento: [
+    "Equipe e artigos vinculados entram pela própria ficha do projeto, ou pela aba de Artigos ao escolher o projeto.",
+    "O prazo de encerramento é o que acende o aviso em Meus prazos e no mural — sem ele o projeto não aparece em nenhum dos dois.",
+  ],
+  concluido: [
+    "Projeto concluído continua no histórico com a produção que gerou — mudar o status não apaga vínculo nenhum.",
+    "Pendência de prestação de contas fica em Fomento, não aqui: a situação do projeto e a do convênio financeiro são coisas diferentes.",
+  ],
+  suspenso: [
+    "Suspenso é diferente de concluído: o projeto pausa sem ter sido encerrado, e volta à situação anterior quando alguém retomar.",
+    "Vale registrar o motivo na descrição — \"suspenso\" sozinho não diz se é falta de verba, de equipe ou de dado.",
+  ],
+};
+VIEWS.caminho_projetos = {
+  label: "Caminho do projeto", group: "Laboratório",
+  async render(){
+    const dados = await api("/api/caminho-projetos");
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("caminho_projetos", "Caminho do projeto"));
+    VIEW.appendChild(h("p", {class: "view",
+      text: "Onde os projetos do laboratório estão agora, e o que fazer em cada situação."}));
+    VIEW.appendChild(funilDeEtapas(dados.etapas || [], ICONE_CAMINHO_PROJETOS, TOM_CAMINHO_PROJETOS,
+      COR_CAMINHO_PROJETOS, SAIBA_MAIS_CAMINHO_PROJETOS));
+    VIEW.appendChild(h("p", {class: "hint sec", text:
+      "Não é um funil de progresso: \"planejado\" e \"suspenso\" não vêm antes nem depois um do outro, são "
+      + "dois estados possíveis entre os quatro."}));
+  },
+};
+
+/* ==================================================================== */
+/* Caminho da bolsa — as submissões a editais de bolsa, pela situação    */
+/* (/api/caminho-bolsa), recorte de fomento.py sobre modalidade="bolsa". */
+/* ==================================================================== */
+const ICONE_CAMINHO_BOLSA = {submetida: "submissao", aprovada: "trofeu",
+  recusada: "aviso", retirada: "baixar"};
+const TOM_CAMINHO_BOLSA = ["azul", "verde", "critico", "ambar"];
+const COR_CAMINHO_BOLSA = ["var(--series-1)", "var(--series-3)", "var(--critical)", "var(--series-4)"];
+const SAIBA_MAIS_CAMINHO_BOLSA = {
+  submetida: [
+    "Título, edital e proponente bastam para registrar — linha e valor pedido podem entrar depois.",
+    "O prazo do edital aparece em Fomento assim que ele está cadastrado; sem o edital, a submissão fica sem contagem regressiva.",
+  ],
+  aprovada: [
+    "O valor aprovado entra no total captado do ano em Fomento — sem ele a soma fica subestimada.",
+    "Bolsa aprovada para alguém específico também pode ser lançada na ficha da pessoa (campo Bolsa, em Meu perfil), para aparecer em Meus prazos.",
+  ],
+  recusada: [
+    "A recusa entra na taxa de aprovação do laboratório — é o que dá honestidade ao número: sem ela haveria só a lembrança de quem venceu.",
+    "Vale registrar o motivo, quando a agência o informa — ajuda a próxima submissão.",
+  ],
+  retirada: [
+    "Retirada não conta como recusa nem como aprovação — é uma saída do processo, não uma decisão da agência.",
+    "Normalmente usada quando o edital muda de regra no meio do caminho, ou quando o laboratório desiste antes do julgamento.",
+  ],
+};
+VIEWS.caminho_bolsa = {
+  label: "Caminho da bolsa", group: "Laboratório",
+  async render(){
+    const dados = await api("/api/caminho-bolsa");
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("caminho_bolsa", "Caminho da bolsa"));
+    VIEW.appendChild(h("p", {class: "view",
+      text: "As submissões a editais de bolsa, pela situação — e o que fazer em cada uma."}));
+    VIEW.appendChild(funilDeEtapas(dados.etapas || [], ICONE_CAMINHO_BOLSA, TOM_CAMINHO_BOLSA,
+      COR_CAMINHO_BOLSA, SAIBA_MAIS_CAMINHO_BOLSA));
+    VIEW.appendChild(h("p", {class: "hint sec", text:
+      "Recortado para editais de modalidade \"bolsa\" — os de projeto, auxílio e evento ficam de fora "
+      + "desta contagem, mas aparecem todos juntos em Fomento."}));
+  },
+};
+
+/* ==================================================================== */
+/* Caminho da ética — sem contador nenhum: `projects.ethics_approval` é  */
+/* um campo de texto livre, sem estado gravado no banco. É um guia dos   */
+/* passos do processo (Plataforma Brasil/CEP), não um retrato do LAPE.   */
+/* ==================================================================== */
+const ETAPAS_CAMINHO_ETICA = [
+  {code: "protocolo", rotulo: "Elaborar o protocolo",
+   faz: "TCLE, instrumentos e objetivos escritos antes de submeter — é o que o comitê avalia",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "submissao", rotulo: "Submeter na Plataforma Brasil",
+   faz: "o CAAE (Certificado de Apresentação de Apreciação Ética) é gerado nesse momento",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "analise", rotulo: "Aguardar o parecer do CEP",
+   faz: "o comitê pode pedir pendências — respondidas, o protocolo volta para análise",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "aprovado", rotulo: "Parecer aprovado",
+   faz: "CAAE e número do parecer entram no campo \"Parecer ético / CAAE\" da ficha do projeto",
+   ferramenta: "Projetos", href: "/app#projetos"},
+  {code: "vigencia", rotulo: "Acompanhar a vigência",
+   faz: "parecer tem validade — mudança no protocolo ou prazo vencido pedem nova submissão (emenda)",
+   ferramenta: "Projetos", href: "/app#projetos"},
+];
+const ICONE_CAMINHO_ETICA = {protocolo: "etiqueta", submissao: "submissao", analise: "qualidade",
+  aprovado: "aceite", vigencia: "prazo"};
+const TOM_CAMINHO_ETICA = ["azul", "laranja", "verde", "magenta", "ambar"];
+const COR_CAMINHO_ETICA = ["var(--series-1)", "var(--series-2)", "var(--series-3)",
+  "var(--series-5)", "var(--series-4)"];
+const SAIBA_MAIS_CAMINHO_ETICA = {
+  protocolo: [
+    "Pesquisa com seres humanos passa pelo CEP institucional; multicêntrica ou de área temática especial também pela CONEP.",
+    "TCLE claro, em linguagem acessível a quem vai assinar — é o primeiro ponto de pendência mais comum.",
+  ],
+  submissao: [
+    "A Plataforma Brasil é nacional e única: o mesmo CAAE serve para todos os comitês envolvidos no protocolo.",
+  ],
+  analise: [
+    "Pendência não é recusa — é o comitê pedindo ajuste. O protocolo some da fila só se for mesmo indeferido.",
+  ],
+  aprovado: [
+    "Sem o CAAE registrado na ficha do projeto, o laboratório não tem como provar a aprovação depois — vale copiar assim que sai.",
+  ],
+  vigencia: [
+    "Mudar desenho, instrumento ou população do estudo depois de aprovado exige emenda, não começa um protocolo do zero.",
+  ],
+};
+VIEWS.caminho_etica = {
+  label: "Caminho da ética", group: "Laboratório",
+  async render(){
+    VIEW.innerHTML = "";
+    VIEW.appendChild(tituloDaTela("caminho_etica", "Caminho da ética"));
+    VIEW.appendChild(h("p", {class: "view",
+      text: "Os passos do processo de aprovação ética (Plataforma Brasil/CEP) até registrar o parecer no projeto."}));
+    VIEW.appendChild(funilDeEtapas(ETAPAS_CAMINHO_ETICA, ICONE_CAMINHO_ETICA, TOM_CAMINHO_ETICA,
+      COR_CAMINHO_ETICA, SAIBA_MAIS_CAMINHO_ETICA));
+    VIEW.appendChild(h("p", {class: "hint sec", text:
+      "Sem contador: o parecer ético é um campo de texto livre na ficha do projeto, não um estado que o "
+      + "sistema acompanha. Este guia é sobre o processo, não um retrato do que está em cada etapa agora."}));
   },
 };
 
@@ -3328,6 +3614,7 @@ const ICONE = {
   ponto: "relogio",
   perfil: "pessoas", artigos: "producao", submissoes: "submissao", projetos: "projeto",
   caminho: "processo",
+  caminho_projetos: "processo", caminho_bolsa: "processo", caminho_etica: "processo",
   linhas: "linhas", biblioteca: "livro", eventos: "calendario", ana: "explorar",
   senha: "qualidade", admin: "dados", ritmica: "ginastica", apresentacao: "achado",
 };
@@ -4917,7 +5204,8 @@ function tituloDaTela(id, texto){
    nao aparece -- registrar em VIEWS nao basta. Custou uma tela invisivel
    para descobrir isso. */
 const ORDER = ["ponto", "perfil", "artigos", "submissoes", "projetos", "caminho", "ana",
-               "linhas", "biblioteca", "eventos", "senha", "admin"];
+               "linhas", "caminho_projetos", "caminho_bolsa", "caminho_etica",
+               "biblioteca", "eventos", "senha", "admin"];
 
 function buildMenu(){
   MENU.innerHTML = "";
