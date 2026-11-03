@@ -623,6 +623,19 @@ P(f"A qualidade metodológica foi avaliada por seis itens adaptados de instrumen
   f"na leitura integral. A certeza da evidência de cada achado principal foi julgada pelos domínios da abordagem GRADE "
   f"{R.cite('guyatt2008')} (consistência entre os estudos, precisão, risco de viés e aplicação direta à pergunta), sem atribuição de níveis "
   f"formais.")
+P(f"As variáveis relacionadas ao humor foram agrupadas em seis grupos: competição e resultado do jogo; carga, "
+  f"recuperação e marcadores biológicos; variáveis psicológicas e contexto; intervenções verbais e psicológicas; "
+  f"nutrição e suplementação; e ciclo menstrual e horário do dia. Um mesmo estudo podia compor mais de um grupo. As "
+  f"intervenções foram classificadas em seis tipos: encorajamento verbal, feedback, programas psicológicos, música, "
+  f"nutrição e suplementação, e informação sobre a duração do esforço; para cada uma, foram registrados o protocolo, a "
+  f"duração, a frequência, o comparador, o instrumento e o momento da medida do humor. O resultado de cada estudo foi "
+  f"classificado como efeito ou associação, quando os autores relataram diferença ou associação estatisticamente "
+  f"significativa no humor; resultado misto, quando parte das dimensões ou das comparações apresentou diferença e "
+  f"parte não; sem efeito; descritivo, quando não houve teste estatístico; ou não determinável, quando o texto "
+  f"disponível não permitiu a classificação.")
+P(f"A síntese foi organizada segundo as cinco questões de pesquisa. Foram calculados a frequência absoluta e o "
+  f"percentual de estudos em cada categoria, a mediana do tamanho da amostra e o número de estudos por ano de "
+  f"publicação.")
 P(f"A síntese foi narrativa e estruturada conforme a diretriz SWiM {R.cite('campbell2020')}, com agrupamento por "
   f"instrumento, variável relacionada e delineamento e com a direção do achado como métrica padronizada. A metanálise "
   f"não foi realizada, por decisão anterior à inspeção dos dados, pois os estudos diferem em instrumento, momento da "
