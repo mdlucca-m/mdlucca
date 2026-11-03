@@ -490,7 +490,7 @@ P(f"A medida do humor no esporte originou-se, de fato, de um problema aplicado: 
   f"e de recuperação mostraram-se mais sensíveis à carga que muitos marcadores objetivos "
   f"{R.cite('saw2015', 'kellmann2018')}, e os métodos de amostragem de experiência ampliaram a resolução temporal desse "
   f"monitoramento {R.cite('majer2026esm')}. As escalas de afeto positivo e negativo {R.cite('watson1988')} e de valência "
-  f"afetiva durante o esforço {R.cite('hardy1989', 'ekkekakis2019')} medem, contudo, construtos próprios, e tratá-las "
+  f"afetiva durante o esforço {R.cite('hardy1989', 'ekkekakis2019')} medem, contudo, aspectos diferentes, e tratá-las "
   f"como equivalentes ao perfil de humor compromete a síntese.")
 P(f"Se a medida se consolidou, a relação entre humor e desempenho permanece em debate. Metanálises associaram vigor "
   f"elevado e baixos escores de tensão, depressão, raiva, fadiga e confusão a melhor desempenho, com efeitos pequenos a "
@@ -545,7 +545,7 @@ P(f"A revisão sistemática seguiu o guia de {R.autor('galvao2019')} e foi relat
   f"anterior dos identificados na nova busca. A pergunta foi estruturada pelo acrônimo PCC, recomendado para perguntas "
   f"de medida e de caracterização, sem intervenção atribuída nem comparação obrigatória "
   f"{R.cite('peters2020', 'munn2018tip')}, e a opção pela revisão sistemática seguiu o critério de "
-  f"{R.autor('munn2018sr')}: a pergunta trata de um construto específico, medido em um conjunto delimitado de estudos, "
+  f"{R.autor('munn2018sr')}: a pergunta trata de uma variável específica, medida em um conjunto delimitado de estudos, "
   f"com avaliação da qualidade metodológica. A busca compartilhou a infraestrutura da revisão de mapeamento conduzida "
   f"em paralelo pelo grupo, mas não seus critérios de elegibilidade. O protocolo foi redigido antes da busca, e seu "
   f"registro prospectivo no PROSPERO não foi concluído.")
@@ -617,18 +617,17 @@ P(f"A triagem de títulos e resumos foi realizada em duas passagens independente
   f"tal.")
 P(f"A qualidade metodológica foi avaliada por seis itens adaptados de instrumentos para estudos observacionais e "
   f"transversais {R.cite('downes2016')}: (Q1) objetivo e população definidos; (Q2) amostra descrita; (Q3) instrumento "
-  f"de humor validado e nomeado; (Q4) momento da medida declarado; (Q5) comparador, controle ou ajuste para "
-  f"confundimento; e (Q6) análise estatística adequada, com medidas de variabilidade. A pontuação correspondeu ao "
+  f"de humor validado e nomeado; (Q4) momento da medida declarado; (Q5) comparador, grupo controle ou controle "
+  f"de outras variáveis; e (Q6) análise estatística adequada, com medidas de variabilidade. A pontuação correspondeu ao "
   f"número de itens atendidos (0 a 6), com qualidade alta de 5 a 6, moderada de 3 a 4 e baixa de 0 a 2, e foi revista "
   f"na leitura integral. A certeza da evidência de cada achado principal foi julgada pelos domínios da abordagem GRADE "
-  f"{R.cite('guyatt2008')} (consistência, precisão, validade interna e direcionalidade), sem atribuição de níveis "
+  f"{R.cite('guyatt2008')} (consistência entre os estudos, precisão, risco de viés e aplicação direta à pergunta), sem atribuição de níveis "
   f"formais.")
 P(f"A síntese foi narrativa e estruturada conforme a diretriz SWiM {R.cite('campbell2020')}, com agrupamento por "
   f"instrumento, variável relacionada e delineamento e com a direção do achado como métrica padronizada. A metanálise "
   f"não foi realizada, por decisão anterior à inspeção dos dados, pois os estudos diferem em instrumento, momento da "
-  f"medida, delineamento e desfecho {R.cite('hopkins2009')}. A trajetória temporal da produção foi descrita por média "
-  f"móvel centrada de três anos, com intervalo de confiança exato de Poisson {R.cite('garwood1936')}, procedimento que "
-  f"reduz a variação aleatória e preserva a tendência {R.cite('cleveland1979', 'hyndman2011')}.")
+  f"medida, delineamento e desfecho {R.cite('hopkins2009')}. Os dados foram analisados por estatística "
+  f"descritiva e apresentados em figuras e tabelas.")
 P(f"Com base em {R.autor('fernandez2019')}, um aspecto metodológico fundamental para o êxito de uma revisão é a "
   f"definição das questões de pesquisa (QP) a serem respondidas. Para esta revisão sistemática, foram definidas cinco QP:")
 QPS = {1: "Quais são as características dos estudos que investigaram o humor no handebol e de suas populações?",
@@ -676,8 +675,7 @@ P(f"Quanto ao delineamento, {ext(DEL['Transversal'])} estudos foram transversais
   f"{ext(CTX['Competição oficial'])} e ao longo do período competitivo em {ext(CTX['Período competitivo'])}. Dois estudos avaliaram atletas durante o confinamento da pandemia de COVID-19 {c('H20', 'N3')}. A leitura integral apoiou-se no texto completo em "
   f"{FTL} relatórios e apenas no resumo em {NR - FTL}. O Apêndice A apresenta a extração completa de cada estudo.")
 figura("Figura2_Caracteristicas_RS.png", "Figura 2", "Características dos estudos e das populações (QP1)", larg=14.5,
-       nota="(A) estudos por ano, média móvel centrada de três anos com intervalo de confiança de Poisson exato e produção "
-            "acumulada, com 2026 em curso; (B) país; (C) sexo da amostra; (D) nível competitivo; (E) delineamento; (F) "
+       nota="(A) número de estudos publicados por ano e número acumulado, com 2026 em curso; (B) país; (C) sexo da amostra; (D) nível competitivo; (E) delineamento; (F) "
             "contexto da medida; percentuais sobre os 34 estudos.")
 P("A seguir, as demais questões de pesquisa são respondidas com base nos resultados das análises.")
 P(f"**QP2.** {QPS[2]}")
@@ -845,8 +843,8 @@ P(f"A magnitude padronizada (d de Cohen) foi obtida em {ND7} estudos, com {len(D
 figura("Figura7_Magnitude_Efeitos_RS.png", "Figura 7", "Magnitude dos efeitos padronizados por dimensão do humor",
        larg=14,
        nota="um ponto por estudo e dimensão, com o maior |d| entre as comparações; [k]: número de comparações; círculo "
-            "cheio: d relatado pelos autores; círculo vazado: d calculado pelos revisores a partir de médias e DP, sem "
-            "considerar a correlação entre medidas repetidas; barra horizontal: IC 95% relatado; linhas tracejadas: "
+            "cheio: d relatado pelos autores; círculo vazado: d calculado pelos revisores a partir de médias e DP; barra horizontal: margem de incerteza "
+            "relatada pelos autores; linhas tracejadas: "
             "limiares de efeito pequeno, moderado e grande; cores conforme a direção do efeito sobre o humor; os "
             "relatórios " + c('H31', 'H32') + " descrevem a mesma amostra, e apenas o primeiro consta da figura.")
 
@@ -929,17 +927,16 @@ P(f"Os três estudos de encorajamento verbal, todos com escolares, relataram hum
   f"restritos ao resumo {c('H24', 'N8')}.")
 _ti = NJ["int"]
 P(f"Com mediana de {br(_ti['n_md'], 1)} participantes por estudo de intervenção (amplitude de {_ti['n_min']} a "
-  f"{_ti['n_max']}), o tamanho da amostra associou-se positivamente, mas sem significância, à pontuação de "
-  f"qualidade (ρ de Spearman = {br(_ti['rho_nq'], 2)}; p = {br(_ti['p_nq'], 3)}). Segundo os próprios autores, "
-  f"{_ti['tot'][0]} dos {_ti['tot'][1]} estudos relataram efeito favorável ({pc(_ti['tot'][0], _ti['tot'][1], 0)}; IC 95% "
-  f"de {_ti['tot'][2]}% a {_ti['tot'][3]}%), proporção que supera a obtida pela classificação dos revisores e que reflete "
-  f"as divergências entre resumo e resultados registradas na leitura integral. Os intervalos de confiança por tipo de "
-  f"intervenção foram amplos, pois nenhum tipo reuniu mais de três estudos. A Figura 8 apresenta a relação entre o "
+  f"{_ti['n_max']}), a qualidade metodológica não dependeu claramente do tamanho "
+  f"da amostra. Segundo os próprios autores, {_ti['tot'][0]} dos {_ti['tot'][1]} estudos relataram efeito favorável "
+  f"({pc(_ti['tot'][0], _ti['tot'][1], 0)}), proporção que supera a obtida pela classificação dos revisores e que reflete "
+  f"as divergências entre resumo e resultados registradas na leitura integral. Nenhum tipo de intervenção reuniu mais "
+  f"de três estudos. A Figura 8 apresenta a relação entre o "
   f"tamanho da amostra e a qualidade e a proporção de estudos com efeito relatado por tipo de intervenção.")
 figura("ijrs_intervencoes_analise.png", "Figura 8", "Análise dos estudos de intervenção sobre o humor", larg=15.5,
        nota="(A) tamanho da amostra em escala logarítmica e pontuação de qualidade, com rótulo do primeiro autor e cor "
-            "pelo tipo de intervenção; (B) proporção de estudos com efeito favorável relatado pelos autores, com "
-            "intervalo de confiança de Wilson de 95%; n: número de estudos.")
+            "pelo tipo de intervenção; (B) proporção de estudos com efeito favorável relatado pelos autores, com a "
+            "margem de incerteza de cada proporção; n: número de estudos.")
 P(f"**QP5.** {QPS[5]}")
 RESQ = [QE[i]["qualidade"]["pontuacao"] for i in QE if i not in RD.MESMA_AMOSTRA and (QE[i].get("leitura") or {}).get("fonte") == "resumo"]
 P(f"A qualidade foi reavaliada na leitura integral, e as contagens a seguir refletem essa revisão. A pontuação "
@@ -958,18 +955,15 @@ figura("Figura4_Qualidade_RS.png", "Figura 9", "Avaliação da qualidade metodol
 _q = NJ["qual"]
 _it = _q["itens"]
 P(f"Em termos proporcionais, o item Q1 foi atendido por todos os estudos, o Q3 por "
-  f"{pc(_it['Q3. Instrumento validado e nomeado'][0], NE, 1)} (IC 95% de {_it['Q3. Instrumento validado e nomeado'][1]}% "
-  f"a {_it['Q3. Instrumento validado e nomeado'][2]}%), o Q4 por {pc(_it['Q4. Momento da medida declarado'][0], NE, 1)}, "
+  f"{pc(_it['Q3. Instrumento validado e nomeado'][0], NE, 1)}, o Q4 por {pc(_it['Q4. Momento da medida declarado'][0], NE, 1)}, "
   f"o Q2 e o Q5 por {pc(_it['Q2. Amostra descrita'][0], NE, 1)} cada, e o Q6 por apenas "
-  f"{pc(_it['Q6. Análise estatística adequada'][0], NE, 1)} (IC 95% de {_it['Q6. Análise estatística adequada'][1]}% a "
-  f"{_it['Q6. Análise estatística adequada'][2]}%). A pontuação mediana foi {br(_q['md'], 0)}, e a qualidade não "
-  f"apresentou tendência temporal (ρ de Spearman = {br(_q['rho'], 2)}; p = {br(_q['p'], 3)}), o que indica que os "
-  f"estudos recentes não superaram, em média, as fragilidades de relato dos anteriores. A Figura 10 apresenta a "
+  f"{pc(_it['Q6. Análise estatística adequada'][0], NE, 1)}. A pontuação mediana foi {br(_q['md'], 0)}, e a "
+  f"qualidade não melhorou ao longo dos anos, o que indica que os estudos recentes não superaram, em média, as fragilidades de relato dos anteriores. A Figura 10 apresenta a "
   f"proporção de atendimento de cada item e a relação entre a pontuação e o ano de publicação.")
 figura("ijrs_qualidade_analise.png", "Figura 10", "Análise da qualidade metodológica dos estudos incluídos", larg=15.5,
-       nota="(A) proporção de estudos que atenderam a cada item, com intervalo de confiança de Wilson de 95%; (B) "
-            "pontuação de qualidade segundo o ano de publicação, com reta de regressão, faixa de confiança por bootstrap "
-            "e área do círculo proporcional ao tamanho da amostra.")
+       nota="(A) proporção de estudos que atenderam a cada item, com a margem de incerteza de cada proporção; (B) "
+            "pontuação de qualidade segundo o ano de publicação, com a linha de tendência; área do círculo "
+            "proporcional ao tamanho da amostra.")
 P(f"As maiores pontuações concentraram-se nos ensaios randomizados e nos estudos cruzados e longitudinais publicados a "
   f"partir de 2020; as menores, nos estudos transversais e quase-experimentais e nos extraídos apenas do resumo, que "
   f"pontuaram de {min(RESQ)} a {max(RESQ)}. As três maiores amostras corresponderam a estudos transversais "
@@ -1014,11 +1008,11 @@ P(f"Esse quadro contrasta com o que a própria modalidade já demonstrou ser vi�
 H2("4.2. Instrumentos, Dimensões e Variáveis Relacionadas ao Humor Mais Investigados")
 P(f"O POMS respondeu por pouco mais da metade dos estudos, em versões de 30 a 65 itens pouco comparáveis entre si. Sua versão abreviada, a Brunel Mood Scale, foi concebida para a aplicação repetida no treinamento "
   f"{R.cite('terry2003', 'rohlfs2008')}, mas apareceu em apenas três estudos. As escalas de afeto, como o PANAS e a Feeling "
-  f"Scale, medem outro construto, a valência afetiva geral ou momentânea {R.cite('watson1988', 'hardy1989', 'ekkekakis2019')}, "
+  f"Scale, medem outro aspecto, a valência afetiva geral ou momentânea {R.cite('watson1988', 'hardy1989', 'ekkekakis2019')}, "
   f"e não devem ser somadas ao perfil de humor. Além disso, o momento de aplicação da Feeling Scale não é padronizado "
   f"{R.cite('bastos2023fs')}.")
 P(f"A leitura integral revelou outros problemas de mensuração. Algumas versões não correspondem à referência citada "
-  f"{c('H14', 'H15')}, e uma lista de padrões de humor mede construto próximo do temperamento {c('H30')}. A constante da "
+  f"{c('H14', 'H15')}, e uma lista de padrões de humor mede algo mais próximo do temperamento {c('H30')}. A constante da "
   f"perturbação total {c('H3')} e a confiabilidade na amostra {c('H31', 'N3')} foram omitidas com frequência. No SAM, "
   f"valores baixos indicaram humor positivo, sentido inverso ao usual {c('H13')}, e um escore total maior do POMS foi "
   f"interpretado como humor melhor {c('H16')}. Os itens "
@@ -1033,7 +1027,7 @@ P(f"O ponto mais crítico é o momento da medida. Um mesmo escore de vigor tem s
   f"negativos pela manhã {c('O1')}, e o desempenho neuromuscular em esportes coletivos foi maior no fim da tarde ou no "
   f"início da noite {R.cite('martinlopez2025timeofday')}, mas os sinais do horário do exercício sobre o humor ainda não "
   f"sustentam recomendações definitivas {R.cite('hu2026timeofdaymood')}.")
-P(f"A distinção entre os construtos afetivos ajuda a interpretar essa heterogeneidade. O modelo conceitual de "
+P(f"A distinção entre os tipos de medida afetiva ajuda a entender essas diferenças. O modelo conceitual de "
   f"{R.autor('stevens2020ahbf')} separa a resposta afetiva ao exercício, avaliada durante ou logo após a tarefa, do afeto "
   f"incidental, que acompanha o dia independentemente do comportamento-alvo. A Feeling Scale aplicada durante a corrida "
   f"{c('H4')} ou na recuperação e após o jogo {c('H25')} mede a primeira; o POMS referido à semana anterior {c('H34')} aproxima-se "
@@ -1183,11 +1177,11 @@ P(f"{ext(QUAL['Alta']).capitalize()} estudos alcançaram qualidade alta, {ext(QU
   f"{c('H4', 'H14', 'H20', 'H22', 'H28', 'N2', 'U049')}. Há valor de t que deixa de ser significativo quando recalculado a "
   f"partir das médias e dos desvios-padrão {c('H16')}, graus de liberdade incompatíveis com a amostra "
   f"{c('H13', 'H29')}, tamanhos de efeito incoerentes com os valores de F {c('H34')}, relato seletivo de dimensões "
-  f"{c('H15', 'H21')}, circularidade entre preditor e desfecho {c('H11')} e aprovação ética posterior à coleta "
+  f"{c('H15', 'H21')}, sobreposição entre a variável preditora e o desfecho {c('H11')} e aprovação ética posterior à coleta "
   f"{c('H29')}. A qualidade alta indica, portanto, relato e delineamento mais completos, e não ausência de viés. As "
   f"fragilidades de cada estudo constam do Apêndice C.")
-P(f"A certeza de cada achado foi julgada, sem níveis formais, pelos domínios da abordagem GRADE {R.cite('guyatt2008')}: consistência, "
-  f"precisão, validade interna e direcionalidade, isto é, a correspondência entre os estudos e a pergunta da revisão. Achados apoiados em estudos observacionais partiram de certeza baixa, e "
+P(f"A certeza de cada achado foi julgada, sem níveis formais, pelos domínios da abordagem GRADE {R.cite('guyatt2008')}: consistência "
+  f"entre os estudos, precisão, risco de viés e aplicação direta à pergunta da revisão. Achados apoiados em estudos observacionais partiram de certeza baixa, e "
   f"os apoiados em ensaios, de certeza mais alta, rebaixada conforme as fragilidades identificadas na leitura.")
 P(f"*Comunicação verbal.* O encorajamento verbal elevou o vigor ou preservou a valência afetiva em três estudos com "
   f"escolares {c('H25', 'H29', 'N5')}, e o feedback negativo reduziu o afeto positivo de jogadoras de seleções "
@@ -1208,7 +1202,7 @@ P(f"*Recursos psicológicos e convívio social.* As habilidades psicológicas e 
   f"negativamente com as dimensões negativas do humor (r de −0,22 a −0,39) em 181 atletas {c('H21')}, a prática regular "
   f"associou-se a mais afeto positivo e a menos afeto negativo (d = 0,42 e 0,48) {c('H27')}, e a solidão predisse o afeto "
   f"de juniores {c('N2')}. As amostras são as maiores da revisão e a direção é consistente, mas os estudos são "
-  f"transversais, sem ajuste para confundidores e com falhas de relato (início desta seção). A certeza é baixa para a associação e "
+  f"transversais, sem controle de outras variáveis e com falhas de relato (início desta seção). A certeza é baixa para a associação e "
   f"muito baixa para sua direção causal.")
 P(f"*Ciclo menstrual e horário do dia.* Os dois estudos favoráveis a variações com a fase do ciclo não testaram as fases "
   f"entre si ou foram lidos só no resumo {c('H19', 'H24')}, e o único com fases confirmadas por teste urinário de hormônio "
@@ -1250,8 +1244,8 @@ P(f"O delineamento da presente revisão sistemática também tem limitações. A
   f"publicados. A heterogeneidade impediu a metanálise {R.cite('hopkins2009')}, e a síntese seguiu a diretriz SWiM "
   f"{R.cite('campbell2020')}. Entre os pontos fortes, estão a busca em oito bases sem restrição de data, a releitura integral dos relatórios, que corrigiu onze decisões anteriores e "
   f"revisou dados e pontuações de qualidade, e a rastreabilidade de cada resultado até o trecho literal da fonte.")
-P("A Tabela 5 converte as lacunas identificadas em uma agenda de pesquisa sobre o humor no handebol.")
-tabela("Tabela 5", "Agenda de pesquisa sobre o humor no handebol",
+P("A Tabela 5 apresenta as lacunas identificadas e as sugestões para estudos futuros sobre o humor no handebol.")
+tabela("Tabela 5", "Lacunas e sugestões para estudos futuros sobre o humor no handebol",
        ["Lacuna identificada", "Situação atual", "Recomendação"],
        [["Momento da medida", "Declarado com precisão em parte dos estudos; medidas prévias lidas como resposta",
          "Medidas antes e após jogos e sessões, com registro do horário e do contexto"],
@@ -1270,7 +1264,7 @@ tabela("Tabela 5", "Agenda de pesquisa sobre o humor no handebol",
         ["Mecanismos", "Cortisol, sono e humor raramente medidos em conjunto",
          f"Medidas combinadas de marcadores endócrinos, sono e humor em semanas congestionadas {R.cite('pancar2026torneio', 'lo2022rugbisono')}"],
         ["Dinâmica da equipe", "Humor analisado no nível individual",
-         f"Modelos multinível com emoções coletivas e contágio emocional {R.cite('rumbold2022emocoes')}"],
+         f"Análise do humor da equipe como um todo, incluindo a influência das emoções entre colegas {R.cite('rumbold2022emocoes')}"],
         ["Treino psicológico", "Habilidades psicológicas e mindfulness pouco testados",
          f"Ensaios com treino de habilidades psicológicas ou mindfulness e o humor como desfecho {R.cite('zhang2025mindfulness', 'dominguez2024intervencao')}"],
         ["Desempenho em jogo", "Poucos estudos relacionaram humor e rendimento",
@@ -1310,7 +1304,7 @@ REC_P = [f"Medidas repetidas por sessão ou registros momentâneos, com instrume
          f"{R.cite('schulz2010')} e o TIDieR {R.cite('hoffmann2014')}.",
          f"Medidas combinadas de marcadores endócrinos, sono e humor em semanas congestionadas "
          f"{R.cite('pancar2026torneio', 'lo2022rugbisono')}.",
-         f"Modelos multinível com emoções coletivas e contágio emocional {R.cite('rumbold2022emocoes')}.",
+         f"Análise do humor da equipe como um todo, incluindo a influência das emoções entre colegas {R.cite('rumbold2022emocoes')}.",
          f"Perfil de humor como desfecho de programas de habilidades psicológicas, imagética e mindfulness "
          f"{R.cite('e173', 'zhang2025mindfulness')}."]
 REC_T = [f"Monitoramento breve e regular do humor, com instrumento validado e em horário fixo "

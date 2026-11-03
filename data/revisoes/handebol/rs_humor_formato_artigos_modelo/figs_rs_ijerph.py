@@ -232,7 +232,7 @@ def intervencoes():
     cx.set_ylim(-0.6, len(lin) - 0.1)
     limpo(cx, "x")
     cx.spines["left"].set_visible(False)
-    cx.set_xlabel("Proporção com efeito total ou parcial relatado pelos autores (barra: IC 95% de Wilson)", fontsize=12.5, color="#3b4656")
+    cx.set_xlabel("Proporção com efeito total ou parcial relatado pelos autores (barra: margem de incerteza)", fontsize=12.5, color="#3b4656")
     cx.set_title("(B) Proporção de intervenções com efeito, por tipo", loc="left", fontsize=17, fontweight="bold",
                  color=M.TXT, pad=30)
     salvar4k(fig, "ijrs_intervencoes_analise.png")
@@ -272,7 +272,7 @@ def qualidade():
     ax.set_xticklabels([f"{t}%" for t in range(0, 101, 20)])
     limpo(ax, "x")
     ax.spines["left"].set_visible(False)
-    ax.set_xlabel(f"Estudos que atendem ao item (n = {len(EST)}; ponto: número de estudos; barra: IC 95%)",
+    ax.set_xlabel(f"Estudos que atendem ao item (n = {len(EST)}; ponto: número de estudos)",
                   fontsize=12.5, color="#3b4656")
     ax.set_title("(A) Atendimento a cada item de qualidade", loc="left", fontsize=17, fontweight="bold",
                  color=M.TXT, pad=10)
@@ -312,7 +312,7 @@ def qualidade():
     ptx = "p < 0,001" if p < 0.001 else f"p = {br(p, 3)}"
     bx.set_title("(B) Pontuação de qualidade ao longo do tempo", loc="left", fontsize=17, fontweight="bold",
                  color=M.TXT, pad=30)
-    bx.text(0, 1.03, f"Spearman: ρ = {br(rho, 2)}; {ptx}; reta com IC 95% (bootstrap)", transform=bx.transAxes,
+    bx.text(0, 1.03, "linha: tendência ao longo dos anos", transform=bx.transAxes,
             fontsize=12, style="italic", color="#3b4656")
     hs = [plt.Line2D([], [], marker="o", ls="", ms=12, color=c) for _, _, c in DIRS]
     bx.legend(hs, [r for _, r, _ in DIRS], loc="lower right", frameon=True, fontsize=10, framealpha=0.9)
