@@ -18,3 +18,19 @@ Gerador: `corrigidos/modelo_mdpi/gerar_ijerph.py` (figuras novas em `figs_ijerph
 ## Outras versões
 - `mapping_review_abnt.docx` / `.pdf`: versão ABNT (66 páginas), com o mesmo texto simplificado.
 - `mapping_review_documento.docx` / `.pdf`: mesmo conteúdo da versão em artigo, em documento simples (Times 12, espaço 1,5, margens de 3 e 2 cm), sem diagramação de artigo (84 páginas).
+
+## Revisão de 04/11/2026
+- Resultados da QP1 na mesma ordem e com as mesmas expressões do artigo modelo: estudo mais antigo e anos, populações,
+  países, delineamentos e participantes.
+- Discussão ampliada com coortes, monitoramento, intervenções e revisões recentes do handebol (2024 a 2026).
+- Conclusão reescrita: "Conclui-se que...", cinco tópicos, um parágrafo de reflexão e um parágrafo de aplicação.
+
+## Estudos de intervenção (documentos separados)
+- `tabela_estudos_intervencao_mapping.docx` / `.pdf`: tabela em paisagem com os 24 estudos de intervenção (tipo e
+  descrição, duração, população e amostra, modelo do estudo, momentos de medida, desfechos e instrumentos, resultados e
+  direção), organizados por tipo de intervenção e ano.
+- `texto_resultados_intervencao_mapping.docx` / `.pdf`: texto com os resultados de cada estudo de intervenção, por tipo,
+  com síntese por tipo e síntese geral.
+- Resultados retirados da extração com citação literal conferida (`DESFECHOS_199.xlsx`); amostra e delineamento
+  corrigidos pela leitura integral quando diferem da planilha. Gerador: `gerar_intervencoes_mapping.py` (dados em
+  `intervencoes_detalhe.py`).
