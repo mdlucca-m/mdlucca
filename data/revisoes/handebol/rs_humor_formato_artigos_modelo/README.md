@@ -10,3 +10,10 @@ Versão da revisão sistemática no formato do artigo modelo (Atmosphere, 2025; 
 ## Outras versões
 - `REVISAO SISTEMATICA HUMOR DOCUMENTO.docx` / `.pdf`: mesmo conteúdo, em documento simples (Times 12, espaço 1,5), sem diagramação de artigo (71 páginas).
 - `REVISAO SISTEMATICA HUMOR ABNT.docx` / `.pdf`: versão ABNT (modelo Lape), com a mesma linguagem simplificada e os Métodos detalhados (64 páginas).
+
+## Revisão de 04/11/2026
+- QP1 na ordem do artigo modelo (estudo mais antigo e anos, populações, países, delineamentos e contextos,
+  participantes), com as expressões do modelo.
+- Discussão ampliada com estudos recentes do handebol (2024 a 2026) sobre acompanhamento diário, estresse e
+  recuperação, intervenções psicológicas e padronização dos desfechos.
+- Conclusão mais robusta e reflexiva, igual nas três versões. Texto comum em `gen_lape/modelo_rev.py`.

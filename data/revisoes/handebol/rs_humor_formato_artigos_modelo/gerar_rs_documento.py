@@ -690,19 +690,50 @@ figura("Figura1_PRISMA_RS.png", "Figura 1", "Fluxograma PRISMA 2020 da seleção
        nota="busca inicial entre maio e setembro de 2026 e atualização em outubro de 2026; modelo do PRISMA 2020 para revisões atualizadas.")
 P("A seguir, as cinco questões de pesquisa são respondidas com base na síntese das análises.")
 P(f"**QP1.** {QPS[1]}")
-P(f"O estudo mais antigo foi publicado por {a('H2')}, com data provável de 2008, e o mais recente, em 2026 "
-  f"{c('H34')}. Os {NE} estudos totalizaram {mil(SOMA)} participantes, com média de quase dois estudos por ano e maior concentração a partir de 2018 (Figura 2A). A produção distribuiu-se por {len([p for p in PAIS if p != 'Não relatado'])} países, com predomínio da Espanha ({PAIS['Espanha']} estudos), da Tunísia ({PAIS['Tunísia']}) e do Brasil ({PAIS['Brasil']}). {ext(SEXO['feminino']).capitalize()} estudos ({pc(SEXO['feminino'])}) investigaram apenas mulheres, {ext(SEXO['masculino'])} ({pc(SEXO['masculino'])}) apenas "
-  f"homens e {ext(SEXO['misto'])} amostras mistas, enquanto {ext(SEXO['n.r.'])} não relataram o sexo. O nível de elite reuniu {NIV['Elite']} estudos, o de formação, {NIV['Formação']}, e o nacional, {NIV['Nacional']}; os demais envolveram atletas universitários, amadores e escolares. O tamanho da amostra, "
-  f"relatado em {len(NS)} estudos, variou de {min(NS)} a {max(NS)} participantes, com mediana de {br(MED, 0)}, e "
-  f"{ext(N30)} estudos reuniram menos de 30 atletas.")
-P(f"Seis estudos avaliaram adolescentes {c('H25', 'H27', 'H29', 'N3', 'N5', 'U150')}, com médias de 13,81 ± 0,73 anos {c('N5')} a 17,4 ± 2,08 anos {c('H29')}, e dois descreveram a amostra apenas como adolescente {c('N1', 'N8')}. Entre os juniores, as médias foram de 18,6 ± 2,4 anos {c('H15')} e de 18,8 ± 0,20 anos {c('H11')}; nos adultos, de 19,8 ± 1,9 anos {c('N4')} a 30,46 ± 8,29 anos {c('H13')}. O estudo húngaro abrangeu atletas de 14 a 35 anos {c('H34')}, e quatro estudos não relataram a idade {c('H2', 'H4', 'H14', 'H30')}. "
-  f"Os dois estudos de handebol de praia avaliaram 17 jogadoras da seleção brasileira, com 27,1 ± 3,8 anos {c('H17')}, e 181 atletas de ambos os sexos, com 25,68 ± 5,95 anos, de equipes classificadas para a Copa da Espanha de 2016 {c('H21')}. Seleções nacionais compuseram ainda a amostra de dois estudos, com 39 jogadoras das seleções adulta, júnior e juvenil do Chile {c('H22')} e 584 atletas húngaros das seleções sub-17, sub-19, sub-21 e adulta e do programa de talentos sub-15 {c('H34')}. Entre as maiores amostras estiveram também 407 adolescentes croatas, comparados a 349 inativos {c('H27')}, e 187 atletas federados, 77 deles profissionais {c('H20')}. No outro extremo, o programa de autorregulação do humor envolveu 6 jogadores, selecionados entre 20 pelos escores mais negativos {c('H10')}.")
-P(f"Quanto ao delineamento, {ext(DEL['Transversal'])} estudos foram transversais, {ext(DEL['Longitudinal'])} "
-  f"longitudinais, {ext(DEL['Quase-experimental'])} quase-experimentais, {ext(DEL['Cruzado'])} cruzados e "
-  f"{ext(DEL['Ensaio randomizado'])} ensaios randomizados (Figura 2E). A medida ocorreu no treinamento em "
-  f"{ext(CTX['Treinamento'])} estudos, em laboratório em {ext(CTX['Laboratório'])}, na competição oficial em "
-  f"{ext(CTX['Competição oficial'])} e ao longo do período competitivo em {ext(CTX['Período competitivo'])}. Dois estudos avaliaram atletas durante o confinamento da pandemia de COVID-19 {c('H20', 'N3')}. A leitura integral apoiou-se no texto completo em "
-  f"{FTL} relatórios e apenas no resumo em {NR - FTL}. O Apêndice A apresenta a extração completa de cada estudo.")
+P(f"O estudo mais antigo encontrado foi publicado por {a('H2')}, com data provável de 2008. Desde então, "
+  f"{NE} estudos publicados investigaram o tema até 2026, e o mais recente foi publicado por {a('H34')} (ver Apêndice A "
+  f"para a lista completa dos estudos selecionados). Os anos com o maior número de estudos publicados foram 2014, 2022, "
+  f"2023 e 2025, com quatro estudos cada, seguidos de 2010, 2018 e 2020, com três estudos por ano, e de 2015 e 2017, com "
+  f"dois estudos por ano (Figura 2A). A partir de 2018, foram publicados "
+  f"{sum(1 for e in EST if NORM[e['id']][0] >= 2018)} dos {NE} estudos. O estudo com o maior período de acompanhamento "
+  f"foi o de {a('H3')}, com cinco medidas ao longo de 40 semanas da temporada.")
+P(f"Quanto às populações investigadas, {ext(NIV['Elite'])} estudos avaliaram atletas de elite, {ext(NIV['Formação'])} "
+  f"avaliaram atletas das categorias de formação e {ext(NIV['Nacional'])}, atletas de nível nacional; "
+  f"{ext(NIV['Escolar'])} estudos investigaram escolares, {ext(NIV['Universitário'])} investigaram atletas "
+  f"universitários e {ext(NIV['Amador'])}, atletas amadores (Figura 2D). Apenas {ext(NIV['Não relatado'])} estudos não "
+  f"relataram o nível competitivo dos participantes. Os dois estudos de handebol de praia avaliaram 17 jogadoras da "
+  f"seleção brasileira {c('H17')} e 181 atletas de ambos os sexos de equipes classificadas para a Copa da Espanha de "
+  f"2016 {c('H21')}, e seleções nacionais compuseram ainda a amostra de outros dois estudos, com 39 jogadoras das "
+  f"seleções adulta, júnior e juvenil do Chile {c('H22')} e 584 atletas húngaros das seleções sub-17, sub-19, sub-21 e "
+  f"adulta e do programa de talentos sub-15 {c('H34')}.")
+assert PAIS['Brasil'] == PAIS['Tunísia'] and PAIS['Irã'] == PAIS['Ucrânia'] == 2
+P(f"Os países em que o tema foi pesquisado foram a Espanha, com {PAIS['Espanha']} estudos, seguida do Brasil e da "
+  f"Tunísia, com {PAIS['Brasil']} estudos cada, do Irã e da Ucrânia, com dois estudos cada, e de Portugal, Iraque, "
+  f"Alemanha, Índia, Chile, Croácia, Jordânia, Hungria e Sérvia, com um estudo cada (Figura 2B). Apenas "
+  f"{ext(PAIS['Não relatado'])} estudos não relataram o país em que a pesquisa foi realizada.")
+P(f"Dos {NE} estudos incluídos, {ext(DEL['Transversal'])} são transversais, {ext(DEL['Longitudinal'])} são "
+  f"longitudinais, {ext(DEL['Quase-experimental'])} são quase-experimentais, {ext(DEL['Cruzado'])} são cruzados e "
+  f"{ext(DEL['Ensaio randomizado'])} são ensaios randomizados (Figura 2E). A medida do humor ocorreu no treinamento em "
+  f"{ext(CTX['Treinamento'])} estudos, na competição oficial em {ext(CTX['Competição oficial'])}, ao longo do período "
+  f"competitivo em {ext(CTX['Período competitivo'])} e em laboratório em {ext(CTX['Laboratório'])} (Figura 2F), e dois "
+  f"estudos avaliaram atletas durante o confinamento da pandemia de COVID-19 {c('H20', 'N3')}.")
+P(f"Os estudos incluíram um total de {mil(SOMA)} participantes, e apenas um estudo não relatou o número de "
+  f"participantes {c('H2')}. O estudo com a maior amostra foi o de {a('H34')}, com 584 atletas, seguido dos estudos com "
+  f"407 adolescentes croatas, comparados a 349 inativos {c('H27')}, e com 187 atletas federados, 77 deles profissionais "
+  f"{c('H20')}. No outro extremo, o programa de autorregulação do humor envolveu 6 jogadores, selecionados entre 20 "
+  f"pelos escores mais negativos {c('H10')}. O tamanho da amostra variou de {min(NS)} a {max(NS)} participantes, com "
+  f"mediana de {br(MED, 0)}, e {ext(N30)} estudos reuniram menos de 30 atletas. A maioria dos estudos investigou "
+  f"amostras femininas: quanto ao sexo, {ext(SEXO['feminino'])} estudos incluíram apenas mulheres, "
+  f"{ext(SEXO['masculino'])} apenas homens e {ext(SEXO['misto'])} homens e mulheres, e {ext(SEXO['n.r.'])} não "
+  f"relataram o sexo dos participantes (Figura 2C).")
+P(f"A faixa etária dos participantes variou, e as amostras mais jovens tinham de 13 a 14 anos {c('H27')} e média de "
+  f"13,81 ± 0,73 anos {c('N5')}. Entre os adolescentes, as médias chegaram a 17,4 ± 2,08 anos {c('H29')}, e dois "
+  f"estudos descreveram a amostra apenas como adolescente {c('N1', 'N8')}; entre os juniores, as médias foram de "
+  f"18,6 ± 2,4 anos {c('H15')} e de 18,8 ± 0,20 anos {c('H11')}. O estudo com a amostra de maior média de idade foi o de "
+  f"{a('H13')}, com 30,46 ± 8,29 anos, e o de maior amplitude etária abrangeu atletas de 14 a 35 anos {c('H34')}. "
+  f"Quatro estudos não relataram esses dados {c('H2', 'H4', 'H14', 'H30')}. A leitura integral apoiou-se no texto "
+  f"completo em {FTL} relatórios e apenas no resumo em {NR - FTL}, e o Apêndice A apresenta a extração completa de "
+  f"cada estudo.")
 figura("Figura2_Caracteristicas_RS.png", "Figura 2", "Características dos estudos e das populações (QP1)", larg=14.5,
        nota="(A) número de estudos publicados por ano e número acumulado, com 2026 em curso; (B) país; (C) sexo da amostra; (D) nível competitivo; (E) delineamento; (F) "
             "contexto da medida; percentuais sobre os 34 estudos.")
@@ -1062,6 +1093,17 @@ P(f"Esse quadro contrasta com o que a própria modalidade já demonstrou ser vi�
   f"{R.cite('e198')}. Nenhum desses estudos aplicou instrumento de humor, mas ambos indicam que amostras maiores e "
   f"seguimentos longitudinais são exequíveis no handebol e poderiam incorporar o perfil de humor sem acréscimo "
   f"relevante de custo.")
+P(f"Estudos recentes da modalidade mostram que o acompanhamento diário do estado psicológico é viável nas equipes de "
+  f"handebol feminino, população predominante nesta revisão. Em 19 jogadoras profissionais eslovenas acompanhadas por 60 "
+  f"dias da temporada, com questionários diários pelo celular e registro do sono por anel, o estresse percebido "
+  f"associou-se a menor envolvimento com o esporte no dia seguinte, e as noites com mais sono REM atenuaram ligeiramente "
+  f"essa relação {R.cite('e158')}. Em 50 jogadoras norueguesas adolescentes, avaliadas antes, durante e depois de 11 a "
+  f"12 sessões ao longo de quatro semanas, o prazer com a prática foi maior quando as atletas perceberam comportamentos "
+  f"do treinador favoráveis às suas necessidades psicológicas {R.cite('e185')}, e o prazer antes do treino associou-se à "
+  f"carga física da sessão, que, por sua vez, associou-se ao prazer após o treino {R.cite('e184')}. Em atletas "
+  f"universitários de três modalidades coletivas, as jogadoras de handebol relataram mais estresse que os jogadores "
+  f"{R.cite('e175')}. Esses estudos reforçam que o sexo, o papel do treinador e o momento da medida modificam a resposta "
+  f"afetiva e que medidas breves e repetidas são exequíveis na rotina das equipes.")
 H2("4.2. Instrumentos, Dimensões e Variáveis Relacionadas ao Humor Mais Investigados")
 P(f"O POMS respondeu por pouco mais da metade dos estudos, em versões de 30 a 65 itens pouco comparáveis entre si. Sua versão abreviada, a Brunel Mood Scale, foi concebida para a aplicação repetida no treinamento "
   f"{R.cite('terry2003', 'rohlfs2008')}, mas apareceu em apenas três estudos. As escalas de afeto, como o PANAS e a Feeling "
@@ -1170,6 +1212,19 @@ P(f"A comparação mostra convergências e uma diferença de método. No basquet
   f"demonstrada {R.cite('jeffries2020arom')}. As exigências do handebol, com contato frequente e intermitência "
   f"{R.cite('povoas2012', 'michalsik2012')}, aproximam-se das do rúgbi e do basquetebol, cuja literatura serve, porém, "
   f"como fonte de hipóteses, e não como substituto da evidência específica.")
+P(f"A relação entre o humor e a carga, observada sobretudo na fadiga e no vigor, também aparece nos estudos recentes "
+  f"que monitoraram o estresse e a recuperação no handebol. Em 189 jogadores de elite acompanhados por 45 semanas, o "
+  f"estresse percebido associou-se à carga e ao cortisol, e 86% dos atletas apresentaram associação positiva entre "
+  f"estresse e carga {R.cite('e147')}. Em 16 jogadores profissionais, os itens de estresse de uma escala breve de "
+  f"recuperação e estresse foram mais altos, e os de recuperação mais baixos, nos dias sem descanso, acompanhados da "
+  f"creatina quinase {R.cite('e150')}. Em 93 jogadores universitários acompanhados por duas temporadas, a fadiga "
+  f"percebida foi o único preditor significativo do risco de lesão do ligamento cruzado anterior {R.cite('e178')}, e, "
+  f"nos Jogos de Praia do Mediterrâneo de 2023, a fadiga, a dor muscular e o estresse de dez jogadoras da seleção "
+  f"italiana tenderam a aumentar ao longo dos dias de competição {R.cite('e152')}. Medidas objetivas e subjetivas de fadiga "
+  f"também foram comparadas em 100 jogadores ao longo da temporada {R.cite('e144')} e durante um jogo oficial de "
+  f"adolescentes {R.cite('e183')}. Esses resultados indicam que as escalas breves de estresse e recuperação respondem à "
+  f"carga de modo semelhante às dimensões fadiga e vigor do perfil de humor, e que a inclusão de um instrumento de humor "
+  f"validado nesses protocolos permitiria comparar os achados entre os estudos.")
 H2("4.3. Métodos e Protocolos das Intervenções sobre o Humor")
 P(f"O encorajamento verbal, individual ou combinado "
   f"com instrução técnica, melhorou o humor e a valência afetiva durante a prática {c('H25', 'H29', 'N5')}, e o feedback "
@@ -1226,6 +1281,18 @@ P(f"No handebol, as intervenções psicológicas mais recentes não mediram o hu
   f"controle no primeiro ensaio e a ausência de comparador no segundo repetem as fragilidades observadas nos estudos "
   f"incluídos e mostram que a inclusão do perfil de humor como desfecho secundário desses protocolos é uma oportunidade "
   f"ainda não aproveitada.")
+P(f"As intervenções psicológicas mais recentes no handebol reproduzem as características dos estudos incluídos: "
+  f"delineamentos quase-experimentais, amostras pequenas e desfechos diferentes do perfil de humor. Uma sessão de "
+  f"hipnose em áudio de 30 minutos, aplicada antes de oito jogos oficiais da liga em 24 atletas de duas equipes, "
+  f"aumentou a autoconfiança e reduziu a ansiedade cognitiva e somática antes do jogo, sem efeito sobre a força de "
+  f"preensão manual e o desempenho nos arremessos {R.cite('e181')}. Um programa de treino do estado de fluxo baseado em "
+  f"mindfulness melhorou a tomada de decisão e o bem-estar mental de 105 atletas de elite jovens e adultos "
+  f"{R.cite('e153')}, e um programa de oito semanas de relaxamento muscular progressivo e imagética foi testado em 36 "
+  f"jogadoras cadetes, com delineamento quase-experimental e grupo controle {R.cite('e196')}. O treino de neurofeedback foi avaliado em dez "
+  f"jogadores profissionais, quatro no grupo experimental e seis no controle {R.cite('e170')}, e até o estresse do "
+  f"treinador foi alvo de intervenção, pois a respiração lenta reduziu a alfa-amilase salivar de um técnico profissional "
+  f"em jogos oficiais {R.cite('nikolovski2023b')}. Nenhum desses estudos utilizou o POMS ou a BRUMS, o que mantém aberta "
+  f"a pergunta sobre o efeito dessas intervenções no estado de humor dos atletas de handebol.")
 H2("4.4. Qualidade Metodológica e Certeza da Evidência")
 P(f"{ext(QUAL['Alta']).capitalize()} estudos alcançaram qualidade alta, {ext(QUAL['Moderada'])}, moderada, e "
   f"{ext(QUAL['Baixa'])}, baixa, com falhas recorrentes na descrição da amostra, no momento da medida, no controle de "
@@ -1278,6 +1345,14 @@ P(f"A cautela no julgamento da certeza é coerente com a literatura metanalític
   f"instrumentos diferentes, caracterizam a maior parte dos estudos desta revisão, o que justifica a certeza baixa ou "
   f"muito baixa atribuída aos achados principais.")
 
+P(f"A falta de padronização dos desfechos, observada nesta revisão nas versões do POMS e no momento da medida, "
+  f"também limita outras sínteses recentes da modalidade. Na revisão que combinou estatisticamente os estudos sobre a "
+  f"fadiga e o arremesso, a fadiga aguda reduziu a velocidade do arremesso, mas não permitiu conclusão sobre a precisão, "
+  f"porque os estudos definiram a precisão de formas muito diferentes {R.cite('hadjisavvas2026fadiga')}. Do mesmo modo, "
+  f"os estudos de monitoramento citados anteriormente empregaram escalas distintas de bem-estar, de recuperação e de "
+  f"estresse {R.cite('e147', 'e150', 'e152')}. A escolha de um instrumento validado e de momentos de medida "
+  f"padronizados é, portanto, condição para que os estudos futuros sobre o humor no handebol possam ser comparados e "
+  f"combinados.")
 H2("4.5. Limitações e Estudos Futuros")
 P(f"Embora {NE} estudos tenham sido publicados desde 2008, com maior ênfase nas publicações a partir de 2018, é "
   f"necessário desenvolver a produção de evidências científicas experimentais sobre os estados de humor no handebol, "
@@ -1321,7 +1396,7 @@ tabela("Tabela 7", "Lacunas e sugestões para estudos futuros sobre o humor no h
         ["Mecanismos", "Cortisol, sono e humor raramente medidos em conjunto",
          f"Medidas combinadas de marcadores endócrinos, sono e humor em semanas congestionadas {R.cite('pancar2026torneio', 'lo2022rugbisono')}"],
         ["Dinâmica da equipe", "Humor analisado no nível individual",
-         f"Análise do humor da equipe como um todo, incluindo a influência das emoções entre colegas {R.cite('rumbold2022emocoes')}"],
+         f"Análise do humor da equipe como um todo, com a influência das emoções entre colegas {R.cite('rumbold2022emocoes')}"],
         ["Treino psicológico", "Habilidades psicológicas e mindfulness pouco testados",
          f"Ensaios com treino de habilidades psicológicas ou mindfulness e o humor como desfecho {R.cite('zhang2025mindfulness', 'dominguez2024intervencao')}"],
         ["Desempenho em jogo", "Poucos estudos relacionaram humor e rendimento",
@@ -1361,7 +1436,7 @@ REC_P = [f"Medidas repetidas por sessão ou registros momentâneos, com instrume
          f"{R.cite('schulz2010')} e o TIDieR {R.cite('hoffmann2014')}.",
          f"Medidas combinadas de marcadores endócrinos, sono e humor em semanas congestionadas "
          f"{R.cite('pancar2026torneio', 'lo2022rugbisono')}.",
-         f"Análise do humor da equipe como um todo, incluindo a influência das emoções entre colegas {R.cite('rumbold2022emocoes')}.",
+         f"Análise do humor da equipe como um todo, com a influência das emoções entre colegas {R.cite('rumbold2022emocoes')}.",
          f"Perfil de humor como desfecho de programas de habilidades psicológicas, imagética e mindfulness "
          f"{R.cite('e173', 'zhang2025mindfulness')}."]
 REC_T = [f"Monitoramento breve e regular do humor, com instrumento validado e em horário fixo "
@@ -1382,22 +1457,41 @@ tabela("Tabela 8", "Recomendações para pesquisadores e gestores esportivos e p
 
 H1("5. Conclusões")
 P("Conclui-se que as evidências científicas sobre os estados de humor em atletas de handebol no treinamento e na "
-  "competição são escassas, recentes e predominantemente observacionais. Os principais pontos dos achados são:")
-for _b in [f"Os {NE} estudos, publicados entre 2008 e 2026, concentraram-se na Espanha, na Tunísia e no Brasil, com "
-           f"amostras pequenas, predominantemente femininas e, em parte, compostas por escolares;",
-           f"O POMS e suas versões dominaram a medida, em versões diferentes e com momento da medida declarado em "
-           f"apenas {QI['q4']['sim']} estudos;",
-           "O humor associou-se à carga, sobretudo por meio de dimensões isoladas como a fadiga e o vigor, ao resultado "
-           "do jogo, às habilidades psicológicas e ao convívio social, com certeza baixa a muito baixa;",
-           "O encorajamento verbal e o feedback modificaram o humor durante a prática, com certeza baixa em escolares e "
-           "muito baixa em atletas, e as intervenções nutricionais, psicológicas e musicais não demonstraram efeito "
-           "consistente;",
-           f"A qualidade foi alta em {QUAL['Alta']} dos {NE} estudos, mas falhas de integridade do relato atravessaram "
-           f"todos os níveis de qualidade, e as diferenças entre os estudos impediram a combinação estatística dos resultados."]:
+  "competição são escassas, recentes e predominantemente observacionais, e que o humor desses atletas responde à "
+  "carga, ao contexto competitivo e à interação com treinadores e colegas, embora a força dessas evidências ainda "
+  "seja limitada. Os principais pontos dos achados são:")
+for _b in [f"Os {NE} estudos, publicados entre 2008 e 2026, reuniram {mil(SOMA)} participantes, concentraram-se na Espanha, "
+          f"na Tunísia e no Brasil e investigaram sobretudo amostras pequenas e femininas, com mediana de {br(MED, 0)} "
+          f"participantes por estudo e escolares em parte deles;",
+          f"O POMS e suas versões predominaram na medida do humor, em {FAM['POMS e versões']} estudos e em versões de 30 a "
+          f"65 itens, enquanto a BRUMS, concebida para a aplicação repetida, apareceu em apenas três estudos, e o momento "
+          f"da medida foi declarado com precisão em apenas {QI['q4']['sim']};",
+          f"O humor associou-se à carga, sobretudo por meio da fadiga e do vigor, ao resultado do jogo, às habilidades "
+          f"psicológicas e ao convívio social; {DIRC['Efeito ou associação']} estudos relataram efeito ou associação e "
+          f"{DIRC['Misto']} resultados mistos, com certeza baixa a muito baixa;",
+          "Doze estudos testaram intervenções, e o encorajamento verbal e o feedback modificaram o humor durante a "
+          "prática, com certeza baixa em escolares e muito baixa em atletas, enquanto as intervenções nutricionais, "
+          "psicológicas e musicais não demonstraram efeito consistente e nenhuma intervenção de sono ou de recuperação "
+          "foi testada;",
+          f"A qualidade foi alta em {QUAL['Alta']} estudos, moderada em {QUAL['Moderada']} e baixa em {QUAL['Baixa']}, a "
+          f"análise estatística foi adequada em apenas {QI['q6']['sim']}, e as falhas de relato atravessaram todos os "
+          f"níveis de qualidade."]:
     BUL(_b, marca="•")
-P("Com base nas evidências sintetizadas, técnicos e psicólogos do esporte podem priorizar o monitoramento regular do "
-  "humor e a comunicação positiva do treinador, e os pesquisadores, medidas repetidas por sessão, momento declarado, "
-  "análise por sexo, relato completo e delineamentos experimentais na rotina das equipes.")
+P("Esses resultados convidam a uma reflexão sobre o lugar do humor no handebol. Na maior parte dos estudos, o humor "
+  "foi tratado como um retrato pontual, obtido uma única vez e interpretado de forma isolada, quando a própria rotina "
+  "da modalidade, com jogos frequentes, viagens, torneios concentrados e contato constante entre colegas, exige um "
+  "acompanhamento contínuo. Medir mais não basta: é preciso medir no momento certo, com o mesmo instrumento, e "
+  "relacionar o humor ao que acontece no treino e no jogo. Do mesmo modo, a escassez de intervenções contrasta com a "
+  "facilidade com que o encorajamento verbal e o feedback modificaram o humor nos poucos estudos experimentais, o que indica que "
+  "o conhecimento disponível ainda não chegou à rotina das equipes e que a rotina das equipes ainda não chegou à "
+  "pesquisa. Os estudos recentes da modalidade, com registros diários de estresse, de prazer e de sono em equipes "
+  "inteiras, mostram que esse caminho é viável e que o perfil de humor pode ser incorporado sem custo relevante.")
+P("Com base nas evidências sintetizadas, técnicos e psicólogos do esporte podem adotar o monitoramento breve e regular "
+  "do humor, em horário fixo, e valorizar a comunicação positiva com os atletas, enquanto pesquisadores e gestores "
+  "esportivos podem priorizar medidas repetidas por sessão, momento da medida declarado, análise por sexo, relato "
+  "completo dos resultados e estudos experimentais conduzidos na rotina das equipes, incluídas intervenções de sono e "
+  "de recuperação. Essas informações podem orientar a prática e a pesquisa sobre o humor no treinamento e na "
+  "competição do handebol.")
 
 # ================================================================== informações finais (padrão MDPI)
 for _rot, _txt in [
