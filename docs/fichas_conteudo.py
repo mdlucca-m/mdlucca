@@ -2268,6 +2268,134 @@ PUXAR_UNILATERAL = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# TRÊS COMPLEXOS — tri-sets em sequência, 2 min entre rodadas
+# ════════════════════════════════════════════════════════════════════════════
+# Isto NÃO é a ficha de contraste. Lá o pesado e o explosivo são separados por
+# 3 min para o salto sair potenciado; aqui os três exercícios vêm colados e o
+# salto chega cansado — de propósito. São métodos diferentes com nomes
+# parecidos, e o verso põe os dois lado a lado.
+COMPLEXOS = {
+    "arquivo": "ELASE-tres-complexos.pdf",
+    "meta_titulo": "ELASE - Tres complexos",
+    "meta_assunto": "Tri-sets em sequencia, 2 min entre rodadas, 4 rodadas cada",
+    "titulo": "Três complexos",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Três blocos de três exercícios &nbsp;&middot;&nbsp; os três "
+                 "colados, sem pausa entre eles &nbsp;&middot;&nbsp; 2 min e volta",
+    "rotulo_carga": "CARGA",
+    "numerar": False,
+    "cab_meio": ["RODADAS", "PAUSA", "CARGA"],
+    "larguras": [194, 50, 44, 44],
+    "abertura":
+        "<b>Cada bloco é um exercício pesado, um de tempo sob tensão e um "
+        "explosivo, os três colados.</b> A pausa de 2 "
+        "minutos vem só depois do terceiro; são 4 rodadas, e só se passa ao "
+        "bloco seguinte quando o anterior acabou. "
+        "<b>O salto do fim chega cansado, e é para chegar</b> — treina-se "
+        "potência com a perna já carregada.",
+    "aquecimento_titulo": "Aquecimento — os três padrões antes do primeiro bloco",
+    "aquecimento_nota": "Num complexo não há rampa no meio: quando o bloco começa, "
+                        "a carga já está na barra.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta leve e mobilidade de tornozelo, quadril e torácica",
+         "10 min", "a do app, sem cansar"],
+        ["Barra vazia, 55% e 70% no padrão de cada bloco", "1 × 8, 5 e 3",
+         "1 min entre elas"],
+        ["3 saltos verticais máximos", "3 saltos", "a sua régua do dia"],
+    ],
+    "exercicios": [
+        ("A1. Agachamento com barra",
+         "pesado &middot; perna — a barra fica montada",
+         "4 rodadas", "direto", "80%"),
+        ("A2. Agachamento isométrico",
+         "tempo sob tensão &middot; 40 s parado, joelho a 90°",
+         "4 × 40 s", "direto", "corpo"),
+        ("A3. Agachamento com salto",
+         "explosivo &middot; 10 saltos — 2 min e volta ao A1",
+         "4 × 10", "2 min", "corpo"),
+        ("B1. Supino reto com barra",
+         "pesado &middot; empurrar — com ajudante",
+         "4 rodadas", "direto", "80%"),
+        ("B2. Prancha com remada",
+         "tempo sob tensão &middot; 6 em CADA braço",
+         "4 × 6", "direto", "RIR 3"),
+        ("B3. Flexão explosiva",
+         "explosivo &middot; 6 — 2 min e volta ao B1",
+         "4 × 6", "2 min", "corpo"),
+        ("C1. Puxada fechada sentado",
+         "pesado &middot; puxar — tronco parado",
+         "4 rodadas", "direto", "80%"),
+        ("C2. Clean",
+         "LPO &middot; 6 do chão, uma de cada vez",
+         "4 × 6", "direto", "60%"),
+        ("C3. Afundo com salto no cabo",
+         "explosivo &middot; 6 — 2 min e volta ao C1",
+         "4 × 6", "2 min", "leve"),
+    ],
+    "nota_tabela":
+        "<b>“Direto” é sem pausa nenhuma: acabou um, começa o "
+        "próximo.</b> Os 2 minutos só existem depois do terceiro de cada bloco. "
+        "Agachamento, supino, puxada e clean saem da sua tabela de 1RM. <b>80% é "
+        "escolhido para sobreviver a quatro rodadas:</b> se a quarta não sair "
+        "limpa, use 75% na próxima — não 85%.",
+    "caixa_duracao":
+        "<b>Duração prevista: 55 a 65 minutos</b> — 12 rodadas. <b>Com menos de 45 "
+        "minutos:</b> 3 rodadas de cada bloco. Corte rodada, nunca exercício.",
+    "verso": [
+        ("h", "Complexo não é contraste"),
+        ("grade", ["", "COMO FICA", "O QUE TREINA"], [
+            ["<b>Contraste</b><br/>(a outra ficha)",
+             "pesado, <b>3 min de pausa</b>, depois o explosivo",
+             "a pausa deixa o sistema nervoso ligado e a fadiga ir embora: o "
+             "salto sai <b>mais alto</b> do que sairia sozinho"],
+            ["<b>Complexo</b><br/>(esta ficha)",
+             "os três <b>colados</b>, 2 min só no fim da rodada",
+             "o salto chega cansado: treina-se <b>sustentar potência</b> com a "
+             "perna carregada, que é o 4º set de um jogo"],
+        ], [0.18, 0.30, 0.52]),
+        ("espaco", 3),
+        ("caixa", "<b>Os dois métodos são bons e não são o mesmo.</b> Se o que "
+                  "você quer hoje é altura de salto, a ficha é a de contraste. "
+                  "Se é aguentar saltar no fim do jogo, é esta. <b>O erro seria "
+                  "cobrar altura máxima nos saltos daqui</b> — eles vão sair "
+                  "abaixo da régua que você mediu no aquecimento, e isso não é "
+                  "sinal de nada."),
+        ("espaco", 3),
+        ("h", "Os blocos"),
+        ("notas", [
+            ("A — a barra fica montada", "Os três do bloco A usam o mesmo "
+             "agachamento: <b>carregado, isométrico e saltado</b>. Monte 80% e "
+             "deixe; o isométrico e o salto são sem carga, então só se tira a "
+             "barra. <b>No isométrico, 40 segundos parado com o joelho a 90°</b> — "
+             "se a coxa começar a tremer antes dos 30 s, a rodada anterior foi "
+             "pesada demais."),
+            ("B — a prancha é o freio", "<b>Prancha com remada:</b> apoio em "
+             "prancha, halteres nas mãos, puxa um de cada vez. O que conta não é "
+             "a remada, é <b>o quadril não girar</b> — se ele roda, diminua a "
+             "carga. <b>Flexão explosiva:</b> as mãos saem do chão, e a descida é "
+             "amortecida; se as mãos pararem de sair, o bloco acabou."),
+            ("C — o clean é o ponto de atenção", "<b>Seis cleans do chão dentro "
+             "de um complexo, depois de uma puxada pesada, é onde a técnica "
+             "cede.</b> Uma repetição de cada vez, barra parada no chão entre "
+             "elas, a 60%. <b>Se a recepção sair torta ou o cotovelo atrasar, "
+             "troque por hang clean ou corte para 4 repetições</b> — clean "
+             "cansado não vale o risco."),
+            ("Os saltos", "<b>64 contatos no total</b> — 40 do agachamento com "
+             "salto e 24 do afundo. Em todos: <b>joelho não entra para dentro na "
+             "aterrissagem</b>, e aterrissagem que faz barulho é rodada que "
+             "acabou. O afundo no cabo é leve: o cabo dá direção, não carga."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>Se houver jogo ou quadra pesada nas próximas 48 horas, esta "
+                  "não é a ficha.</b> Doze rodadas coladas e 64 contatos cobram "
+                  "dois dias — e cobram em perna, que é exatamente o que o jogo "
+                  "vai pedir.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -2276,7 +2404,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "forca_a": FORCA_4X4_A, "forca_b": FORCA_4X4_B,
           "regenerativo": REGENERATIVO, "forca_2a3": FORCA_2A3,
           "quadril_frontal": QUADRIL_FRONTAL, "forca_90_95": FORCA_90_95,
-          "puxar_unilateral": PUXAR_UNILATERAL}
+          "puxar_unilateral": PUXAR_UNILATERAL,
+          "complexos": COMPLEXOS}
 
 
 def main():
