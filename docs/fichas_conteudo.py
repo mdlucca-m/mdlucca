@@ -2396,6 +2396,132 @@ COMPLEXOS = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# VELOCIDADE — seis exercícios, a barra decide a série
+# ════════════════════════════════════════════════════════════════════════════
+# A regra de parada desta ficha é o inverso de todas as outras: nas demais a
+# série acaba quando a técnica cede; aqui acaba quando a barra fica LENTA, que
+# chega muito antes. Por isso 6-8 é alvo, não cota — e por isso a carga fica em
+# 50%, onde seis repetições ainda saem rápidas.
+VELOCIDADE = {
+    "arquivo": "ELASE-velocidade.pdf",
+    "meta_titulo": "ELASE - Velocidade",
+    "meta_assunto": "Forca-velocidade a 50 por cento; a serie acaba quando a barra desacelera",
+    "titulo": "Velocidade",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Seis exercícios &nbsp;&middot;&nbsp; 4 × 6-8 em todos "
+                 "&nbsp;&middot;&nbsp; carga leve, intenção máxima",
+    "rotulo_carga": "CARGA",
+    "larguras": [192, 50, 44, 46],
+    "abertura":
+        "<b>Esta é a única ficha da sua pasta em que a barra ficar lenta encerra a "
+        "série.</b> Nas outras, a série acaba quando a técnica cede; aqui acaba "
+        "antes disso, no instante em que a repetição sai mais devagar que a "
+        "anterior — mesmo que seja a quinta. <b>6-8 é alvo, não cota.</b> A carga "
+        "é leve de propósito: o que se treina é a <b>intenção</b> de mover rápido, "
+        "e ela só existe quando o peso permite.",
+    "aquecimento_titulo": "Aquecimento — e a referência de velocidade do dia",
+    "aquecimento_nota": "A última linha não é aquecimento: são as repetições com "
+                        "que você vai comparar todas as outras. Guarde como elas "
+                        "saíram.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta leve e mobilidade de quadril, torácica e ombro",
+         "10 min", "a do app, sem cansar"],
+        ["Ponte de glúteo e deslocamento lateral com elástico",
+         "2 × 12", "acorda o quadril"],
+        ["Barra vazia e 35% no padrão de cada exercício", "1 × 8 e 1 × 5",
+         "já no ritmo rápido"],
+        ["<b>3 repetições do 1º exercício na carga do dia</b>", "3 rep",
+         "a sua régua de velocidade"],
+    ],
+    "exercicios": [
+        ("Stiff com barra",
+         "velocidade &middot; dobra de quadril — SEM descida lenta",
+         "4 × 6-8", "2 min", "50%"),
+        ("Elevação pélvica",
+         "velocidade &middot; extensão de quadril — trava em cima",
+         "4 × 6-8", "2 min", "metade"),
+        ("Remada fechada sentada",
+         "velocidade &middot; puxar horizontal — tronco parado",
+         "4 × 6-8", "2 min", "metade"),
+        ("Agachamento com salto com peso",
+         "velocidade &middot; perna — acima de 1,0 m/s",
+         "4 × 6-8", "2 min", "30%"),
+        ("Supino saindo do peito",
+         "velocidade &middot; empurrar — barra PARADA no peito",
+         "4 × 6-8", "2 min", "50%"),
+        ("Stiff unilateral com desenvolvimento",
+         "controle &middot; 6-8 em CADA perna — sem pressa",
+         "4 × 6-8", "90 s", "leve"),
+    ],
+    "nota_tabela":
+        "Stiff, agachamento com salto e supino saem da sua tabela de 1RM. "
+        "<b>“Metade”</b> quer dizer metade da carga que você usaria para "
+        "6 repetições difíceis — na elevação pélvica e na remada. <b>Anote a carga "
+        "e quantas repetições saíram RÁPIDAS</b>, não quantas você fez: é esse "
+        "número que diz se a carga da semana que vem sobe ou desce.",
+    "caixa_duracao":
+        "<b>Duração prevista: 60 a 75 minutos</b> — 24 séries leves com 2 min de "
+        "pausa. A pausa parece longa para o peso que está na barra, e é de "
+        "propósito: <b>o que se recupera aqui não é o músculo, é a capacidade de "
+        "acelerar.</b> Com menos de 50 minutos, 3 séries em cada um.",
+    "verso": [
+        ("h", "A regra é o inverso das outras fichas"),
+        ("grade", ["", "A SÉRIE ACABA QUANDO...", "POR QUÊ"], [
+            ["<b>As outras fichas</b>",
+             "a técnica cede — a barra desacelera, a lombar sai do lugar",
+             "lá o objetivo é carga, e a última repetição boa é a que vale"],
+            ["<b>Esta ficha</b>",
+             "a <b>velocidade</b> cai, mesmo com técnica perfeita e sobrando força",
+             "aqui o objetivo é a aceleração. Repetição lenta não treina "
+             "velocidade — treina outra coisa, e cansa para a série seguinte"],
+        ], [0.20, 0.34, 0.46]),
+        ("espaco", 3),
+        ("caixa", "<b>Como saber que a carga está certa:</b> as 6 primeiras "
+                  "repetições da 1ª série saem todas no mesmo ritmo. Se a 4ª já "
+                  "sai mais devagar, está pesado — tire peso <b>na mesma "
+                  "sessão</b>, não na próxima. Se as 8 saem fáceis e iguais, "
+                  "ponha peso. <b>Carga que permite 8 repetições lentas é pior "
+                  "que carga que permite 5 rápidas.</b>", AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Stiff — atenção, é o contrário do de sempre", "Nas outras fichas o "
+             "stiff vem com <b>descida de 3 segundos</b>. Aqui não: a descida é "
+             "controlada mas normal, e <b>a subida é a mais rápida que você "
+             "conseguir</b>. Mesmo exercício, intenção oposta — não faça no "
+             "automático."),
+            ("Elevação pélvica e remada fechada", "Os dois sem referência de 1RM: "
+             "use <b>metade da carga de 6 repetições difíceis</b>. Na elevação "
+             "pélvica, suba rápido e <b>trave 1 segundo em cima</b> antes de "
+             "descer. Na remada, cotovelo para trás rápido e volta controlada — "
+             "<b>tronco parado</b>, senão a velocidade é do corpo, não da carga."),
+            ("Agachamento com salto com peso", "30% do seu agachamento, barra ou "
+             "halteres. <b>Acima de 1,0 m/s</b>: se o salto começar a ficar baixo, "
+             "a série acabou. Aterrissa, estabiliza e recomeça — <b>sem quicar</b>, "
+             "e o joelho não entra para dentro."),
+            ("Supino saindo do peito", "<b>A barra para no peito, de verdade</b> — "
+             "sem quique, sem aproveitar o repique. Cada repetição recomeça do "
+             "zero, e é por isso que a carga é menor: o primeiro centímetro é o "
+             "exercício inteiro. Com alguém na barra."),
+            ("Stiff unilateral com desenvolvimento", "<b>O único que não é de "
+             "velocidade.</b> Em pé numa perna, desce no stiff, volta e <b>só "
+             "então</b> empurra o halter acima da cabeça — um movimento de cada "
+             "vez, sem emendar. Carga leve: aqui o que se treina é não perder o "
+             "equilíbrio na transição. Comece pela perna mais fraca."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>A conta: 12 das 24 séries são de cadeia posterior</b> — "
+                  "stiff, elevação pélvica e stiff unilateral. Metade da sessão no "
+                  "mesmo tecido, e é a identidade dela. <b>Se o treino anterior "
+                  "teve terra ou agachamento pesado, tire a elevação pélvica</b> "
+                  "em vez de reduzir todas: é a que mais repete o que os outros "
+                  "dois já fazem."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -2405,7 +2531,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "regenerativo": REGENERATIVO, "forca_2a3": FORCA_2A3,
           "quadril_frontal": QUADRIL_FRONTAL, "forca_90_95": FORCA_90_95,
           "puxar_unilateral": PUXAR_UNILATERAL,
-          "complexos": COMPLEXOS}
+          "complexos": COMPLEXOS,
+          "velocidade": VELOCIDADE}
 
 
 def main():
