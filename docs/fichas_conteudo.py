@@ -2522,6 +2522,146 @@ VELOCIDADE = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# AGILIDADE POR POSIÇÃO — braço, coordenação e o circuito de cada um
+# ════════════════════════════════════════════════════════════════════════════
+# Seis exercícios iguais para todo mundo e um sétimo diferente por posição. As
+# cinco posições são as mesmas do app (Levantador, Oposto, Ponteiro, Central,
+# Líbero). Os circuitos saem do que cada posição faz no jogo, não de uma lista
+# genérica de agilidade: o central é quem mais se desloca na rede, o líbero é o
+# único que não sabe a direção antes do estímulo, e assim por diante.
+AGILIDADE_POSICAO = {
+    "arquivo": "ELASE-agilidade-por-posicao.pdf",
+    "meta_titulo": "ELASE - Agilidade por posicao",
+    "meta_assunto": "Potencia de braco, coordenacao e circuito de mudanca de direcao por posicao",
+    "titulo": "Agilidade por posição",
+    "titulo_verso": "O circuito da sua posição",
+    "protocolo": "Potência de braço, coordenação e mudança de direção "
+                 "&nbsp;&middot;&nbsp; os seis primeiros são iguais, o sétimo é "
+                 "o seu",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 48],
+    "abertura":
+        "<b>Esta ficha não é condicionamento, e a diferença está na pausa.</b> "
+        "Agilidade e mudança de direção treinadas cansado viram outra coisa: o "
+        "corpo aprende o padrão lento, que é o oposto do que se foi buscar. "
+        "<b>Se você está ofegante, a pausa foi curta.</b> O sétimo exercício é "
+        "diferente para cada posição — o seu está no verso, e ele sai do que a "
+        "sua posição realmente faz em quadra.",
+    "aquecimento_titulo": "Aquecimento — ombro e tornozelo antes de tudo",
+    "aquecimento_nota": "Arremesso e mudança de direção com o corpo frio é onde "
+                        "ombro e tornozelo se machucam. Aqui o aquecimento não é "
+                        "formalidade.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Corrida leve, deslocamento lateral e de costas", "6 min",
+         "nos três sentidos, sem cansar"],
+        ["Rotadores externos e Y-T-W com elástico", "2 × 12", "o ombro vai arremessar"],
+        ["Saltinhos, mudanças de direção curtas e 3 arremessos leves", "5 min",
+         "sobe o ritmo até o do treino"],
+    ],
+    "exercicios": [
+        ("Arremesso de medicine ball acima da cabeça",
+         "potência &middot; braço — o padrão do saque",
+         "4 × 5", "90 s", "3 kg"),
+        ("Arremesso rotacional na parede",
+         "potência &middot; tronco para o braço — 5 de CADA lado",
+         "4 × 5", "90 s", "3 kg"),
+        ("Flexão explosiva com batida de mão",
+         "potência &middot; empurrar — o braço do bloqueio",
+         "4 × 5", "90 s", "corpo"),
+        ("Aceleração do braço com elástico",
+         "potência &middot; 8 em CADA braço — rápido, não forte",
+         "3 × 8", "60 s", "leve"),
+        ("Escada de agilidade",
+         "coordenação &middot; pé rápido — 4 padrões diferentes",
+         "4 ×", "45 s", "corpo"),
+        ("Bola na parede, mãos alternadas",
+         "coordenação &middot; reação — 30 s sem deixar cair",
+         "3 × 30 s", "45 s", "bola"),
+        ("Circuito da sua posição",
+         "agilidade &middot; mudança de direção — o seu está no verso",
+         "4 ×", "2 min", "no verso"),
+    ],
+    "nota_tabela":
+        "<b>Os seis primeiros são iguais para o elenco inteiro; o sétimo é o seu.</b> "
+        "Anote a carga do medicine ball e, no circuito, <b>quanto tempo levou cada "
+        "passagem</b> — é o único número desta folha que mede agilidade. Se a "
+        "quarta passagem estiver mais lenta que a primeira, o treino de agilidade "
+        "acabou ali, mesmo que falte série.",
+    "caixa_duracao":
+        "<b>Duração prevista: 50 a 65 minutos</b> — 26 séries, quase todas curtas. "
+        "<b>A pausa é a prescrição:</b> 90 s nos arremessos e 2 min no circuito "
+        "não são folga, são o que mantém a velocidade da próxima repetição. Com "
+        "menos de 45 minutos, corte a escada e a bola na parede — nunca o "
+        "circuito.",
+    "verso": [
+        ("h", "Quatro passagens, 2 minutos entre elas"),
+        ("grade", ["POSIÇÃO", "O CIRCUITO", "POR QUE ESSE"], [
+            ["<b>Levantador</b>",
+             "Da postura de defesa na <b>1</b>, sprint de 4 m até a <b>2</b>, para "
+             "em cima da bola e levanta, volta de costas. <b>6 saídas</b>",
+             "é o deslocamento que ele mais repete no jogo, e o que mais exige "
+             "<b>parar em cima da bola</b>, não perto dela"],
+            ["<b>Oposto</b>",
+             "Bloqueio na <b>2</b>, aterrissa, recua 3 m, aproximação completa e "
+             "salto de ataque. <b>5 ciclos</b>",
+             "bloqueou e ataca na sequência: é a transição que decide o "
+             "contra-ataque pela direita"],
+            ["<b>Ponteiro</b>",
+             "Postura de recepção, passo lateral até o cone, recua 4 m, "
+             "aproximação completa e salto. <b>5 ciclos</b>",
+             "recebe e ataca no mesmo rally — é a cadeia que mais cobra do "
+             "passador-atacante, e a que ninguém treina"],
+            ["<b>Central</b>",
+             "Bloqueio na <b>3</b>, passada cruzada até a <b>4</b> ou a <b>2</b>, "
+             "bloqueio, volta à 3. <b>6 bloqueios</b>",
+             "ninguém se desloca mais na rede, e com menos tempo para decidir. "
+             "Alterne os lados a cada passagem"],
+            ["<b>Líbero</b>",
+             "Postura de defesa, alguém aponta a direção, sprint ou queda até o "
+             "cone, recupera a postura. <b>6 reações</b>",
+             "é a única posição em que a direção <b>não</b> é decidida antes: "
+             "quem manda é o estímulo, e por isso o circuito dele precisa de "
+             "outra pessoa"],
+        ], [0.15, 0.44, 0.41]),
+        ("espaco", 3),
+        ("caixa", "<b>Recuperação completa entre as passagens.</b> Duas pessoas "
+                  "fazem o circuito alternadas: enquanto uma corre, a outra "
+                  "descansa — assim os 2 minutos saem sozinhos. <b>Cronometre a "
+                  "primeira passagem e compare as outras três.</b> Caiu mais de "
+                  "10%, pare: a partir dali você está treinando cansaço, não "
+                  "agilidade.", AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os seis de todo mundo"),
+        ("notas", [
+            ("Os dois arremessos", "<b>Acima da cabeça:</b> os dois braços, bola "
+             "atrás da nuca, e o arremesso sai do tronco inteiro — joga para a "
+             "frente e para longe, não para cima. <b>Rotacional:</b> de lado para "
+             "a parede, pé de trás gira, quadril puxa o tronco e o braço vai "
+             "junto. É o padrão do ataque sem a bola de verdade — e é o que mais "
+             "transfere para a potência de saque."),
+            ("Flexão explosiva e elástico", "<b>Flexão:</b> as mãos saem do chão e "
+             "batem uma na outra; a descida é amortecida. Se as mãos pararem de "
+             "sair, a série acabou. <b>Elástico:</b> preso atrás, cotovelo alto, "
+             "o movimento do ataque <b>o mais rápido possível</b> — a carga é "
+             "leve de propósito, aqui ninguém está ficando forte, está ficando "
+             "rápido."),
+            ("Escada e bola na parede", "São <b>coordenação</b>, não "
+             "condicionamento: 4 padrões diferentes na escada (dois pés dentro, "
+             "in-and-out, lateral, cruzado) e pé rápido com o tronco quieto. A "
+             "bola na parede com as mãos alternadas treina o que o jogo cobra do "
+             "olho e da mão — comece devagar e só acelere quando parar de cair."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>Nada aqui deve deixar você ofegante.</b> Se o peito arde ou "
+                  "a respiração não volta na pausa, a sessão virou condicionamento "
+                  "— e condicionamento feito no lugar de agilidade ensina o corpo "
+                  "a se mover devagar. Aumente a pausa antes de reduzir o treino."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -2532,7 +2672,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "quadril_frontal": QUADRIL_FRONTAL, "forca_90_95": FORCA_90_95,
           "puxar_unilateral": PUXAR_UNILATERAL,
           "complexos": COMPLEXOS,
-          "velocidade": VELOCIDADE}
+          "velocidade": VELOCIDADE,
+          "agilidade_posicao": AGILIDADE_POSICAO}
 
 
 def main():
