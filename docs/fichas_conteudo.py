@@ -2662,6 +2662,235 @@ AGILIDADE_POSICAO = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# PRÉ-COMPETIÇÃO — braço explosivo, 35 minutos, quase nada de volume
+# ════════════════════════════════════════════════════════════════════════════
+# A regra desta ficha é o que ela NÃO tem: nada de novo, nada de excêntrica
+# lenta, nenhuma tentativa máxima e volume minúsculo. Treze séries no total. O
+# risco aqui não é treinar de menos, é o atleta achar pouco e acrescentar.
+PRE_COMPETICAO = {
+    "arquivo": "ELASE-pre-competicao.pdf",
+    "meta_titulo": "ELASE - Pre-competicao, braco explosivo",
+    "meta_assunto": "Potencia de membros superiores em volume minimo, 1 a 2 dias antes",
+    "titulo": "Pré-competição",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Potência de membros superiores &nbsp;&middot;&nbsp; 1 a 2 dias "
+                 "antes do jogo &nbsp;&middot;&nbsp; 13 séries no total",
+    "rotulo_carga": "CARGA",
+    "larguras": [200, 46, 44, 44],
+    "abertura":
+        "<b>Esta sessão tem de deixar você melhor, não cansado.</b> É a única "
+        "ficha da pasta em que fazer a mais estraga o objetivo: o que se busca "
+        "aqui é acordar o braço, não treiná-lo. <b>Treze séries, nenhuma "
+        "excêntrica lenta, nenhuma tentativa máxima e nenhum exercício que você "
+        "não conheça.</b> Se no dia seguinte houver dor muscular nova, a dose "
+        "estava errada — e o jogo paga.",
+    "aquecimento_titulo": "Aquecimento — curto, porque a sessão também é",
+    "aquecimento_nota": "O ombro vai arremessar e empurrar rápido. Ele entra "
+                        "pronto, não aquecendo no primeiro arremesso.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta leve e mobilidade de torácica e ombro", "6 min",
+         "a do app, sem cansar"],
+        ["Rotadores externos e Y-T-W com elástico", "2 × 12", "leve, acorda o manguito"],
+        ["3 arremessos leves e 3 flexões normais", "1 série", "sobe o ritmo e para"],
+    ],
+    "exercicios": [
+        ("Arremesso de medicine ball acima da cabeça",
+         "explosivo &middot; o padrão do saque — longe, não alto",
+         "3 × 4", "2 min", "3 kg"),
+        ("Supino saindo do peito",
+         "explosivo &middot; barra PARADA no peito, sem quique",
+         "3 × 3", "2,5 min", "50%"),
+        ("Flexão explosiva com batida de mão",
+         "explosivo &middot; empurrar — mãos saem do chão",
+         "3 × 4", "90 s", "corpo"),
+        ("Aceleração do braço com elástico",
+         "velocidade &middot; 6 em CADA braço — rápido, não forte",
+         "2 × 6", "60 s", "leve"),
+        ("Remada explosiva com halteres",
+         "equilíbrio &middot; puxar — para o ombro não ficar só empurrando",
+         "2 × 6", "60 s", "leve"),
+    ],
+    "nota_tabela":
+        "Só o supino sai do seu 1RM, e a <b>50%</b> — metade, de propósito: a "
+        "barra tem de voar. <b>Anote a carga, mas não tente subir nenhuma hoje.</b> "
+        "Esta é a sessão em que repetir a carga da semana passada é o resultado "
+        "certo, e bater recorde é o resultado errado.",
+    "caixa_duracao":
+        "<b>Duração prevista: 30 a 35 minutos</b> — e é para acabar cedo. "
+        "<b>No dia do jogo</b>, se houver sala, faça só os dois primeiros "
+        "exercícios em 2 séries. <b>O erro mais comum desta ficha é achar pouco "
+        "e acrescentar</b> — não acrescente.",
+    "verso": [
+        ("h", "O que esta ficha não tem, e por quê"),
+        ("grade", ["O QUE FICOU DE FORA", "POR QUÊ"], [
+            ["<b>Excêntrica lenta</b> (descida de 3 s)",
+             "tempo sob tensão é o que mais produz dor muscular — e dor muscular "
+             "dois dias antes do jogo custa salto"],
+            ["<b>Tentativa máxima</b> (90% ou mais)",
+             "carga máxima cobra no sistema nervoso e aparece como barra lenta e "
+             "perna pesada <b>dois dias depois</b>, exatamente no jogo"],
+            ["<b>Volume</b> (mais de 3 séries por exercício)",
+             "o estímulo que acorda o braço já está dado na terceira série. O "
+             "resto só gera fadiga que não dá tempo de ir embora"],
+            ["<b>Exercício novo</b>",
+             "movimento desconhecido sempre deixa dor — e na véspera não há como "
+             "saber se deixou até acordar"],
+        ], [0.33, 0.67]),
+        ("espaco", 3),
+        ("caixa", "<b>O teste é no dia seguinte.</b> Se acordar com dor muscular "
+                  "nova, com ombro travado ou com a sensação de ter treinado, a "
+                  "dose estava errada — avise a comissão, porque a próxima "
+                  "pré-competição precisa ser menor. <b>O resultado certo é "
+                  "acordar igual ou melhor.</b>", AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Arremesso acima da cabeça", "Os dois braços, bola atrás da nuca, e o "
+             "arremesso sai do tronco inteiro. <b>Para a frente e para longe, não "
+             "para cima.</b> Quatro arremessos por série, cada um com intenção "
+             "máxima — e entre eles, tempo para pegar a bola sem pressa."),
+            ("Supino saindo do peito", "<b>A barra para no peito de verdade</b>, "
+             "sem quique, e sai o mais rápido possível. A 50% a barra parece "
+             "leve: é isso mesmo. <b>Três repetições, e a série acaba se a "
+             "terceira sair mais devagar que a primeira.</b> Com alguém na barra."),
+            ("Flexão e elástico", "<b>Flexão:</b> as mãos saem do chão e batem; "
+             "quatro, não mais. <b>Elástico:</b> preso atrás, cotovelo alto, o "
+             "movimento do ataque o mais rápido possível — leve, porque aqui "
+             "ninguém está ficando forte."),
+            ("Remada explosiva", "Está aqui só para o ombro não sair da sessão "
+             "tendo feito apenas empurrar. <b>Duas séries leves, puxada rápida e "
+             "volta controlada</b>, e acabou."),
+        ]),
+        ("espaco", 2),
+    ],
+}
+
+# ════════════════════════════════════════════════════════════════════════════
+# FORÇA COMPLETA — para o sub-19 e para quem não compete
+# ════════════════════════════════════════════════════════════════════════════
+# Enquanto o elenco que compete afina, estes acumulam: é a janela em que dá para
+# carregar sem pagar no fim de semana. A ficha serve a dois públicos na mesma
+# sala, e por isso traz uma caixa própria para o sub-19 — percentual mais baixo,
+# uma repetição a mais na reserva, e nenhuma tentativa máxima.
+FORCA_COMPLETA = {
+    "arquivo": "ELASE-forca-completa.pdf",
+    "meta_titulo": "ELASE - Forca completa",
+    "meta_assunto": "Sessao de forca de corpo inteiro para sub-19 e atletas que nao competem",
+    "titulo": "Força completa",
+    "titulo_verso": "Como usar esta ficha",
+    "protocolo": "Sub-19 e quem não compete &nbsp;&middot;&nbsp; corpo inteiro, "
+                 "sete exercícios &nbsp;&middot;&nbsp; a semana de carregar",
+    "rotulo_carga": "CARGA",
+    "larguras": [200, 46, 44, 44],
+    "abertura":
+        "<b>Enquanto o elenco que compete afina, vocês carregam.</b> É exatamente "
+        "para isto que serve a semana de quem não joga: é a única janela em que dá "
+        "para treinar pesado sem pagar no fim de semana. Sete exercícios, corpo "
+        "inteiro, 25 séries. <b>Quem é do sub-19 lê a caixa verde do verso antes "
+        "de carregar a barra</b> — a ficha é a mesma, a carga não.",
+    "aquecimento_titulo": "Aquecimento — rampa antes do agachamento",
+    "aquecimento_nota": "A 80% a primeira série não pode ser fria. A rampa sobe "
+                        "até perto da carga e para.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta leve e mobilidade de tornozelo, quadril e torácica",
+         "10 min", "a do app, sem cansar"],
+        ["Rotadores externos com elástico", "2 × 12", "antes do supino"],
+        ["Rampa: 40%, 60% e 75% do agachamento", "5, 3 e 2", "2 min entre elas"],
+    ],
+    "exercicios": [
+        ("Agachamento",
+         "força &middot; perna — a profundidade de sempre",
+         "4 × 5", "3 min", "80%"),
+        ("Supino reto com barra",
+         "força &middot; empurrar horizontal — com ajudante",
+         "4 × 5", "2,5 min", "80%"),
+        ("Levantamento terra",
+         "força &middot; dobra de quadril — cada repetição do chão",
+         "4 × 5", "3 min", "RIR 2"),
+        ("Remada curvada com barra",
+         "força &middot; puxar horizontal — tronco PARADO",
+         "4 × 6", "2 min", "78%"),
+        ("Desenvolvimento com barra",
+         "força &middot; empurrar vertical — SEM perna",
+         "3 × 6", "2 min", "6RM"),
+        ("Avanço com barra",
+         "força &middot; unilateral — 6 em CADA perna",
+         "3 × 6", "2 min", "RIR 2"),
+        ("Prancha com remada",
+         "core &middot; 8 em CADA braço — quadril parado",
+         "3 × 8", "60 s", "RIR 3"),
+    ],
+    "nota_tabela":
+        "Agachamento, supino e remada curvada saem da tabela de 1RM. "
+        "<b>Quem não tem 1RM lançado — que é o caso da maioria do sub-19 — usa a "
+        "carga de 8 repetições e faz 5</b>; dá quase o mesmo que 80%, com margem. "
+        "No terra, no avanço e na prancha vai por repetições na reserva. "
+        "<b>Anote os dois lados no avanço e na prancha.</b>",
+    "caixa_duracao":
+        "<b>Duração prevista: 75 a 90 minutos</b> — 25 séries, quatro delas com "
+        "3 minutos de pausa. <b>Com menos de 65 minutos:</b> desenvolvimento e "
+        "avanço em 2 séries. Não corte o agachamento nem o terra — são eles que "
+        "fazem a semana valer.",
+    "verso": [
+        ("caixa", "<b>Sub-19: a ficha é a mesma, a carga não.</b> Onde está 80%, "
+                  "use <b>75%</b>; onde está RIR 2, pare com <b>3 repetições na "
+                  "reserva</b>. E a regra que vale mais que qualquer percentual: "
+                  "<b>se a quinta repetição tem forma diferente da primeira, a "
+                  "carga está alta</b>, mesmo que o número da planilha diga que "
+                  "não. Nenhuma tentativa de máximo nesta semana — nem por "
+                  "curiosidade.", VERDE_CLARO, VERDE),
+        ("espaco", 3),
+        ("h", "Por que esta ordem"),
+        ("grade", ["", "O QUE", "POR QUE AQUI"], [
+            ["1º e 2º", "Agachamento e supino",
+             "os dois mais pesados, com a perna e o peito inteiros. O supino "
+             "entra entre o agachamento e o terra <b>de propósito</b>: é a pausa "
+             "que a lombar precisa"],
+            ["3º", "Levantamento terra",
+             "a segunda carga de lombar do dia, depois de uma folga dela. Cada "
+             "repetição começa parada no chão"],
+            ["4º e 5º", "Remada curvada e desenvolvimento",
+             "puxar e empurrar com carga menor, quando a técnica dos grandes já "
+             "foi gasta"],
+            ["6º e 7º", "Avanço e prancha com remada",
+             "unilateral e core no fim, que é quando a diferença entre os dois "
+             "lados aparece"],
+        ], [0.12, 0.30, 0.58]),
+        ("espaco", 3),
+        ("h", "Os exercícios"),
+        ("notas", [
+            ("Agachamento e terra", "<b>Os dois a 4 × 5 no mesmo dia pedem "
+             "respeito pela lombar.</b> No agachamento, profundidade igual à de "
+             "sempre. No terra, <b>cada repetição começa do chão, do zero</b> — "
+             "emendar com a lombar cansada é onde a coluna arredonda, e "
+             "<b>lombar arredondou, a série acabou</b>."),
+            ("Supino e desenvolvimento", "<b>Supino com alguém na barra.</b> No "
+             "desenvolvimento, <b>sem impulso de perna</b>: se o joelho dobra, "
+             "virou push press. Glúteo e abdômen apertados para a lombar não "
+             "arquear."),
+            ("Remada curvada", "<b>Tronco entre 15° e 30° acima da horizontal, e "
+             "PARADO.</b> A barra vem ao umbigo. O erro é levantar o tronco para "
+             "a barra subir — aí a carga está alta demais e o exercício virou "
+             "meio levantamento terra."),
+            ("Avanço e prancha", "<b>Avanço:</b> uma repetição é um passo à frente "
+             "e a volta, com a mesma perna; seis assim, depois troca. Joelho de "
+             "trás descendo em direção ao chão, tronco em pé. <b>Prancha com "
+             "remada:</b> o que conta não é a remada, é o <b>quadril não girar</b> "
+             "— se ele roda, diminua a carga. Nos dois, comece pelo lado mais "
+             "fraco."),
+        ]),
+        ("espaco", 2),
+        ("caixa", "<b>A conta: 11 séries de perna, 7 de empurrar, 7 de puxar.</b> "
+                  "É o equilíbrio que uma sessão de corpo inteiro deve ter, e é "
+                  "por isso que esta ficha é a base do bloco — as outras da pasta "
+                  "pendem para um lado ou outro de propósito, esta não."),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -2673,7 +2902,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "puxar_unilateral": PUXAR_UNILATERAL,
           "complexos": COMPLEXOS,
           "velocidade": VELOCIDADE,
-          "agilidade_posicao": AGILIDADE_POSICAO}
+          "agilidade_posicao": AGILIDADE_POSICAO,
+          "pre_competicao": PRE_COMPETICAO, "forca_completa": FORCA_COMPLETA}
 
 
 def main():
