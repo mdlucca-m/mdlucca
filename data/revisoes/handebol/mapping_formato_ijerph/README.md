@@ -63,3 +63,11 @@ Gerador: `corrigidos/modelo_mdpi/gerar_ijerph.py` (figuras novas em `figs_ijerph
   - números das intervenções atualizados: 12 com efeito e 10 com resultados mistos.
 - Apêndice C: estratégia de busca em cada uma das oito bases, na sintaxe de cada base, com os termos da Tabela 1.
 - Apêndice D: protocolo no formato do Template for a Mapping Study Protocol.
+
+## Aprofundamento de 11/11/2026
+- Qualidade cruzada com o tipo de intervenção, a distribuição aleatória e o tamanho da amostra.
+- Figura 8 (`qualidade_ephpp.png`, gerada por `figura_qualidade_ephpp.py`).
+- Divergências de relato em dez estudos de intervenção.
+- Dois parágrafos novos na Discussão: o que fazer em cada componente fraco e a relação entre qualidade e resultado.
+- Quadro B2 com a justificativa da nota de cada estudo.
+- Autoria do estudo de 1998 corrigida para Gil Martínez, Capafons Bonet e Labrador Encinas (Psicothema 10(2):271-280).

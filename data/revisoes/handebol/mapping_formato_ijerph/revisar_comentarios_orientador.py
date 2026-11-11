@@ -395,6 +395,7 @@ troca(K[431], "Nota: ECR: ensaio clínico randomizado; QE: quase-experimental; n
       "dos desfechos ou apenas dentro de um grupo; descritivo, sem teste do efeito; não determ., fonte sem resultados.")
 
 exec(open("revisar_qualidade_estrategias.py").read())
+exec(open("revisar_aprofundamento.py").read())
 # ------------------------------------------------------------------ referências novas e não citadas
 refs = [el for el in K[222:421] if el.tag == W("w:p") and texto(el).strip()]
 NOVAS = ["ARMIJO-OLIVO, S. et al. Assessment of study quality for systematic reviews: a comparison of the Cochrane "
