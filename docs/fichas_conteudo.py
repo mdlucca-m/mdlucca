@@ -3005,6 +3005,130 @@ TRES_DIAS = {
     ],
 }
 
+
+EXPLOSIVO_ROTACIONAL = {
+    "arquivo": "ELASE-explosivo-rotacional.pdf",
+    "meta_titulo": "ELASE - Explosivo e rotacional",
+    "meta_assunto": "Tres barras explosivas, bloco de remo e fluxo unilateral",
+    "titulo": "Explosivo e rotacional",
+    "titulo_verso": "O fluxo, os 30% e a regra da série",
+    "protocolo": "Três barras entre 30 e 55% &nbsp;&middot;&nbsp; a barra decide a "
+                 "série &nbsp;&middot;&nbsp; 25 séries",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 46],
+    "abertura":
+        "<b>Esta sessão é explosiva, não pesada:</b> três barras entre 30 e 55%, "
+        "um bloco de remo e um fluxo de coordenação. <b>Para quem não "
+        "compete</b> — o sub-19 e os quatro do adulto — ela serve já. <b>Para "
+        "quem joga sábado e domingo não cabe nestes três dias:</b> são 25 séries e um "
+        "bloco de condicionamento, mais do que o afunilamento permite. Para "
+        "esses, é a sessão de <b>volta</b>, na segunda ou terça depois dos dois "
+        "jogos — carga leve e rápida acorda o sistema sem cobrar nada dele.",
+    "aquecimento_titulo": "Aquecimento — o quadril e o tronco antes da barra",
+    "aquecimento_nota": "Metade da sessão é dobra de quadril e a outra metade é "
+                        "rotação. O aquecimento prepara as duas, e a rampa do "
+                        "clean vale mais que as outras: é o movimento mais "
+                        "técnico do dia.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda leve e mobilidade de quadril e torácica",
+         "10 min", "a do app"],
+        ["Rotação no cabo, carga mínima", "2 × 10 cada lado", "acorda o tronco"],
+        ["Barra vazia: stiff, remada e clean do meio da coxa",
+         "8 de cada", "o padrão antes da carga"],
+        ["Rampa do clean: 15% e 25%", "3 e 3", "rápido, não forte"],
+    ],
+    "exercicios": [
+        ("Remada curvada explosiva",
+         "explosivo &middot; puxar — a barra decide a série",
+         "4 × 5", "2 min", "55%"),
+        ("Clean explosivo",
+         "explosivo &middot; corpo todo — 30% é velocidade, ver o verso",
+         "5 × 3", "2 min", "30%"),
+        ("Stiff explosivo",
+         "explosivo &middot; posterior — sobe rápido, desce no controle",
+         "4 × 5", "2 min", "50%"),
+        ("Remada no remo (ergômetro)",
+         "condicionamento &middot; 30 s forte, 60 s leve entre",
+         "6 × 30 s", "60 s", "forte"),
+        ("Rotação no cabo",
+         "rotação &middot; 6 de cada lado, soltando rápido",
+         "3 × 6", "1 min", "média"),
+        ("Fluxo unilateral com halteres",
+         "combinado &middot; 4 ciclos em CADA lado — ver o verso",
+         "3 × 4", "90 s", "leve"),
+    ],
+    "nota_tabela":
+        "A remada curvada, o clean e o stiff saem da sua tabela de 1RM. "
+        "<b>O remo, a rotação e o fluxo não têm referência:</b> no "
+        "remo você puxa forte sem perder a postura; na rotação, a carga certa é "
+        "a maior com que você ainda solta o movimento <b>rápido</b> nas seis "
+        "repetições; no fluxo, halteres leves, 6 a 10 kg, porque ali o que "
+        "limita é o equilíbrio e não a força.",
+    "caixa_duracao":
+        "<b>Duração prevista: 55 a 70 minutos</b> — 25 séries. <b>Se o tempo "
+        "apertar, corte o remo</b> (o exercício 4): é o único que não depende "
+        "de barra nem de coordenação, e é o que menos se perde ao ficar de fora "
+        "de uma sessão. Corte o fluxo só em último caso — ele é o único trabalho "
+        "de controle do dia.",
+    "verso": [
+        ("h", "O fluxo unilateral, movimento por movimento"),
+        ("grade", ["MOVIMENTO", "COMO SE FAZ", "O QUE ELE COBRA"], [
+            ["<b>1. Stiff unilateral</b>",
+             "em pé sobre uma perna, os halteres descem pela frente da canela, o "
+             "tronco vai até perto do paralelo e a perna livre estende atrás. "
+             "Volta em pé.",
+             "equilíbrio de quadril e posterior da perna de apoio"],
+            ["<b>2. Agachamento lateral</b>",
+             "da posição em pé, um passo largo para o lado <b>dessa mesma "
+             "perna</b>, senta nesse quadril com o outro joelho estendido e "
+             "volta ao centro.",
+             "adutor e amplitude de quadril no plano de lado"],
+            ["<b>3. Desenvolvimento</b>",
+             "de volta ao centro, os dois halteres sobem acima da cabeça, tronco "
+             "firme, <b>sem arquear a lombar</b> para ajudar.",
+             "ombro e, principalmente, o tronco que acabou de ser desequilibrado"],
+        ], [0.22, 0.46, 0.32]),
+        ("espaco", 3),
+        ("caixa", "<b>Um ciclo são os três em sequência, sem apoiar os halteres "
+                  "no chão.</b> Quatro ciclos no mesmo lado, depois troca e faz "
+                  "quatro do outro — isso é <b>uma</b> série. São três séries. "
+                  "Se o equilíbrio falhar no terceiro ciclo, a carga está alta: "
+                  "aqui halter mais leve é progresso, não recuo.",
+                  VERDE_CLARO, VERDE),
+        ("espaco", 3),
+        ("h", "Explosivo muda a regra da série"),
+        ("notas", [
+            ("Quem encerra a série é a barra", "Nas três barras explosivas "
+             "<b>a série acaba quando a barra fica lenta</b>, não quando a "
+             "repetição fica difícil. Se a quinta saiu visivelmente mais devagar "
+             "que a primeira, pare na quarta na série seguinte — mesma regra da "
+             "ficha <i>Velocidade</i>. Treinar devagar com carga leve não treina "
+             "nada: não é forte o bastante para carga nem rápido o bastante para "
+             "potência."),
+            ("Por que 30% no clean", "Trinta por cento é <b>abaixo</b> da faixa "
+             "em que o clean produz mais potência, que fica entre 60 e 70%. A "
+             "30% a barra quase não tem massa: o exercício vira <b>velocidade e "
+             "padrão de movimento</b>, e o limite passa a ser a rapidez com que "
+             "você puxa, não o quanto. É uma escolha boa para uma semana em que "
+             "a carga nervosa tem de ficar baixa — e é a escolha errada se o que "
+             "se quer é potência de pico. Se o objetivo virar potência, suba "
+             "para 60-65% e mantenha as 3 repetições."),
+            ("Três dobras de quadril seguidas", "Remada curvada, clean e stiff "
+             "carregam a lombar na mesma posição de dobra, um atrás do outro. "
+             "<b>Mantive a sua ordem</b> porque a 30-55% isso é tranquilo; a "
+             "85% eu teria separado. Mesmo assim: no primeiro sinal de lombar "
+             "arredondando no stiff, a sessão termina ali, nos exercícios 4 a 6."),
+            ("O remo vem depois de treze séries de dobra", "No ergômetro, cansado, "
+             "a coluna arredonda na volta do movimento e ninguém percebe. "
+             "<b>Costas retas nos 30 segundos; se arredondar, encerre o "
+             "intervalo.</b> O condicionamento de um bloco de remo não vale uma "
+             "lombar irritada numa semana de jogo."),
+        ]),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3018,7 +3142,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "velocidade": VELOCIDADE,
           "agilidade_posicao": AGILIDADE_POSICAO,
           "pre_competicao": PRE_COMPETICAO, "forca_completa": FORCA_COMPLETA,
-          "tres_dias": TRES_DIAS}
+          "tres_dias": TRES_DIAS,
+          "explosivo_rotacional": EXPLOSIVO_ROTACIONAL}
 
 
 def main():
