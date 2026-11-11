@@ -3009,21 +3009,22 @@ TRES_DIAS = {
 EXPLOSIVO_ROTACIONAL = {
     "arquivo": "ELASE-explosivo-rotacional.pdf",
     "meta_titulo": "ELASE - Explosivo e rotacional",
-    "meta_assunto": "Tres barras explosivas, bloco de remo e fluxo unilateral",
+    "meta_assunto": "Tres barras explosivas, puxada fechada e fluxo unilateral",
     "titulo": "Explosivo e rotacional",
     "titulo_verso": "O fluxo, os 30% e a regra da série",
-    "protocolo": "Três barras entre 30 e 55% &nbsp;&middot;&nbsp; a barra decide a "
-                 "série &nbsp;&middot;&nbsp; 25 séries",
+    "protocolo": "Quatro exercícios entre 30 e 60% &nbsp;&middot;&nbsp; a barra "
+                 "decide a série &nbsp;&middot;&nbsp; 23 séries",
     "rotulo_carga": "CARGA",
     "larguras": [190, 52, 44, 46],
     "abertura":
-        "<b>Esta sessão é explosiva, não pesada:</b> três barras entre 30 e 55%, "
-        "um bloco de remo e um fluxo de coordenação. <b>Para quem não "
+        "<b>Esta sessão é explosiva, não pesada:</b> quatro exercícios entre 30 "
+        "e 60% e um fluxo de coordenação. Nenhuma carga alta. <b>Para quem não "
         "compete</b> — o sub-19 e os quatro do adulto — ela serve já. <b>Para "
-        "quem joga sábado e domingo não cabe nestes três dias:</b> são 25 séries e um "
-        "bloco de condicionamento, mais do que o afunilamento permite. Para "
-        "esses, é a sessão de <b>volta</b>, na segunda ou terça depois dos dois "
-        "jogos — carga leve e rápida acorda o sistema sem cobrar nada dele.",
+        "quem joga sábado e domingo ainda não cabe nestes três dias:</b> trocar "
+        "o remo pela puxada deixou a sessão mais leve, mas são <b>23 séries</b> "
+        "contra as 12 da ficha <i>Os três dias</i> — volume demais para D-2 e "
+        "D-1. Para esses, é a sessão de <b>volta</b>, na segunda ou terça depois "
+        "dos dois jogos.",
     "aquecimento_titulo": "Aquecimento — o quadril e o tronco antes da barra",
     "aquecimento_nota": "Metade da sessão é dobra de quadril e a outra metade é "
                         "rotação. O aquecimento prepara as duas, e a rampa do "
@@ -3048,9 +3049,9 @@ EXPLOSIVO_ROTACIONAL = {
         ("Stiff explosivo",
          "explosivo &middot; posterior — sobe rápido, desce no controle",
          "4 × 5", "2 min", "50%"),
-        ("Remada no remo (ergômetro)",
-         "condicionamento &middot; 30 s forte, 60 s leve entre",
-         "6 × 30 s", "60 s", "forte"),
+        ("Puxada fechada",
+         "explosivo &middot; puxar vertical — volta no controle",
+         "4 × 5", "2 min", "60%"),
         ("Rotação no cabo",
          "rotação &middot; 6 de cada lado, soltando rápido",
          "3 × 6", "1 min", "média"),
@@ -3059,18 +3060,16 @@ EXPLOSIVO_ROTACIONAL = {
          "3 × 4", "90 s", "leve"),
     ],
     "nota_tabela":
-        "A remada curvada, o clean e o stiff saem da sua tabela de 1RM. "
-        "<b>O remo, a rotação e o fluxo não têm referência:</b> no "
-        "remo você puxa forte sem perder a postura; na rotação, a carga certa é "
-        "a maior com que você ainda solta o movimento <b>rápido</b> nas seis "
-        "repetições; no fluxo, halteres leves, 6 a 10 kg, porque ali o que "
-        "limita é o equilíbrio e não a força.",
+        "<b>Quatro dos seis saem da sua tabela de 1RM:</b> remada curvada, "
+        "clean, stiff e puxada fechada. <b>A rotação e o fluxo não têm "
+        "referência</b> — na rotação, a carga certa é a maior com que você ainda "
+        "solta o movimento <b>rápido</b> nas seis repetições; no fluxo, halteres "
+        "leves, 6 a 10 kg, porque ali o que limita é o equilíbrio e não a força.",
     "caixa_duracao":
-        "<b>Duração prevista: 55 a 70 minutos</b> — 25 séries. <b>Se o tempo "
-        "apertar, corte o remo</b> (o exercício 4): é o único que não depende "
-        "de barra nem de coordenação, e é o que menos se perde ao ficar de fora "
-        "de uma sessão. Corte o fluxo só em último caso — ele é o único trabalho "
-        "de controle do dia.",
+        "<b>Duração prevista: 55 a 70 minutos</b> — 23 séries. <b>Se o tempo "
+        "apertar, corte a rotação no cabo</b> (o exercício 5): é o menor bloco "
+        "do dia e o único que você repõe em qualquer outra sessão da semana. "
+        "<b>Não corte o fluxo</b> — ele é o único trabalho de controle do dia.",
     "verso": [
         ("h", "O fluxo unilateral, movimento por movimento"),
         ("grade", ["MOVIMENTO", "COMO SE FAZ", "O QUE ELE COBRA"], [
@@ -3119,11 +3118,14 @@ EXPLOSIVO_ROTACIONAL = {
              "<b>Mantive a sua ordem</b> porque a 30-55% isso é tranquilo; a "
              "85% eu teria separado. Mesmo assim: no primeiro sinal de lombar "
              "arredondando no stiff, a sessão termina ali, nos exercícios 4 a 6."),
-            ("O remo vem depois de treze séries de dobra", "No ergômetro, cansado, "
-             "a coluna arredonda na volta do movimento e ninguém percebe. "
-             "<b>Costas retas nos 30 segundos; se arredondar, encerre o "
-             "intervalo.</b> O condicionamento de um bloco de remo não vale uma "
-             "lombar irritada numa semana de jogo."),
+            ("Quem vai falhar primeiro é a pegada", "Com a puxada no lugar do "
+             "remo, o dia soma <b>55 repetições de puxar</b> — 20 na remada "
+             "curvada, 15 no clean e 20 na puxada fechada. A pegada cede antes "
+             "das costas, e aí a série acaba por um motivo que não é o que a "
+             "gente queria treinar. <b>Na puxada fechada, use strap assim que a "
+             "mão começar a abrir</b>: sem ele o exercício vira treino de "
+             "antebraço. Na remada curvada e no clean, não — ali segurar a barra "
+             "faz parte do movimento."),
         ]),
         ("espaco", 2),
     ],
