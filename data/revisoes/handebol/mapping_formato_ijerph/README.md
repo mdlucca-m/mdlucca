@@ -34,3 +34,19 @@ Gerador: `corrigidos/modelo_mdpi/gerar_ijerph.py` (figuras novas em `figs_ijerph
 - Resultados retirados da extração com citação literal conferida (`DESFECHOS_199.xlsx`); amostra e delineamento
   corrigidos pela leitura integral quando diferem da planilha. Gerador: `gerar_intervencoes_mapping.py` (dados em
   `intervencoes_detalhe.py`).
+
+## Revisão de 11/11/2026 (comentários do orientador)
+- `mapping_review_revisado_comentarios.docx` / `.pdf`: versão ABNT do MAPPING REVIEW revisada a partir dos comentários
+  no arquivo enviado. Mudanças:
+  - questões de pesquisa movidas para o Método;
+  - revisões de mapeamento do Lape citadas;
+  - período da busca ajustado;
+  - análise de agrupamento (cluster) descrita no Método (2.5);
+  - resultados organizados por QP, com pergunta e resposta direta;
+  - Tabela 3, com a síntese das respostas;
+  - conclusão organizada por QP;
+  - Quadro 1 simplificado;
+  - números das intervenções e Apêndice B corrigidos pela extração conferida;
+  - frase sobre a GRADE removida;
+  - referências não citadas removidas.
+- Script de revisão: `revisar_comentarios_orientador.py`, aplicado sobre o docx enviado.
