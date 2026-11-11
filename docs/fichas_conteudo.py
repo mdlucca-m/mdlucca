@@ -2891,6 +2891,120 @@ FORCA_COMPLETA = {
     ],
 }
 
+# ════════════════════════════════════════════════════════════════════════════
+# OS TRÊS DIAS — a última carga, e o mapa até o segundo jogo
+# ════════════════════════════════════════════════════════════════════════════
+# Com dois jogos, o afunilamento deixa de proteger o primeiro e passa a proteger
+# o SEGUNDO, que é onde a fadiga acumulada aparece. Por isso a sessão de hoje é
+# mais leve do que um D-3 normal pediria: 12 séries, nada até a falha. O verso é
+# o mapa dos três dias e do intervalo entre os dois jogos.
+TRES_DIAS = {
+    "arquivo": "ELASE-tres-dias.pdf",
+    "meta_titulo": "ELASE - Os tres dias ate a competicao",
+    "meta_assunto": "Ultima carga em D-3 e o mapa ate o segundo jogo",
+    "titulo": "Os três dias",
+    "titulo_verso": "O mapa até o segundo jogo",
+    "protocolo": "Quarta, 11/11 &nbsp;&middot;&nbsp; a última carga antes do jogo "
+                 "&nbsp;&middot;&nbsp; 12 séries, nada até a falha",
+    "rotulo_carga": "CARGA",
+    "larguras": [200, 46, 44, 44],
+    "abertura":
+        "<b>Hoje é o último dia em que carga ainda cabe.</b> A 80% e três "
+        "repetições, a fadiga some em cerca de 48 horas — dá tempo. A partir de "
+        "amanhã não dá mais, e o que for feito aparece no jogo. <b>São dois "
+        "jogos, e isso muda o alvo:</b> o afunilamento deixa de proteger o "
+        "primeiro e passa a proteger o <b>segundo</b>, que é onde a fadiga "
+        "acumulada aparece. Por isso esta sessão é mais leve do que um D-3 "
+        "normal pediria.",
+    "aquecimento_titulo": "Aquecimento — rampa curta, porque a sessão é curta",
+    "aquecimento_nota": "A rampa sobe até perto de 80% e para. Nada de série "
+                        "extra: hoje o aquecimento é a maior parte do volume.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta leve e mobilidade de tornozelo, quadril e torácica",
+         "10 min", "a do app, sem cansar"],
+        ["Rotadores externos com elástico", "2 × 12", "antes do supino"],
+        ["Rampa: 45%, 60% e 72% do agachamento", "5, 3 e 2", "2 min entre elas"],
+    ],
+    "exercicios": [
+        ("Agachamento",
+         "carga &middot; perna — 3 repetições, nenhuma difícil",
+         "3 × 3", "3 min", "80%"),
+        ("Agachamento com salto com peso",
+         "potência &middot; perna — acima de 1,0 m/s",
+         "3 × 4", "2 min", "25%"),
+        ("Supino saindo do peito",
+         "potência &middot; empurrar — barra PARADA no peito",
+         "3 × 3", "2,5 min", "60%"),
+        ("Remada curvada com barra",
+         "carga &middot; puxar — tronco PARADO",
+         "3 × 4", "2 min", "75%"),
+    ],
+    "nota_tabela":
+        "Os quatro saem da sua tabela de 1RM. <b>Nenhuma série vai até a falha, "
+        "nem perto dela</b> — se a terceira repetição do agachamento parecer "
+        "difícil, tire peso na série seguinte. Hoje a carga certa é a que você "
+        "faria mais duas vezes sem mudar nada. <b>Não tente subir nenhuma carga "
+        "hoje.</b>",
+    "caixa_duracao":
+        "<b>Duração prevista: 40 a 45 minutos</b> — 12 séries, e acabou. "
+        "<b>Se a quadra de hoje for pesada, faça só o agachamento e o supino</b>, "
+        "em 2 séries cada. Entre a sala e a quadra, quem decide é a quadra: "
+        "faltando três dias, nenhuma série de sala vale um treino tático ruim.",
+    "verso": [
+        ("h", "Dia a dia, da quarta ao domingo"),
+        ("grade", ["QUANDO", "SALA", "POR QUÊ"], [
+            ["<b>Quarta 11/11</b><br/>hoje, D-3",
+             "<b>esta ficha</b> — 12 séries, nada até a falha",
+             "é a última carga que dá tempo de ir embora. A 80% em 3 repetições, "
+             "a fadiga some em ~48 h"],
+            ["<b>Quinta 12/11</b><br/>D-2",
+             "<b>nada</b>, ou só os dois arremessos de medicine ball",
+             "o corpo já não ganha nada aqui — só pode perder. Quadra normal, "
+             "sala fechada"],
+            ["<b>Sexta 13/11</b><br/>D-1",
+             "<b>Pré-competição</b> — 13 séries, 30 min",
+             "acorda o braço sem cansar. <b>Se a quadra de sexta for pesada, "
+             "pule</b>: a ficha é opcional, o descanso não"],
+            ["<b>Sábado 14/11</b><br/>jogo 1",
+             "nada além do aquecimento do jogo",
+             "—"],
+            ["<b>Entre os dois jogos</b>",
+             "caminhada leve, mobilidade, <b>zero sala</b>",
+             "o segundo jogo é onde a fadiga aparece. Tudo o que for feito aqui "
+             "sai do saque e do bloqueio de domingo"],
+        ], [0.18, 0.32, 0.50]),
+        ("espaco", 3),
+        ("caixa", "<b>Dois jogos mudam o alvo.</b> Com um jogo só, o afunilamento "
+                  "chega afiado no sábado e o que vier depois não importa. Com "
+                  "dois, o que importa é chegar <b>inteiro no domingo</b> — e aí "
+                  "o erro caro deixa de ser treinar de menos e passa a ser "
+                  "treinar de mais. <b>Na dúvida, em qualquer um dos três dias, "
+                  "faça menos.</b>", AMBAR_CLARO, AMBAR),
+        ("espaco", 3),
+        ("h", "O que não fazer nestes três dias"),
+        ("notas", [
+            ("Nada de máximo, nada de novo", "<b>Nenhuma tentativa de 1RM, nenhum "
+             "exercício que você não conheça e nenhuma excêntrica lenta.</b> "
+             "Carga máxima cobra no sistema nervoso por 48 a 72 horas; exercício "
+             "novo e descida lenta deixam dor muscular. Os três aparecem "
+             "exatamente no fim de semana."),
+            ("Nada de “recuperar” treino perdido", "Quem faltou nas "
+             "últimas semanas <b>não compensa agora</b> — faz esta mesma sessão, "
+             "igual aos outros. Três dias antes de competir, treino atrasado é "
+             "prejuízo, não investimento."),
+            ("O sono é o treino destes três dias", "O que ainda dá para melhorar "
+             "até sábado não está na sala: está em <b>dormir uma hora a mais</b> "
+             "nas três noites e em comer normalmente. É o único ganho disponível "
+             "neste prazo — e é um ganho real."),
+            ("Se alguém chegar dolorido", "<b>Avise a comissão antes de treinar</b>, "
+             "não depois. Dor muscular hoje significa que a semana passada "
+             "cobrou, e aí esta sessão vira 2 séries de agachamento e mais nada."),
+        ]),
+        ("espaco", 2),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -2903,7 +3017,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "complexos": COMPLEXOS,
           "velocidade": VELOCIDADE,
           "agilidade_posicao": AGILIDADE_POSICAO,
-          "pre_competicao": PRE_COMPETICAO, "forca_completa": FORCA_COMPLETA}
+          "pre_competicao": PRE_COMPETICAO, "forca_completa": FORCA_COMPLETA,
+          "tres_dias": TRES_DIAS}
 
 
 def main():
