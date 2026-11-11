@@ -3131,6 +3131,134 @@ EXPLOSIVO_ROTACIONAL = {
     ],
 }
 
+
+
+STIFF_COMBINADOS = {
+    "arquivo": "ELASE-stiff-combinados.pdf",
+    "meta_titulo": "ELASE - Stiff em dois combinados",
+    "meta_assunto": "Stiff com remada na polia e fluxo unilateral com halteres",
+    "titulo": "Stiff em dois combinados",
+    "titulo_verso": "Os dois, movimento por movimento",
+    "protocolo": "Dois exercícios, cinco movimentos &nbsp;&middot;&nbsp; carga leve "
+                 "&nbsp;&middot;&nbsp; 8 séries, 35 a 45 minutos",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 46],
+    "abertura":
+        "<b>São dois exercícios, mas cinco movimentos.</b> Nos dois o stiff é a "
+        "base: no primeiro ele <b>segura</b> a posição enquanto a remada "
+        "acontece dentro dela; no segundo ele <b>abre</b> uma sequência que "
+        "continua no agachamento lateral e termina no desenvolvimento. É uma "
+        "sessão curta e de controle, não de carga. <b>Combinado não é "
+        "complexo:</b> aqui um movimento acontece <i>dentro</i> do outro, com "
+        "carga leve, e o que se treina é controle sob fadiga local — na ficha "
+        "<i>Três complexos</i> os exercícios são inteiros e em sequência, e na "
+        "<i>Contraste</i> há 3 minutos entre o pesado e o explosivo. "
+        "<b>Esta ficha não entra nos três dias até os jogos</b> — o motivo está "
+        "no verso, e é o stiff unilateral. Serve já para o sub-19 e os quatro do "
+        "adulto que não competem, e é uma boa sessão de volta depois do segundo "
+        "jogo.",
+    "aquecimento_titulo": "Aquecimento — o posterior e o ombro, que é o que os dois cobram",
+    "aquecimento_nota": "O aquecimento aqui vale mais que o normal: os dois "
+                        "exercícios são combinados, e combinado mal aquecido "
+                        "quebra no movimento mais fraco da sequência.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda leve e mobilidade de quadril e torácica",
+         "10 min", "a do app"],
+        ["Ponte de glúteo e bird-dog", "2 × 10", "acorda o posterior"],
+        ["Stiff com barra vazia", "2 × 8", "o padrão antes da polia"],
+        ["Stiff unilateral sem carga, só equilíbrio", "2 × 5 cada lado",
+         "aqui você descobre o lado pior"],
+        ["Rotadores externos com elástico", "2 × 12", "antes do desenvolvimento"],
+    ],
+    "exercicios": [
+        ("Stiff com remada na polia",
+         "combinado &middot; a remada acontece DENTRO do stiff",
+         "4 × 8", "90 s", "média"),
+        ("Fluxo unilateral com halteres",
+         "combinado &middot; 4 ciclos em CADA lado — ver o verso",
+         "4 × 4", "90 s", "leve"),
+    ],
+    "nota_tabela":
+        "<b>Nenhum dos dois sai da tabela de 1RM</b>, e nem deveria: em "
+        "movimento combinado quem manda na carga é o <b>elo mais fraco da "
+        "sequência</b>, não o mais forte. Na polia, a carga certa é a maior com "
+        "que você mantém o tronco parado nas oito remadas — se o tronco sobe "
+        "junto, está pesado. No fluxo, halteres de 6 a 10 kg: quem limita ali é "
+        "o equilíbrio na perna de apoio e o desenvolvimento no fim, nunca o "
+        "stiff do começo.",
+    "caixa_duracao":
+        "<b>Duração prevista: 35 a 45 minutos</b> — 8 séries, e é curta de "
+        "propósito. <b>Se sobrar tempo e vontade, não acrescente exercício: "
+        "acrescente uma série em cada um</b> e faça as repetições mais devagar. "
+        "O ganho destes dois está na qualidade de cada ciclo, não no número "
+        "deles — é a mesma lógica da ficha <i>Regenerativo</i>.",
+    "verso": [
+        ("h", "1. Stiff com remada na polia"),
+        ("grade", ["O QUE FAZER", "COMO", "O ERRO QUE APARECE"], [
+            ["<b>A posição</b><br/>é ela que faz o exercício",
+             "de frente para a polia baixa, pegada nas duas mãos. Dobra o "
+             "quadril até o tronco ficar perto do paralelo, joelhos pouco "
+             "dobrados, coluna reta. <b>Fica nessa posição o resto da série.</b>",
+             "subir o tronco entre uma remada e outra — aí vira remada curvada "
+             "comum e o posterior sai do exercício"],
+            ["<b>As 8 remadas</b><br/>é o que se move",
+             "sem sair da posição, puxa a polia até perto do umbigo e volta no "
+             "controle. Oito vezes. Só os braços e as escápulas se movem.",
+             "puxar com o braço e deixar a escápula parada — o movimento começa "
+             "na escápula e só depois dobra o cotovelo"],
+            ["<b>A volta</b>",
+             "só depois da oitava remada o quadril estende e você fica em pé. "
+             "Descansa 90 s em pé.",
+             "soltar a posição no meio da série. Se precisar disso, a carga "
+             "está alta"],
+        ], [0.24, 0.42, 0.34]),
+        ("espaco", 3),
+        ("h", "2. Fluxo unilateral com halteres"),
+        ("grade", ["MOVIMENTO", "COMO SE FAZ", "O QUE ELE COBRA"], [
+            ["<b>1. Stiff unilateral</b>",
+             "sobre uma perna, os halteres descem pela frente da canela, tronco "
+             "até perto do paralelo, perna livre estendida atrás.",
+             "equilíbrio de quadril e posterior da perna de apoio"],
+            ["<b>2. Agachamento lateral</b>",
+             "de pé, um passo largo para o lado <b>dessa mesma perna</b>, senta "
+             "nesse quadril com o outro joelho estendido e volta ao centro.",
+             "adutor e amplitude de quadril no plano de lado"],
+            ["<b>3. Desenvolvimento</b>",
+             "no centro, os dois halteres sobem acima da cabeça, tronco firme, "
+             "<b>sem arquear a lombar</b> para ajudar.",
+             "ombro e o tronco que acabou de ser desequilibrado"],
+        ], [0.22, 0.44, 0.34]),
+        ("espaco", 3),
+        ("caixa", "<b>Um ciclo são os três em sequência, sem apoiar os halteres "
+                  "no chão.</b> Quatro ciclos num lado, troca, quatro do outro — "
+                  "isso é <b>uma</b> série, e são quatro. Se o equilíbrio falhar "
+                  "no terceiro ciclo, use halter mais leve.",
+                  VERDE_CLARO, VERDE),
+        ("espaco", 2),
+        ("h", "Por que esta ficha fica fora dos três dias"),
+        ("notas", [
+            ("O stiff unilateral é o campeão de dor tardia", "De tudo o que há "
+             "nas suas fichas, <b>é o que mais produz dor muscular nos dias "
+             "seguintes</b>: excêntrica de isquiotibial numa perna só, com "
+             "amplitude grande. E a dor não chega no mesmo dia: "
+             "<b>ela aparece 24 a 48 horas depois</b>. Feita amanhã, cai em cima "
+             "do jogo de sábado; feita na sexta, cai no de domingo. O problema "
+             "aqui não é o cansaço — é o atraso."),
+            ("O fluxo se repete na ficha Explosivo e rotacional", "É o mesmo "
+             "exercício 6 de lá. Se as duas fichas rodarem na mesma semana, ele "
+             "aparece duas vezes — <b>o que está bom nesta carga</b>, porque ele "
+             "é coordenação e não força. Só não coloque numa terceira: ele rende "
+             "frequente e leve, e para de render quando vira volume."),
+            ("Anote o lado pior", "No aquecimento dá para sentir qual perna "
+             "segura menos o stiff unilateral. <b>Anote qual é</b> e mande com a "
+             "PSE: diferença entre lados é a informação mais útil que esta sessão "
+             "produz."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3145,7 +3273,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "agilidade_posicao": AGILIDADE_POSICAO,
           "pre_competicao": PRE_COMPETICAO, "forca_completa": FORCA_COMPLETA,
           "tres_dias": TRES_DIAS,
-          "explosivo_rotacional": EXPLOSIVO_ROTACIONAL}
+          "explosivo_rotacional": EXPLOSIVO_ROTACIONAL,
+          "stiff_combinados": STIFF_COMBINADOS}
 
 
 def main():
