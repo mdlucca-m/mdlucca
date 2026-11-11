@@ -3259,6 +3259,138 @@ STIFF_COMBINADOS = {
     ],
 }
 
+
+
+EXPLOSIVO_COMBINADO = {
+    "arquivo": "ELASE-explosivo-combinado.pdf",
+    "meta_titulo": "ELASE - Explosivo e combinado",
+    "meta_assunto": "Quatro barras explosivas, rotacao e os dois combinados",
+    "titulo": "Explosivo e combinado",
+    "titulo_verso": "Os combinados e o que decide cada série",
+    "protocolo": "Sete exercícios, dez movimentos &nbsp;&middot;&nbsp; a barra "
+                 "decide a série &nbsp;&middot;&nbsp; 28 séries",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 46],
+    "abertura":
+        "<b>As duas fichas viraram uma</b>, e o fluxo, que aparecia nas duas, "
+        "entra uma vez só: <b>28 séries, 75 a 85 minutos</b>. <b>Repare nos três "
+        "stiffs</b> — o explosivo (3), o sustentado na polia (6) e o unilateral "
+        "do fluxo (7) — mais a remada curvada (1), que também segura a dobra de "
+        "quadril. É o teto de posterior num dia só; a caixa amarela diz o que "
+        "cortar. <b>Não entra nos três dias até os jogos</b>, pelo motivo do verso.",
+    "aquecimento_titulo": "Aquecimento — quadril, tronco e ombro, porque o dia cobra os três",
+    "aquecimento_nota": "A rampa do clean vale mais que as outras: é o movimento "
+                        "mais técnico do dia, e é o único que fica pior quando "
+                        "entra frio.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda, mobilidade de quadril e torácica, rotadores "
+         "com elástico", "12 min", "a do app, mais o ombro"],
+        ["Barra vazia: stiff, remada e clean do meio da coxa", "8 de cada",
+         "o padrão antes da carga"],
+        ["Stiff unilateral sem carga e rampa do clean a 15% e 25%",
+         "5 cada lado, 3 e 3", "aqui aparece o lado pior"],
+    ],
+    "exercicios": [
+        ("Remada curvada explosiva",
+         "explosivo &middot; puxar — a barra decide a série",
+         "4 × 5", "2 min", "55%"),
+        ("Clean explosivo",
+         "explosivo &middot; corpo todo — 30% é velocidade",
+         "5 × 3", "2 min", "30%"),
+        ("Stiff explosivo",
+         "explosivo &middot; posterior — sobe rápido, desce controlado",
+         "4 × 5", "2 min", "50%"),
+        ("Puxada fechada",
+         "explosivo &middot; puxar vertical — volta no controle",
+         "4 × 5", "2 min", "60%"),
+        ("Rotação no cabo",
+         "rotação &middot; 6 de cada lado, soltando rápido",
+         "3 × 6", "1 min", "média"),
+        ("Stiff com remada na polia",
+         "combinado &middot; a remada acontece DENTRO do stiff",
+         "4 × 8", "90 s", "média"),
+        ("Fluxo unilateral com halteres",
+         "combinado &middot; 4 ciclos em CADA lado — ver o verso",
+         "4 × 4", "90 s", "leve"),
+    ],
+    "nota_tabela":
+        "<b>Quatro dos sete saem da tabela de 1RM:</b> remada curvada, clean, "
+        "stiff e puxada. Nos outros três manda o <b>elo mais fraco</b> — na "
+        "rotação, a maior carga que ainda sai rápido; na polia, a maior com que "
+        "o tronco fica parado nas oito remadas; no fluxo, 6 a 10 kg.",
+    "caixa_duracao":
+        "<b>Duração prevista: 75 a 85 minutos</b> — 28 séries. <b>Versão curta, "
+        "se não couber:</b> tire a rotação (5) e baixe o stiff explosivo (3) para "
+        "2 séries — ficam 23 séries em ~60 min, sem perder exercício nenhum. "
+        "<b>Não corte o fluxo nem a puxada.</b>",
+    "verso": [
+        ("h", "6. Stiff com remada na polia"),
+        ("grade", ["O QUE FAZER", "COMO", "O ERRO QUE APARECE"], [
+            ["<b>A posição</b><br/>é ela que faz o exercício",
+             "de frente para a polia baixa. Dobra o quadril até o tronco ficar "
+             "perto do paralelo, joelhos pouco dobrados, coluna reta. <b>Fica "
+             "assim o resto da série.</b>",
+             "subir o tronco entre uma remada e outra — aí vira remada curvada e "
+             "o posterior sai do exercício"],
+            ["<b>As 8 remadas</b><br/>é o que se move",
+             "sem sair da posição, puxa até perto do umbigo e volta no controle. "
+             "Só braços e escápulas se movem.",
+             "puxar com o braço e deixar a escápula parada"],
+            ["<b>A volta</b>",
+             "só depois da oitava o quadril estende. Descansa 90 s em pé.",
+             "soltar a posição no meio da série. Se precisar, a carga está alta"],
+        ], [0.24, 0.42, 0.34]),
+        ("espaco", 2),
+        ("h", "7. Fluxo unilateral com halteres"),
+        ("grade", ["MOVIMENTO", "COMO SE FAZ", "O QUE ELE COBRA"], [
+            ["<b>1. Stiff unilateral</b>",
+             "sobre uma perna, os halteres descem pela frente da canela, tronco "
+             "até perto do paralelo, perna livre estendida atrás.",
+             "equilíbrio de quadril e posterior da perna de apoio"],
+            ["<b>2. Agachamento lateral</b>",
+             "de pé, passo largo para o lado <b>dessa mesma perna</b>, senta "
+             "nesse quadril com o outro joelho estendido, volta ao centro.",
+             "adutor e amplitude de quadril no plano de lado"],
+            ["<b>3. Desenvolvimento</b>",
+             "no centro, os halteres sobem acima da cabeça, <b>sem arquear a "
+             "lombar</b> para ajudar.",
+             "ombro e o tronco que acabou de ser desequilibrado"],
+        ], [0.22, 0.44, 0.34]),
+        ("espaco", 2),
+        ("caixa", "<b>Um ciclo são os três em sequência, sem apoiar os halteres.</b> "
+                  "Quatro ciclos num lado, troca, quatro do outro — isso é "
+                  "<b>uma</b> série, e são quatro. <b>Ele cai em último, com 24 "
+                  "séries nas pernas antes.</b> Equilíbrio é a primeira coisa que "
+                  "a fadiga tira: aqui halter mais leve do que você usaria "
+                  "descansado, não mais pesado.", VERDE_CLARO, VERDE),
+        ("espaco", 2),
+        ("h", "O que decide cada série"),
+        ("notas", [
+            ("Nas quatro primeiras, quem encerra é a barra", "<b>A série acaba "
+             "quando a barra fica lenta</b>, não quando a repetição fica difícil "
+             "— mesma regra da ficha <i>Velocidade</i>. E os 30% do clean são "
+             "<b>abaixo</b> da faixa de maior potência, que fica em 60-70%: a "
+             "essa carga o exercício treina velocidade e padrão, não potência. "
+             "Se o alvo virar potência, suba para 60-65% mantendo 3 repetições."),
+            ("Três stiffs e uma remada curvada no mesmo dia", "Os quatro carregam "
+             "o posterior na mesma posição de dobra. A 30-60% isso passa, mas é "
+             "o <b>teto</b> do que cabe numa sessão: <b>não acrescente nenhum "
+             "outro exercício de quadril aqui</b>, e no primeiro sinal de lombar "
+             "arredondando no stiff da polia, encerre esse exercício e vá para o "
+             "fluxo."),
+            ("Por que a ficha fica fora dos três dias", "Não é pela carga, é pelo "
+             "atraso. O stiff unilateral do fluxo é excêntrica de isquiotibial "
+             "numa perna só — o que mais produz dor muscular tardia — e o pico "
+             "dela chega <b>24 a 48 horas depois</b>. Feita amanhã, cai em cima "
+             "do jogo de sábado; feita na sexta, cai no de domingo. Serve já para "
+             "o sub-19 e os quatro do adulto que não competem, e é uma boa sessão "
+             "de volta depois do segundo jogo."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3274,7 +3406,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "pre_competicao": PRE_COMPETICAO, "forca_completa": FORCA_COMPLETA,
           "tres_dias": TRES_DIAS,
           "explosivo_rotacional": EXPLOSIVO_ROTACIONAL,
-          "stiff_combinados": STIFF_COMBINADOS}
+          "stiff_combinados": STIFF_COMBINADOS,
+          "explosivo_combinado": EXPLOSIVO_COMBINADO}
 
 
 def main():
