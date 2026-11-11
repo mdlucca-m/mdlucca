@@ -85,8 +85,8 @@ set_text(K[3], "Esta revisão de mapeamento analisou o estado da arte das evidê
          "identificou cinco temas, liderados por carga, recuperação e bem-estar (109 estudos) e por motivação e clima "
          "motivacional (67). Desde 2010, a produção cresceu de forma acelerada, e o domínio de sono, bem-estar e "
          "recuperação superou o de motivação e autoeficácia. Apenas 27 estudos adotaram delineamento experimental, e 24 "
-         "testaram intervenções; 11 relataram efeito e 10 resultados mistos, com resultados mais favoráveis no treino "
-         "de habilidades psicológicas (efeito em 6 de 10 estudos), embora com amostras pequenas e relato incompleto. "
+         "testaram intervenções; 12 relataram efeito e 10 resultados mistos, com resultados mais favoráveis no treino "
+         "de habilidades psicológicas (efeito em 7 de 10 estudos), embora com amostras pequenas e relato incompleto. "
          "Conclui-se que a pesquisa psicológica no handebol é ampla e recente, porém predominantemente observacional, e "
          "que as variáveis mais descritas ainda são as menos testadas por meio de intervenções.")
 set_text(K[6], "This mapping review analysed the state of the art of scientific evidence on the psychological variables "
@@ -100,9 +100,9 @@ set_text(K[6], "This mapping review analysed the state of the art of scientific 
          "predominated, whereas burnout and mental health accounted for 14 studies. The cluster analysis identified "
          "five themes, led by load, recovery and well-being (109 studies) and by motivation and motivational climate "
          "(67). Since 2010, the number of studies has grown rapidly, and sleep, well-being and recovery have overtaken "
-         "motivation and self-efficacy. Only 27 studies used experimental designs and 24 tested interventions; 11 "
+         "motivation and self-efficacy. Only 27 studies used experimental designs and 24 tested interventions; 12 "
          "reported effects and 10 mixed results, with the most favourable results for psychological skills training "
-         "(effects in 6 of 10 studies), although samples were small and reporting was incomplete. Psychological "
+         "(effects in 7 of 10 studies), although samples were small and reporting was incomplete. Psychological "
          "research in handball is broad and recent but predominantly observational, and the most described variables "
          "remain the least tested through interventions.")
 
@@ -163,7 +163,8 @@ QPS = ["Qual é o volume da produção científica e quais são as característi
        "investigadas?",
        "Quais variáveis psicológicas foram estudadas e como se distribuem e se agrupam entre os domínios?",
        "Em quais contextos, países e períodos essas variáveis foram investigadas?",
-       "Quais delineamentos foram empregados e quais são os métodos e os protocolos das intervenções testadas?",
+       "Quais delineamentos foram empregados, quais são os métodos e os protocolos das intervenções testadas e qual é "
+       "a qualidade metodológica desses estudos?",
        "Quais resultados foram relatados e quais lacunas permanecem na literatura?"]
 for i, q in enumerate(QPS, 1):
     a = novo(CORPO, f"**QP{i}.** {q}", a)
@@ -192,10 +193,11 @@ RESP = {
              "experimentais. Vinte e quatro estudos testaram intervenções, agrupadas em seis tipos: treino de "
              "habilidades psicológicas (10), feedback ou ação do treinador (4), prática do handebol (4), recuperação e "
              "sono (3), nutrição (2) e música (1). Os protocolos duraram de uma sessão a 12 semanas, com amostras de 8 "
-             "a 112 participantes (Figura 7 e Apêndice B)."),
+             "a 112 participantes (Figura 7 e Apêndice B). Pelo EPHPP, a qualidade foi forte em 5 dos 23 estudos avaliados, "
+             "moderada em 8 e fraca em 10 (Tabela 3)."),
     139: (5, "A maioria dos estudos (62,3%) relatou efeito ou associação entre as variáveis psicológicas e o "
-             "treinamento ou a competição. Entre as 24 intervenções, 11 relataram efeito, 10 resultados mistos, uma "
-             "foi apenas descritiva e duas não tiveram resultados acessíveis, com resultados mais favoráveis no treino "
+             "treinamento ou a competição. Entre as 24 intervenções, 12 relataram efeito, 10 resultados mistos, uma "
+             "foi apenas descritiva e uma não teve resultados acessíveis, com resultados mais favoráveis no treino "
              "de habilidades psicológicas. As principais lacunas são a ausência de intervenções sobre burnout e saúde "
              "mental, o pequeno número de intervenções sobre ansiedade e motivação, as amostras pequenas e a ausência "
              "de ensaios randomizados nas categorias de formação."),
@@ -255,25 +257,26 @@ set_text(K[130], "Nota: números entre parênteses: estudos que investigaram as 
 
 # QP5
 set_text(K[140], "Dos 199 estudos, 124 (62,3%) relataram efeito ou associação, 44 (22,1%) resultados mistos, 10 (5,0%) "
-         "ausência de efeito e 15 (7,5%) foram descritivos. Entre as 24 intervenções, 11 relataram efeito, 10 "
-         "resultados mistos, uma foi apenas descritiva e duas não tiveram resultados acessíveis. O treino de "
-         "habilidades psicológicas teve efeito em 6 de 10 estudos e resultados mistos em outros 3, com efeitos sobre a "
+         "ausência de efeito e 15 (7,5%) foram descritivos. Entre as 24 intervenções, 12 relataram efeito, 10 "
+         "resultados mistos, uma foi apenas descritiva e uma não teve resultados acessíveis. O treino de "
+         "habilidades psicológicas teve efeito em 7 de 10 estudos e resultados mistos em outros 3, com efeitos sobre a "
          "autoeficácia, a motivação autodeterminada, a tomada de decisão, o bem-estar mental e a demanda mental "
-         "percebida, além do desempenho no arremesso. O feedback e a ação do treinador tiveram efeito em 1 de 4 "
+         "percebida, além do desempenho técnico e no arremesso. O feedback e a ação do treinador tiveram efeito em 1 de 4 "
          "estudos e resultados mistos nos demais, que dependeram do tipo de feedback e da satisfação com o treinador. "
          "A prática do handebol teve efeito em 2 de 4 estudos, sobre a motivação e a diversão; a recuperação e o sono, "
-         "em 1 de 3; a nutrição, em 1 de 2; e a música teve resultado misto. Dez intervenções foram ensaios "
-         "randomizados, mas 11 das 23 com amostra informada tiveram menos de 30 participantes (mediana de 31), e as "
-         "amostras dos estudos com efeito (mediana de 36) foram maiores que as dos demais (mediana de 24,5). Quatro das "
+         "em 1 de 3; a nutrição, em 1 de 2; e a música teve resultado misto. Na leitura integral, 14 intervenções "
+         "empregaram distribuição aleatória, quatro delas em delineamento cruzado, mas 12 das 24 tiveram menos de 30 "
+         "participantes (mediana de 31,5), e as "
+         "amostras dos estudos com efeito (mediana de 35,5) foram maiores que as dos demais (mediana de 24,5). Quatro das "
          "dez intervenções de treino psicológico avaliaram apenas o desempenho técnico, e somente 3 estudos informaram "
          "o tamanho do efeito. Quanto às lacunas, 22 das 42 combinações entre intervenção e desfecho (52%) não "
          "apresentaram estudos (Figura 7B), e a razão entre estudos que investigaram cada domínio e intervenções que o "
          "tiveram como desfecho atingiu 18 para 1 na ansiedade e 10 para 1 na motivação; burnout e saúde mental não "
          "tiveram nenhuma intervenção.")
 # tabela-síntese das respostas (nova Tabela 3)
-a = novo(CORPO, "A Tabela 3 sintetiza as respostas às cinco questões de pesquisa e indica as figuras, os quadros e as "
+a = novo(CORPO, "A Tabela 4 sintetiza as respostas às cinco questões de pesquisa e indica as figuras, os quadros e as "
          "tabelas em que cada resultado é apresentado.", K[140])
-a = novo(LEG, "Tabela 3: Síntese das respostas às cinco questões de pesquisa", a)
+a = novo(LEG, "Tabela 4: Síntese das respostas às cinco questões de pesquisa", a)
 tb = copy.deepcopy(K[80])
 a.addnext(tb)
 a = tb
@@ -289,10 +292,10 @@ LIN = [["QP", "Resposta principal", "Onde consultar"],
                "recuo da motivação", "Figuras 5 e 6; Quadro 1"],
        ["QP4", "142 estudos observacionais (71,4%) e 27 experimentais (13,6%); 24 intervenções em seis tipos, com "
                "treino de habilidades psicológicas (10) e ação do treinador (4) mais frequentes; de uma sessão a 12 "
-               "semanas", "Figura 7; Apêndice B"],
-       ["QP5", "124 estudos (62,3%) com efeito ou associação; 11 intervenções com efeito e 10 com resultados mistos; "
+               "semanas; qualidade forte em 5, moderada em 8 e fraca em 10 estudos", "Figura 7; Tabela 3; Apêndice B"],
+       ["QP5", "124 estudos (62,3%) com efeito ou associação; 12 intervenções com efeito e 10 com resultados mistos; "
                "nenhuma intervenção sobre burnout ou saúde mental; 22 das 42 combinações de intervenção e desfecho sem "
-               "estudos", "Figura 7B; Tabela 4; Apêndice B"]]
+               "estudos", "Figura 7B; Tabela 5; Apêndice B"]]
 LARG = [900, 6172, 2000]
 grid = tb.find(W("w:tblGrid")).findall(W("w:gridCol"))
 for gc, w in zip(grid, LARG):
@@ -316,12 +319,12 @@ troca(K[151], "convergem com a metanálise que associa estresse e burnout",
       "convergem com a revisão sistemática com síntese quantitativa que associa estresse e burnout")
 troca(K[161], "Esse padrão, aqui denominado lacuna de translação, decorre de delineamentos",
       "Essa distância entre as variáveis mais descritas e as mais testadas pode decorrer de delineamentos")
-troca(K[162], "Com mediana de 33 participantes", "Com mediana de 31 participantes")
+troca(K[162], "Com mediana de 33 participantes", "Com mediana de 31,5 participantes")
 troca(K[162], "nos ensaios randomizados (7 de 10) e nos quase-experimentais (6 de 11)",
-      "nos ensaios randomizados (6 de 10) e nos quase-experimentais (5 de 13)")
+      "nos estudos com distribuição aleatória (7 de 14) e nos demais (5 de 10)")
 troca(K[166], "o treino de habilidades psicológicas foi a mais frequente e a mais consistente, com efeito em 9 de 10 "
               "estudos.",
-      "o treino de habilidades psicológicas foi a mais frequente e a que reuniu mais efeitos, com efeito em 6 de 10 "
+      "o treino de habilidades psicológicas foi a mais frequente e a que reuniu mais efeitos, com efeito em 7 de 10 "
       "estudos e resultados mistos em outros 3.")
 troca(K[166], "Esses resultados convergem com as metanálises sobre autodiálogo",
       "Esses resultados convergem com as revisões com síntese quantitativa sobre autodiálogo")
@@ -336,8 +339,8 @@ troca(K[167], " Pela abordagem GRADE (GUYATT et al., 2008), apenas o treino psic
 novo(CORPO, "Quanto às próximas revisões, os 87 estudos com atletas profissionais ou de elite permitem uma revisão "
      "sistemática específica sobre a psicologia do esporte no treinamento e na competição de atletas de elite do "
      "handebol, com avaliação da qualidade metodológica e da magnitude dos efeitos.", K[171])
-troca(K[172], "A Tabela 3 converte", "A Tabela 4 converte")
-troca(K[174], "Tabela 3:", "Tabela 4:")
+troca(K[172], "A Tabela 3 converte", "A Tabela 5 converte")
+troca(K[174], "Tabela 3:", "Tabela 5:")
 troca(K[181], "das redes de coocorrência entre variáveis", "da análise de agrupamento das variáveis")
 
 # ------------------------------------------------------------------ conclusão por questão de pesquisa
@@ -352,9 +355,9 @@ CONC = ["**QP1.** A produção reúne 199 estudos, publicados entre 1994 e 2026 
         "recuperação, no treinamento; ao longo do tempo, o sono, o bem-estar e a recuperação ganharam espaço, e a "
         "motivação perdeu participação.",
         "**QP4.** Predominaram os estudos observacionais; apenas 27 estudos foram experimentais e 24 testaram "
-        "intervenções, a maioria de treino de habilidades psicológicas e de ação do treinador, com amostras pequenas e "
-        "duração pouco relatada.",
-        "**QP5.** A maioria dos estudos relatou efeito ou associação, mas, entre as intervenções, somente 11 relataram "
+        "intervenções, a maioria de treino de habilidades psicológicas e de ação do treinador, com amostras pequenas; "
+        "pelo EPHPP, apenas 5 dos 23 estudos avaliados tiveram qualidade forte.",
+        "**QP5.** A maioria dos estudos relatou efeito ou associação, mas, entre as intervenções, somente 12 relataram "
         "efeito, e nenhuma visou o burnout ou a saúde mental, o que caracteriza as principais lacunas da área."]
 a = K[188]
 for c_ in CONC:
@@ -391,9 +394,17 @@ troca(K[431], "Nota: ECR: ensaio clínico randomizado; QE: quase-experimental; n
       "integral quando diferiam da planilha. Direção: efeito, efeito ou associação relatada; misto, efeito em parte "
       "dos desfechos ou apenas dentro de um grupo; descritivo, sem teste do efeito; não determ., fonte sem resultados.")
 
+exec(open("revisar_qualidade_estrategias.py").read())
 # ------------------------------------------------------------------ referências novas e não citadas
 refs = [el for el in K[222:421] if el.tag == W("w:p") and texto(el).strip()]
-NOVAS = ["COBO, M. J. et al. An approach for detecting, quantifying, and visualizing the evolution of a research field: "
+NOVAS = ["ARMIJO-OLIVO, S. et al. Assessment of study quality for systematic reviews: a comparison of the Cochrane "
+         "Collaboration Risk of Bias Tool and the Effective Public Health Practice Project Quality Assessment Tool: "
+         "methodological research. Journal of Evaluation in Clinical Practice, v. 18, n. 1, p. 12-18, 2012. DOI: "
+         "https://doi.org/10.1111/j.1365-2753.2010.01516.x.",
+         "THOMAS, B. H. et al. A process for systematically reviewing the literature: providing the research evidence "
+         "for public health nursing interventions. Worldviews on Evidence-Based Nursing, v. 1, n. 3, p. 176-184, 2004. "
+         "DOI: https://doi.org/10.1111/j.1524-475X.2004.04006.x.",
+         "COBO, M. J. et al. An approach for detecting, quantifying, and visualizing the evolution of a research field: "
          "a practical application to the Fuzzy Sets Theory field. Journal of Informetrics, v. 5, n. 1, p. 146-166, "
          "2011. DOI: https://doi.org/10.1016/j.joi.2010.10.002.",
          "NEWMAN, M. E. J.; GIRVAN, M. Finding and evaluating community structure in networks. Physical Review E, v. "

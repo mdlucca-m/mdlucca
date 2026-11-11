@@ -50,3 +50,16 @@ Gerador: `corrigidos/modelo_mdpi/gerar_ijerph.py` (figuras novas em `figs_ijerph
   - frase sobre a GRADE removida;
   - referências não citadas removidas.
 - Script de revisão: `revisar_comentarios_orientador.py`, aplicado sobre o docx enviado.
+
+## Revisão de 11/11/2026 (qualidade e estratégias de busca, no modelo de Truppel et al., 2025)
+- Avaliação da qualidade dos estudos de intervenção pelo EPHPP (Thomas et al., 2004):
+  - método na seção 2.6;
+  - Tabela 3 nos resultados da QP4;
+  - discussão e limitações atualizadas;
+  - classificações e justificativas em `qualidade_ephpp.py`.
+  - Resultado: forte em 5, moderada em 8 e fraca em 10 dos 23 estudos avaliados; Tomar e Allen (2021) não foi localizado.
+- Leitura integral adicional dos 24 estudos de intervenção, de acesso aberto, com só o resumo em 3 estudos:
+  - correções em `intervencoes_detalhe.py` (`ATUALIZA`): país, amostra, delineamento, duração e resultados;
+  - números das intervenções atualizados: 12 com efeito e 10 com resultados mistos.
+- Apêndice C: estratégia de busca em cada uma das oito bases, na sintaxe de cada base, com os termos da Tabela 1.
+- Apêndice D: protocolo no formato do Template for a Mapping Study Protocol.
