@@ -3391,6 +3391,124 @@ EXPLOSIVO_COMBINADO = {
     ],
 }
 
+
+
+POTENCIA_VELOCIDADE = {
+    "arquivo": "ELASE-potencia-velocidade.pdf",
+    "meta_titulo": "ELASE - Potencia e velocidade",
+    "meta_assunto": "Seis exercicios entre 50 e 65 por cento, barra rapida",
+    "titulo": "Potência e velocidade",
+    "titulo_verso": "Quem treina o quê, e a ordem que eu mudaria",
+    "protocolo": "Quinta, 12/11 &nbsp;&middot;&nbsp; seis exercícios entre 50 e "
+                 "65% &nbsp;&middot;&nbsp; a barra decide a série",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 46],
+    "abertura":
+        "<b>Hoje é D-2, e potência e velocidade é justamente o tipo de trabalho "
+        "que ainda cabe aqui:</b> carga baixa, nada até a falha, fadiga que some "
+        "em horas. O problema não é o treino, é a conta — ontem teve sala e "
+        "amanhã está marcada a <i>Pré-competição</i>. Três dias seguidos é um a "
+        "mais. <b>Escolha uma das duas:</b> esta hoje (na versão curta) e nada "
+        "amanhã, ou nada hoje e a <i>Pré-competição</i> amanhã. <b>Para o sub-19 "
+        "e os quatro que não competem, ela roda completa.</b>",
+    "aquecimento_titulo": "Aquecimento — mais longo que o normal, porque tudo aqui é rápido",
+    "aquecimento_nota": "Movimento rápido com músculo frio é onde as lesões "
+                        "acontecem. A rampa do clean é a mais importante: é o "
+                        "único exercício do dia que piora quando entra frio.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda, mobilidade de quadril e torácica, rotadores "
+         "com elástico", "12 min", "a do app, mais o ombro"],
+        ["Barra vazia: supino, stiff, remada e clean do meio da coxa",
+         "8 de cada", "o padrão antes da carga"],
+        ["Rampa do clean: 35% e 50%", "3 e 3", "rápido, não forte"],
+    ],
+    "exercicios": [
+        ("Supino",
+         "velocidade &middot; barra PARADA no peito, sobe rápido",
+         "4 × 3", "2,5 min", "50%"),
+        ("Stiff",
+         "velocidade &middot; sobe rápido, desce controlado",
+         "4 × 4", "2 min", "50%"),
+        ("Remada curvada",
+         "velocidade &middot; tronco PARADO, a barra é que corre",
+         "4 × 4", "2 min", "55%"),
+        ("Clean",
+         "potência &middot; 65% é onde ele rende mais — ver o verso",
+         "4 × 3", "3 min", "65%"),
+        ("Desenvolvimento com halteres",
+         "potência &middot; sobe rápido, desce em 2 tempos",
+         "4 × 5", "2 min", "média"),
+        ("Puxada fechada na polia",
+         "velocidade &middot; puxa rápido, volta no controle",
+         "4 × 5", "2 min", "55%"),
+    ],
+    "nota_tabela":
+        "<b>Cinco dos seis saem da tabela de 1RM</b> — supino, stiff, remada "
+        "curvada, clean e puxada fechada. <b>O desenvolvimento com halteres "
+        "não tem referência:</b> use o par com que você faz 5 repetições rápidas "
+        "e ainda faria mais 4 — se a quinta já sai devagar, está pesado. Em "
+        "nenhum exercício daqui a última repetição pode ser a mais difícil.",
+    "caixa_duracao":
+        "<b>Completa: 70 a 80 minutos, 24 séries.</b> <b>Versão D-2, para quem "
+        "joga sábado: 2 séries em cada</b> — 12 séries, 35 minutos, as mesmas "
+        "cargas. Doze é exatamente o que a ficha <i>Os três dias</i> prescreveu "
+        "ontem, e é o teto do que cabe a dois dias do jogo. <b>Quem fizer a "
+        "versão curta não faz a Pré-competição amanhã.</b>",
+    "verso": [
+        ("h", "Potência e velocidade não são a mesma coisa"),
+        ("grade", ["EXERCÍCIO", "O QUE ELE TREINA AQUI", "O QUE ENCERRA A SÉRIE"], [
+            ["<b>1. Supino</b> &middot; 50%",
+             "velocidade de empurrar. A barra para no peito e sai sem embalo",
+             "quando a subida fica visivelmente mais lenta"],
+            ["<b>2. Stiff</b> &middot; 50%",
+             "velocidade de quadril. A subida é rápida, a descida não",
+             "quando o quadril para de estalar para cima"],
+            ["<b>3. Remada curvada</b> &middot; 55%",
+             "velocidade de puxar. O tronco não se mexe",
+             "quando o tronco começa a ajudar a puxada"],
+            ["<b>4. Clean</b> &middot; 65%",
+             "<b>potência</b> — é o único aqui na faixa de maior potência",
+             "quando a barra para de subir até a clavícula"],
+            ["<b>5. Desenvolvimento</b> &middot; média",
+             "<b>potência</b> de ombro, com os dois lados independentes",
+             "quando um braço chega claramente depois do outro"],
+            ["<b>6. Puxada fechada</b> &middot; 55%",
+             "velocidade de puxar vertical, sem balanço de tronco",
+             "quando você precisa jogar o corpo para trás"],
+        ], [0.22, 0.44, 0.34]),
+        ("espaco", 2),
+        ("caixa", "<b>A ordem que eu mudaria:</b> o clean em primeiro, antes de "
+                  "tudo. Ele está em quarto, depois do stiff e da remada curvada "
+                  "— e esses dois cansam exatamente o posterior e a pegada que "
+                  "ele mais precisa. A 30% isso não faria diferença; <b>a 65% "
+                  "faz</b>. Se puder trocar, a ordem vira <b>4-1-2-3-5-6</b>. "
+                  "Mantive a sua na tabela porque a escolha é sua.",
+                  AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Três coisas para fechar"),
+        ("notas", [
+            ("Por que 65% no clean aqui e 30% na outra ficha", "São alvos "
+             "diferentes. <b>A potência de pico do clean está entre 60 e 70%</b> "
+             "— é onde força e velocidade se multiplicam melhor. A 30%, como na "
+             "<i>Explosivo e rotacional</i>, a barra quase não tem massa e o que "
+             "se treina é velocidade e padrão. Você pediu <b>potência</b> e "
+             "velocidade: por isso o clean aqui está na faixa dele."),
+            ("Nenhuma série vai até a falha", "Numa sessão de velocidade a falha "
+             "não é só desnecessária — <b>ela é o oposto do exercício</b>. "
+             "Repetição lenta com carga leve não treina nem carga nem potência: "
+             "é tempo gasto a troco de fadiga. Quando a barra desacelera, a série "
+             "acabou, mesmo que faltem repetições na folha."),
+            ("A dois dias do jogo, na dúvida, menos", "Quem estiver dolorido de "
+             "ontem, com sono ruim ou vindo de quadra pesada <b>faz só o supino e "
+             "o clean, 2 séries cada, e para</b>. Nada do que está nesta folha "
+             "vale um sábado pior. Mande a PSE de qualquer jeito — ela é o que "
+             "diz à comissão se o afunilamento está funcionando."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3407,7 +3525,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "tres_dias": TRES_DIAS,
           "explosivo_rotacional": EXPLOSIVO_ROTACIONAL,
           "stiff_combinados": STIFF_COMBINADOS,
-          "explosivo_combinado": EXPLOSIVO_COMBINADO}
+          "explosivo_combinado": EXPLOSIVO_COMBINADO,
+          "potencia_velocidade": POTENCIA_VELOCIDADE}
 
 
 def main():
