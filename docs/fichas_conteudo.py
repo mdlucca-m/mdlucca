@@ -3399,18 +3399,17 @@ POTENCIA_VELOCIDADE = {
     "meta_assunto": "Seis exercicios entre 50 e 65 por cento, barra rapida",
     "titulo": "Potência e velocidade",
     "titulo_verso": "Quem treina o quê, e a ordem que eu mudaria",
-    "protocolo": "Quinta, 12/11 &nbsp;&middot;&nbsp; seis exercícios entre 50 e "
-                 "65% &nbsp;&middot;&nbsp; a barra decide a série",
+    "protocolo": "Quinta, 12/11 &nbsp;&middot;&nbsp; 4 × 6-8 em todos, entre 50 "
+                 "e 55% &nbsp;&middot;&nbsp; a barra decide a série",
     "rotulo_carga": "CARGA",
     "larguras": [190, 52, 44, 46],
     "abertura":
-        "<b>Hoje é D-2, e potência e velocidade é justamente o tipo de trabalho "
-        "que ainda cabe aqui:</b> carga baixa, nada até a falha, fadiga que some "
-        "em horas. O problema não é o treino, é a conta — ontem teve sala e "
-        "amanhã está marcada a <i>Pré-competição</i>. Três dias seguidos é um a "
-        "mais. <b>Escolha uma das duas:</b> esta hoje (na versão curta) e nada "
-        "amanhã, ou nada hoje e a <i>Pré-competição</i> amanhã. <b>Para o sub-19 "
-        "e os quatro que não competem, ela roda completa.</b>",
+        "<b>As 6-8 repetições mudam o que esta sessão é.</b> Com 3 a 5 ela era "
+        "potência de pico; com 6 a 8 vira <b>potência sustentada</b> — são 168 "
+        "repetições contra as 96 da versão anterior, 75% a mais. <b>Completa, "
+        "ela não cabe mais hoje</b>, a dois dias do jogo. Quem joga sábado faz a "
+        "versão da caixa amarela e não faz a <i>Pré-competição</i> amanhã. "
+        "<b>Para o sub-19 e os quatro que não competem, ela roda completa.</b>",
     "aquecimento_titulo": "Aquecimento — mais longo que o normal, porque tudo aqui é rápido",
     "aquecimento_nota": "Movimento rápido com músculo frio é onde as lesões "
                         "acontecem. A rampa do clean é a mais importante: é o "
@@ -3426,35 +3425,35 @@ POTENCIA_VELOCIDADE = {
     "exercicios": [
         ("Supino",
          "velocidade &middot; barra PARADA no peito, sobe rápido",
-         "4 × 3", "2,5 min", "50%"),
+         "4 × 6-8", "2,5 min", "50%"),
         ("Stiff",
          "velocidade &middot; sobe rápido, desce controlado",
-         "4 × 4", "2 min", "50%"),
+         "4 × 6-8", "2 min", "50%"),
         ("Remada curvada",
          "velocidade &middot; tronco PARADO, a barra é que corre",
-         "4 × 4", "2 min", "55%"),
+         "4 × 6-8", "2 min", "55%"),
         ("Clean",
-         "potência &middot; 65% é onde ele rende mais — ver o verso",
-         "4 × 3", "3 min", "65%"),
+         "potência &middot; 50%, não 65% — o motivo está no verso",
+         "4 × 6-8", "3 min", "50%"),
         ("Desenvolvimento com halteres",
          "potência &middot; sobe rápido, desce em 2 tempos",
-         "4 × 5", "2 min", "média"),
+         "4 × 6-8", "2 min", "média"),
         ("Puxada fechada na polia",
          "velocidade &middot; puxa rápido, volta no controle",
-         "4 × 5", "2 min", "55%"),
+         "4 × 6-8", "2 min", "55%"),
     ],
     "nota_tabela":
         "<b>Cinco dos seis saem da tabela de 1RM</b> — supino, stiff, remada "
-        "curvada, clean e puxada fechada. <b>O desenvolvimento com halteres "
-        "não tem referência:</b> use o par com que você faz 5 repetições rápidas "
-        "e ainda faria mais 4 — se a quinta já sai devagar, está pesado. Em "
-        "nenhum exercício daqui a última repetição pode ser a mais difícil.",
+        "curvada, clean e puxada fechada. <b>O desenvolvimento com halteres não "
+        "tem referência:</b> use o par com que você faz 8 repetições rápidas e "
+        "ainda faria mais 2. <b>6 a 8 é teto, não meta:</b> se a sexta já sai "
+        "devagar, a série acabou na sexta e está certo.",
     "caixa_duracao":
-        "<b>Completa: 70 a 80 minutos, 24 séries.</b> <b>Versão D-2, para quem "
-        "joga sábado: 2 séries em cada</b> — 12 séries, 35 minutos, as mesmas "
-        "cargas. Doze é exatamente o que a ficha <i>Os três dias</i> prescreveu "
-        "ontem, e é o teto do que cabe a dois dias do jogo. <b>Quem fizer a "
-        "versão curta não faz a Pré-competição amanhã.</b>",
+        "<b>Completa: 75 a 85 minutos, 24 séries, 168 repetições.</b> "
+        "<b>Versão D-2, para quem joga sábado: 2 séries de 6 em cada</b>, sem "
+        "chegar nas 8 — 12 séries, 40 minutos, as mesmas cargas. A dois dias do "
+        "jogo a faixa 6-8 vira 6 fixo: é a repetição extra que cobra, não a "
+        "carga. <b>Quem fizer a versão curta não faz a Pré-competição amanhã.</b>",
     "verso": [
         ("h", "Potência e velocidade não são a mesma coisa"),
         ("grade", ["EXERCÍCIO", "O QUE ELE TREINA AQUI", "O QUE ENCERRA A SÉRIE"], [
@@ -3467,43 +3466,46 @@ POTENCIA_VELOCIDADE = {
             ["<b>3. Remada curvada</b> &middot; 55%",
              "velocidade de puxar. O tronco não se mexe",
              "quando o tronco começa a ajudar a puxada"],
-            ["<b>4. Clean</b> &middot; 65%",
-             "<b>potência</b> — é o único aqui na faixa de maior potência",
+            ["<b>4. Clean</b> &middot; 50%",
+             "<b>potência sustentada</b> — não é a faixa de pico, ver abaixo",
              "quando a barra para de subir até a clavícula"],
             ["<b>5. Desenvolvimento</b> &middot; média",
              "<b>potência</b> de ombro, com os dois lados independentes",
-             "quando um braço chega claramente depois do outro"],
+             "quando um braço chega depois do outro"],
             ["<b>6. Puxada fechada</b> &middot; 55%",
              "velocidade de puxar vertical, sem balanço de tronco",
              "quando você precisa jogar o corpo para trás"],
         ], [0.22, 0.44, 0.34]),
         ("espaco", 2),
-        ("caixa", "<b>A ordem que eu mudaria:</b> o clean em primeiro, antes de "
-                  "tudo. Ele está em quarto, depois do stiff e da remada curvada "
-                  "— e esses dois cansam exatamente o posterior e a pegada que "
-                  "ele mais precisa. A 30% isso não faria diferença; <b>a 65% "
-                  "faz</b>. Se puder trocar, a ordem vira <b>4-1-2-3-5-6</b>. "
-                  "Mantive a sua na tabela porque a escolha é sua.",
+        ("caixa", "<b>A ordem que eu mudaria:</b> o clean em primeiro. Ele está "
+                  "em quarto, depois do stiff e da remada curvada, que cansam o "
+                  "posterior e a pegada de que ele depende — e com <b>6 a 8</b> "
+                  "repetições esses dois cansam bem mais do que cansavam com 4. "
+                  "Se puder trocar, a ordem vira <b>4-1-2-3-5-6</b>. Mantive a "
+                  "sua na tabela porque a escolha é sua.",
                   AMBAR_CLARO, AMBAR),
         ("espaco", 2),
         ("h", "Três coisas para fechar"),
         ("notas", [
-            ("Por que 65% no clean aqui e 30% na outra ficha", "São alvos "
-             "diferentes. <b>A potência de pico do clean está entre 60 e 70%</b> "
-             "— é onde força e velocidade se multiplicam melhor. A 30%, como na "
-             "<i>Explosivo e rotacional</i>, a barra quase não tem massa e o que "
-             "se treina é velocidade e padrão. Você pediu <b>potência</b> e "
-             "velocidade: por isso o clean aqui está na faixa dele."),
+            ("Por que o clean desceu de 65% para 50%", "A faixa de maior "
+             "potência do clean, 60 a 70%, <b>vale para 1 a 3 repetições</b>. "
+             "Esticada para 6-8 ela tem de descer, porque <b>oito cleans a 65% "
+             "deixam de ser clean lá pela quinta</b> — e no levantamento "
+             "olímpico as repetições feias são justamente as últimas. Mantive as "
+             "6-8 que você pediu e baixei a carga: a 50% com 6-8 o que se treina "
+             "é <b>potência sustentada</b>, que é coisa diferente de potência de "
+             "pico, e é o que a faixa de repetições que você escolheu entrega."),
             ("Nenhuma série vai até a falha", "Numa sessão de velocidade a falha "
              "não é só desnecessária — <b>ela é o oposto do exercício</b>. "
              "Repetição lenta com carga leve não treina nem carga nem potência: "
              "é tempo gasto a troco de fadiga. Quando a barra desacelera, a série "
              "acabou, mesmo que faltem repetições na folha."),
-            ("A dois dias do jogo, na dúvida, menos", "Quem estiver dolorido de "
-             "ontem, com sono ruim ou vindo de quadra pesada <b>faz só o supino e "
-             "o clean, 2 séries cada, e para</b>. Nada do que está nesta folha "
-             "vale um sábado pior. Mande a PSE de qualquer jeito — ela é o que "
-             "diz à comissão se o afunilamento está funcionando."),
+            ("A pegada vai falhar antes das costas", "Com 6-8, o dia soma <b>84 "
+             "repetições de puxar</b> — 28 na remada curvada, 28 no clean e 28 "
+             "na puxada. Eram 48 antes. <b>Strap na puxada fechada assim que a "
+             "mão abrir</b>; na remada curvada e no clean, não, porque ali "
+             "segurar a barra faz parte do movimento — nesses dois, se a pegada "
+             "foi, a série acabou."),
         ]),
         ("espaco", 1),
     ],
