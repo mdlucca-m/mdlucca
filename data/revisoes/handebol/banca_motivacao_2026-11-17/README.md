@@ -20,3 +20,15 @@ Banca:
   da revisão de mapeamento.
 
 O nome do(a) candidato(a) ficou em aberto no convite.
+
+## Textos completos (`textos_completos/`)
+- 19 dos 37 estudos foram baixados de fontes de acesso aberto: 8 dos 18 centrais e 11 dos 19 relacionados.
+  - 14 são PDFs das editoras, do Dialnet ou do Research Square (no estudo 184, a versão é o preprint).
+  - 5 vieram do Europe PMC em XML e foram convertidos em PDF; o XML original está junto.
+- `indice_textos_completos.csv` traz a situação de cada estudo e a fonte de cada arquivo.
+- Não baixados (18):
+  - 6 sem acesso aberto;
+  - 5 bloqueados por verificação anti-robô no HAL, que não foi contornada;
+  - 3 em repositórios inacessíveis ou que recusaram o acesso (DiVA, Lirias e Universidad de Extremadura);
+  - 4 sem cópia aberta localizada.
+- Nenhum arquivo veio de ResearchGate, Academia.edu, Sci-Hub ou LibGen.
