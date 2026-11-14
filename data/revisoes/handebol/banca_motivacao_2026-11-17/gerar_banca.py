@@ -34,17 +34,17 @@ CANDIDATO = "[nome do(a) candidato(a)]"
 # ------------------------------------------------------------------ estudos
 NUCLEO = {"5": "Guillet et al. (2002)", "6": "Sarrazin et al. (2002)", "14": "Oliva et al. (2010)",
           "20": "Li et al. (2011)", "21": "Lukwu e Guzmán (2011)", "22": "Lukwu (2011)",
-          "23": "Autoria a conferir* (2012)", "53": "Martínez-Moreno e Alfonso (2017)", "70": "Alesi et al. (2019)",
+          "23": "Granero-Gallegos et al. (2012)", "53": "Martínez-Moreno e Alfonso (2017)", "70": "Alesi et al. (2019)",
           "79": "Gómez-López et al. (2019)", "99": "Gómez-López, Courel-Ibáñez e Granero-Gallegos (2021)",
           "118": "Freire et al. (2023)", "149": "Gómez-López et al. (2024)", "160": "Bugten et al. (2025a)",
           "171": "Malfa et al. (2025)", "185": "Bugten et al. (2025b)", "184": "Bugten et al. (2026)",
           "196": "Saket et al. (2026)"}
 RELAC = {"7": "Rascle e Coulomb (2003)", "8": "Guillet et al. (2006)", "9": "Li e Chi (2007)",
          "12": "Miguel et al. (2009)", "26": "Isoard-Gautheur, Guillet-Descas e Duda (2012)",
-         "36": "De Backer et al. (2015)", "49": "Granero-Gallegos et al. (2017)", "55": "Ruiz-Sánchez et al. (2017)",
+         "36": "De Backer et al. (2015)", "49": "Granero-Gallegos et al. (2017)", "55": "Ruiz-Sánchez, Gómez-López e Granero-Gallegos (2017)",
          "60": "Gómez-López et al. (2018)", "80": "Gómez-López, Ruiz-Sánchez e Granero-Gallegos (2019)",
          "87": "Gómez-López et al. (2020)", "100": "Gómez-López, González-Hernández e Granero-Gallegos (2021)",
-         "104": "Gómez-López et al.* (2021)", "105": "Gómez-López et al.* (2021)",
+         "104": "Gómez-López, Muñoz-Villena e González-Hernández (2021)", "105": "Gómez-López, González e Granero-Gallegos (2021)",
          "125": "Kristjánsdóttir, Matthíasdóttir e Saavedra (2021)", "128": "Sánchez-Sáez et al. (2022)",
          "137": "Karacsony e Krupanszki (2023)", "164": "Coutinho et al. (2025)",
          "187": "Greblo Jurakić, Bojić-Ćaćić e Ljubičić (2026)"}
@@ -166,8 +166,8 @@ for b in ["Publicados entre 2002 e 2026; mais da metade (10) a partir de 2019, c
           "Delineamentos: 5 coortes ou longitudinais, 5 transversais, 6 observacionais sem desenho especificado e 2 "
           "quase-experimentais; nenhum ensaio randomizado em adolescentes.",
           "Soma de 5.174 participantes, mas com provável repetição de amostras: o mesmo número de participantes (479) e a "
-          "mesma equipe de autores aparecem em três estudos centrais (Alesi et al., 2019; Gómez-López et al., 2019, 2021) e em dois relacionados (Ruiz-Sánchez "
-          "et al., 2017; Gómez-López et al., 2020); 302 jogadores aparecem em Lukwu e Guzmán (2011) e Lukwu (2011); e 50 "
+          "mesma equipe de autores aparecem em três estudos centrais (Alesi et al., 2019; Gómez-López et al., 2019, 2021) e em dois relacionados (Ruiz-Sánchez, Gómez-López "
+          "e Granero-Gallegos, 2017; Gómez-López et al., 2020); 302 jogadores aparecem em Lukwu e Guzmán (2011) e Lukwu (2011); e 50 "
           "jogadoras, em Bugten et al. (2025b, 2026). Descontadas as repetições, restam cerca de 3,9 mil participantes "
           "distintos.",
           "Direção dos achados: efeito ou associação em 15 estudos, resultados mistos em 2 e descrição em 1."]:
@@ -194,7 +194,7 @@ par(doc, "**Perfis motivacionais.** Os jogadores espanhóis apresentaram perfil 
     "(Martínez-Moreno e Alfonso, 2017). As análises de agrupamento reuniram, de um lado, motivação autodeterminada, "
     "autoconfiança e clima de maestria e, de outro, amotivação, motivação extrínseca, medo do fracasso, maior ansiedade "
     "e clima de desempenho (Gómez-López et al., 2019, 2021). A orientação ao ego relacionou-se à motivação extrínseca "
-    "e à amotivação (estudo de 2012 com autoria a conferir), e as metas de aproximação à maestria predisseram a "
+    "e à amotivação (Granero-Gallegos et al., 2012), e as metas de aproximação à maestria predisseram a "
     "motivação intrínseca (Li et al., 2011). A autonomia e a motivação intrínseca associaram-se a condutas de "
     "deportividade, e a regulação externa, à crítica negativa (Oliva et al., 2010).")
 par(doc, "**Intervenções.** Apenas dois estudos testaram intervenções com desfecho motivacional em adolescentes, ambos "
@@ -207,7 +207,7 @@ par(doc, "**Intervenções.** Apenas dois estudos testaram intervenções com de
     "mulheres de 20 a 30 anos, e não adolescentes, embora a base o classifique como juvenil.")
 
 h("4. Instrumentos encontrados")
-for b in ["Sport Motivation Scale (SMS ou SMS-28): Li et al. (2011), estudo de 2012, Gómez-López et al. (2019, 2021), "
+for b in ["Sport Motivation Scale (SMS ou SMS-28): Li et al. (2011), Granero-Gallegos et al. (2012), Gómez-López et al. (2019, 2021), "
           "Alesi et al. (2019), Oliva et al. (2010) e Saket et al. (2026); SMS-II: Freire et al. (2023).",
           "Behavioral Regulation in Sport Questionnaire (BRSQ): Martínez-Moreno e Alfonso (2017).",
           "BREQ-2, questionário de regulação no exercício físico, aplicado ao handebol: Malfa et al. (2025).",
@@ -258,8 +258,6 @@ for i, q in enumerate([
         "contexto brasileiro?"], 1):
     bul(f"{i}. {q}")
 
-par(doc, "* Registro incompleto na base; a autoria precisa ser conferida na fonte original.", 10, recuo=False,
-    antes=8)
 
 # quadros em paisagem
 sec = doc.add_section()

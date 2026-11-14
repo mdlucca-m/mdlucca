@@ -22,7 +22,7 @@ Banca:
 O nome do(a) candidato(a) ficou em aberto no convite.
 
 ## Textos completos (`textos_completos/`)
-- 19 dos 37 estudos foram baixados de fontes de acesso aberto: 8 dos 18 centrais e 11 dos 19 relacionados.
+- 20 dos 37 estudos foram baixados de fontes de acesso aberto: 8 dos 18 centrais e 12 dos 19 relacionados (o estudo 55 entrou em 14/11).
   - 14 são PDFs das editoras, do Dialnet ou do Research Square (no estudo 184, a versão é o preprint).
   - 5 vieram do Europe PMC em XML e foram convertidos em PDF; o XML original está junto.
 - `indice_textos_completos.csv` traz a situação de cada estudo e a fonte de cada arquivo.

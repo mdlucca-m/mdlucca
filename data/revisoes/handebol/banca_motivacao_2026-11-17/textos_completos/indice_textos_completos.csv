@@ -1,20 +1,20 @@
 Nº,Grupo,Estudo,DOI,Situação,Arquivo,Fonte do arquivo
-5,central,Guillet et al. (2002),10.1080/00207590143000243,bloqueado por verificação anti-robô (HAL),,
-6,central,Sarrazin et al. (2002),10.1002/ejsp.98,bloqueado por verificação anti-robô (HAL),,
-7,relacionado,Rascle e Coulomb (2003),10.2224/sbp.2003.31.1.21,bloqueado por verificação anti-robô (HAL),,
-8,relacionado,Guillet et al. (2006),10.1111/j.1471-6402.2006.00311.x,bloqueado por verificação anti-robô (HAL),,
+5,central,Guillet et al. (2002),10.1080/00207590143000243,"versão aberta no HAL, bloqueada por verificação anti-robô (abre no navegador)",,
+6,central,Sarrazin et al. (2002),10.1002/ejsp.98,"versão aberta no HAL, bloqueada por verificação anti-robô (abre no navegador)",,
+7,relacionado,Rascle e Coulomb (2003),10.2224/sbp.2003.31.1.21,versão da editora e do HAL com verificação anti-robô (abre no navegador),,
+8,relacionado,Guillet et al. (2006),10.1111/j.1471-6402.2006.00311.x,"versão aberta no HAL, bloqueada por verificação anti-robô (abre no navegador)",,
 9,relacionado,Li e Chi (2007),10.2466/pms.105.1.83-10,sem acesso aberto,,
 12,relacionado,Miguel et al. (2009),,baixado,012_Miguel_et_al_2009.pdf,
 14,central,Oliva et al. (2010),,baixado,014_Oliva_et_al_2010.pdf,
 20,central,Li et al. (2011),10.2466/05.11.14.pr0.108.2.625-637,sem acesso aberto,,
 21,central,Lukwu e Guzmán (2011),10.5232/ricyde2011.02503,baixado,021_Lukwu_e_Guzman_2011.pdf,https://doi.org/10.5232/ricyde2011.02503
 22,central,Lukwu (2011),,"cópia em acesso aberto não localizada (Revista de Psicología del Deporte, 2011)",,
-23,central,Autoria a conferir* (2012),,"cópia em acesso aberto não localizada (Revista Iberoamericana de Diagnóstico y Evaluación Psicológica, 2012)",,
-26,relacionado,"Isoard-Gautheur, Guillet-Descas e Duda (2012)",10.1016/j.psychsport.2012.08.001,bloqueado por verificação anti-robô (HAL),,
-36,relacionado,De Backer et al. (2015),10.1111/sms.12303,repositório Lirias (KU Leuven) inacessível a partir deste ambiente,,
+23,central,Granero-Gallegos et al. (2012),,"cópia aberta não acessível: link da revista (aidep-aidap.org) fora do ar; RIDEP 33(1):147-172, 2012",,
+26,relacionado,"Isoard-Gautheur, Guillet-Descas e Duda (2012)",10.1016/j.psychsport.2012.08.001,"versão aberta no HAL e na Universidade de Birmingham, ambas com verificação anti-robô (abre no navegador)",,
+36,relacionado,De Backer et al. (2015),10.1111/sms.12303,aberto na Wiley (bronze) e no Lirias; Wiley recusou (403) e Lirias inacessível daqui (abre no navegador),,
 49,relacionado,Granero-Gallegos et al. (2017),10.3389/fpsyg.2017.02081,baixado,049_Granero_Gallegos_et_al_2017.pdf,https://www.frontiersin.org/articles/10.3389/fpsyg.2017.02081/pdf
 53,central,Martínez-Moreno e Alfonso (2017),,baixado,053_Martinez_Moreno_e_Alfonso_2017.pdf,
-55,relacionado,Ruiz-Sánchez et al. (2017),,"cópia em acesso aberto não localizada (E-balonmano.com, 2017)",,
+55,relacionado,"Ruiz-Sánchez, Gómez-López e Granero-Gallegos (2017)",,baixado,055_Ruiz_Sanchez_Gomez_Lopez_e_Granero_Gallegos_2017.pdf,https://dialnet.unirioja.es/descarga/articulo/6291279.pdf
 60,relacionado,Gómez-López et al. (2018),10.3390/ijerph16010078,"baixado (texto completo do Europe PMC, convertido em PDF; XML original junto)",060_Gomez_Lopez_et_al_2018_europepmc.pdf,https://www.ebi.ac.uk/europepmc/webservices/rest/ (fullTextXML)
 70,central,Alesi et al. (2019),10.3390/ijerph16152702,"baixado (texto completo do Europe PMC, convertido em PDF; XML original junto)",070_Alesi_et_al_2019_europepmc.pdf,https://www.ebi.ac.uk/europepmc/webservices/rest/ (fullTextXML)
 79,central,Gómez-López et al. (2019),10.1177/1747954119861855,sem acesso aberto,,
@@ -22,14 +22,14 @@ Nº,Grupo,Estudo,DOI,Situação,Arquivo,Fonte do arquivo
 87,relacionado,Gómez-López et al. (2020),10.3390/ijerph17020592,"baixado (texto completo do Europe PMC, convertido em PDF; XML original junto)",087_Gomez_Lopez_et_al_2020_europepmc.pdf,https://www.ebi.ac.uk/europepmc/webservices/rest/ (fullTextXML)
 99,central,"Gómez-López, Courel-Ibáñez e Granero-Gallegos (2021)",10.1177/1747954120975107,sem acesso aberto,,
 100,relacionado,"Gómez-López, González-Hernández e Granero-Gallegos (2021)",10.1344/anpsic2021.51/3.31815,baixado,100_Gomez_Lopez_Gonzalez_Hernandez_e_Granero_Gallegos_2021.pdf,https://revistes.ub.edu/index.php/Anuario-psicologia/article/download/31815/36259
-104,relacionado,Gómez-López et al.* (2021),,baixado,104_Gomez_Lopez_et_al_2021.pdf,
-105,relacionado,Gómez-López et al.* (2021),,"cópia em acesso aberto não localizada (Journal of Sport and Health Research, 2021)",,
+104,relacionado,"Gómez-López, Muñoz-Villena e González-Hernández (2021)",,baixado,104_Gomez_Lopez_et_al_2021.pdf,
+105,relacionado,"Gómez-López, González e Granero-Gallegos (2021)",,"cópia aberta não localizada; Journal of Sport and Health Research 13(3), 2021 (site da revista inacessível daqui)",,
 118,central,Freire et al. (2023),10.5114/hm.2023.116531,baixado,118_Freire_et_al_2023.pdf,https://www.termedia.pl/Journal/-129/pdf-47098-10?filename=HM_24(3)_Freire.pdf
 125,relacionado,"Kristjánsdóttir, Matthíasdóttir e Saavedra (2021)",10.1080/19012276.2021.1922304,sem acesso aberto,,
 128,relacionado,Sánchez-Sáez et al. (2022),10.47197/retos.v43i0.89294,baixado,128_Sanchez_Saez_et_al_2022.pdf,https://dialnet.unirioja.es/descarga/articulo/8059461.pdf
 137,relacionado,Karacsony e Krupanszki (2023),10.17309/tmfv.2023.3.17,baixado,137_Karacsony_e_Krupanszki_2023.pdf,https://tmfv.com.ua/journal/article/download/2181/1607
 149,central,Gómez-López et al. (2024),10.1177/17479541231223652,repositório da Universidad de Extremadura recusou o acesso (403),,
-160,central,Bugten et al. (2025a),10.1016/j.psychsport.2025.102852,repositório DiVA inacessível a partir deste ambiente,,
+160,central,Bugten et al. (2025a),10.1016/j.psychsport.2025.102852,aberto na Elsevier (híbrido) e no DiVA; inacessíveis daqui (abre no navegador),,
 164,relacionado,Coutinho et al. (2025),10.3390/sports13120421,"baixado (texto completo do Europe PMC, convertido em PDF; XML original junto)",164_Coutinho_et_al_2025_europepmc.pdf,https://www.ebi.ac.uk/europepmc/webservices/rest/ (fullTextXML)
 171,central,Malfa et al. (2025),10.17979/sportis.2025.11.4.11990,baixado,171_Malfa_et_al_2025.pdf,https://revistas.udc.es/index.php/SPORTIS/article/download/11990/sportis.2025.11.4.11990
 184,central,Bugten et al. (2026),10.21203/rs.3.rs-8338987/v1,"baixado (versão preprint, Research Square)",184_Bugten_et_al_2026.pdf,https://www.researchsquare.com/article/rs-8338987/latest.pdf
