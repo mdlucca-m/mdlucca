@@ -53,3 +53,10 @@ O nome do(a) candidato(a) ficou em aberto no convite.
     `textos_completos/`.
   - "Resumo".
   - "Campos e notas".
+
+## Planilha com os 37 estudos (14/11)
+- `EXTRACAO COMPLETA MOTIVACAO 37 ESTUDOS.xlsx`, com os dados em `extracao_37_estudos.json`.
+- 24 estudos foram extraídos do texto completo.
+- 13 estudos, em linhas amarelas, foram extraídos só do resumo publicado e do Quadro A1 da revisão de mapeamento: 5, 7,
+  8, 9, 20, 22, 23, 36, 79, 99, 125, 160 e 185. As fichas estão em `extracao_sem_texto_completo.py`.
+- Todas as linhas têm link para a publicação, pelo DOI ou pela página do artigo.
