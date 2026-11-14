@@ -43,3 +43,13 @@ O nome do(a) candidato(a) ficou em aberto no convite.
 - Textos completos: 24 de 37 depois da busca por título e DOI de 14/11. Entraram Sarrazin et al. (2002),
   Isoard-Gautheur et al. (2012), o manuscrito de Gómez-López et al. (2024) e Gómez-López, González e Granero-Gallegos
   (2021), além do PDF original de Alesi et al. (2019).
+
+## Planilha de extração (14/11)
+- `EXTRACAO COMPLETA MOTIVACAO TEXTOS COMPLETOS.xlsx`, gerada por `gerar_planilha_extracao.py` a partir de
+  `extracao_textos_completos.json`.
+- Abas:
+  - "Extração completa": 24 estudos com texto completo e 46 campos. O título e a coluna "Link da publicação" levam ao
+    site da revista pelo DOI (ou ao Dialnet/RECYT quando não há DOI). A coluna "Texto completo (arquivo)" abre o PDF em
+    `textos_completos/`.
+  - "Resumo".
+  - "Campos e notas".
