@@ -3511,6 +3511,119 @@ POTENCIA_VELOCIDADE = {
     ],
 }
 
+
+
+BUSCAR_RECORDE = {
+    "arquivo": "ELASE-buscar-recorde.pdf",
+    "meta_titulo": "ELASE - Buscar o recorde",
+    "meta_assunto": "Tres tentativas de recorde em 4x2 e dois exercicios de potencia",
+    "titulo": "Buscar o recorde",
+    "titulo_verso": "O recorde e o número que sai dele",
+    "protocolo": "Quarta, 18/11 &nbsp;&middot;&nbsp; três tentativas de recorde e "
+                 "dois de potência &nbsp;&middot;&nbsp; 20 séries",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 46],
+    "abertura":
+        "<b>Primeira semana de carga depois dos dois jogos.</b> Três exercícios "
+        "vão buscar recorde e dois são de potência entre eles — e essa "
+        "alternância é a estrutura da ficha <i>Contraste</i>, não um acidente: "
+        "o máximo antes do explosivo ajuda o explosivo. <b>Duas coisas estão no "
+        "verso e mudam como ler o dia:</b> 4 × 2 não são quatro séries no máximo "
+        "(é uma rampa, e só a quarta vale recorde), e um número abaixo da marca "
+        "hoje, três dias depois de dois jogos, <b>não é perda de força</b>.",
+    "aquecimento_titulo": "Aquecimento — mais longo, porque hoje tem tentativa de máximo",
+    "aquecimento_nota": "Em dia de recorde o aquecimento não é opcional nem "
+                        "encurtável: a tentativa só vale se o corpo chegar nela "
+                        "pronto. Quinze minutos antes da primeira barra.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda, mobilidade de ombro, torácica e quadril",
+         "12 min", "a do app, sem pressa"],
+        ["Rotadores externos e serrátil com elástico", "2 × 12",
+         "antes do supino e da remada alta"],
+        ["Barra vazia: supino, remada alta e clean do meio da coxa",
+         "8 de cada", "o padrão antes da carga"],
+        ["Rampa do supino: 50%, 70% e 80%", "5, 3 e 2",
+         "ainda não conta como série"],
+    ],
+    "exercicios": [
+        ("Supino",
+         "máximo &middot; rampa 90-93-96, a 4ª vale o recorde",
+         "4 × 2", "4 min", "RP"),
+        ("Clean",
+         "potência &middot; 60%, e o supino antes dele ajuda",
+         "4 × 4-6", "3 min", "60%"),
+        ("Puxada fechada",
+         "máximo &middot; mesma rampa, mesmo alvo",
+         "4 × 2", "4 min", "RP"),
+        ("Remada alta",
+         "máximo &middot; sem marca anterior — hoje cria a marca",
+         "4 × 2", "3,5 min", "RP"),
+        ("Remada curvada",
+         "potência &middot; 60%, tronco parado, a barra é que corre",
+         "4 × 4-6", "2,5 min", "60%"),
+    ],
+    "nota_tabela":
+        "<b>O supino, a puxada fechada, o clean e a remada curvada saem da sua "
+        "tabela de 1RM</b> — então nos três de recorde você já sabe o número a "
+        "bater. <b>A remada alta não está na tabela:</b> não há recorde anterior "
+        "dela em lugar nenhum, então hoje ela não persegue marca, ela <b>cria</b> "
+        "a primeira. Anote o peso das duas repetições e mande junto com a PSE.",
+    "caixa_duracao":
+        "<b>Duração prevista: 85 a 95 minutos</b> — 20 séries, e é longa porque "
+        "tentativa de máximo é quase toda descanso. <b>Se o tempo apertar, corte "
+        "a remada curvada</b> (a 5): o clean já cobre potência no dia. <b>Nunca "
+        "corte o descanso das séries de recorde</b> — 4 minutos sem conversa, "
+        "sentado. Descanso curto não deixa o recorde menor: deixa ele falso.",
+    "verso": [
+        ("h", "Como se busca um recorde em 4 × 2"),
+        ("grade", ["SÉRIE", "QUANTO", "O QUE ELA É"], [
+            ["<b>1ª</b>", "90% do seu 1RM", "ainda é preparação. Tem de sair "
+             "fácil e rápida — se já custar aqui, hoje não é dia de recorde e "
+             "você para por aqui mesmo"],
+            ["<b>2ª</b>", "93%", "a última de ajuste. É aqui que você sente se a "
+             "quarta é possível"],
+            ["<b>3ª</b>", "96%", "a sua marca atual de 2 repetições, ou perto "
+             "dela. Se esta sair limpa, a quarta sobe"],
+            ["<b>4ª</b>", "<b>a tentativa</b>", "2,5 a 5 kg acima da terceira. "
+             "<b>Uma só.</b> Se a primeira repetição sair feia, pare: não existe "
+             "segunda tentativa no mesmo dia"],
+        ], [0.12, 0.20, 0.68]),
+        ("espaco", 2),
+        ("caixa", "<b>Dois recordes de verdade por sessão é o teto, e aqui são "
+                  "três.</b> A terceira tentativa sempre chega com o sistema "
+                  "nervoso já gasto pelas duas primeiras. Como a remada alta é a "
+                  "única sem marca anterior, ela é a que menos perde: por isso "
+                  "<b>o supino e a puxada perseguem recorde, e a remada alta "
+                  "apenas estabelece a dela</b>. Se você quiser recorde nos três, "
+                  "tire um para outro dia da semana.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Três coisas antes de puxar a barra"),
+        ("notas", [
+            ("Três dias depois de dois jogos, o número vem baixo", "Para máximo "
+             "de verdade o sistema nervoso costuma pedir <b>5 a 7 dias</b> depois "
+             "de competição, e hoje são três. <b>Não bater o recorde hoje não é "
+             "perda de força</b> — é calendário. Anote o que saiu, sem "
+             "interpretar como queda, e compare com o da próxima vez em semana "
+             "cheia. O erro caro aqui é alguém achar que regrediu e passar a "
+             "treinar com raiva."),
+            ("A remada alta é a mais arriscada da lista", "Puxada perto do "
+             "máximo com pegada fechada é onde o ombro reclama. <b>Pegada na "
+             "largura dos ombros ou mais aberta, cotovelo nunca acima da linha "
+             "do ombro, e a barra para na altura do peito — não no queixo.</b> "
+             "Se incomodar o ombro em qualquer repetição, encerre o exercício: "
+             "é o único do dia que não vale o risco."),
+            ("O que o clean ganha vindo depois do supino", "Carga máxima deixa o "
+             "sistema nervoso ligado por alguns minutos, e o explosivo que vem "
+             "logo depois sai melhor — é o contraste. <b>Para funcionar, os 3 "
+             "minutos entre a última série de supino e o primeiro clean são "
+             "obrigatórios:</b> menos que isso é fadiga, mais que isso o efeito "
+             "já passou. A mesma coisa vale entre a remada alta e a curvada."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3528,7 +3641,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "explosivo_rotacional": EXPLOSIVO_ROTACIONAL,
           "stiff_combinados": STIFF_COMBINADOS,
           "explosivo_combinado": EXPLOSIVO_COMBINADO,
-          "potencia_velocidade": POTENCIA_VELOCIDADE}
+          "potencia_velocidade": POTENCIA_VELOCIDADE,
+          "buscar_recorde": BUSCAR_RECORDE}
 
 
 def main():
