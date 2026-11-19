@@ -3624,6 +3624,131 @@ BUSCAR_RECORDE = {
     ],
 }
 
+
+
+TERRA_POSTERIOR = {
+    "arquivo": "ELASE-terra-posterior.pdf",
+    "meta_titulo": "ELASE - Terra e posterior",
+    "meta_assunto": "Terra 4x4 como exercicio do dia, stiff e pelvica como acessorios",
+    "titulo": "Terra e posterior",
+    "titulo_verso": "Onde achar a carga quando não há tabela",
+    "protocolo": "Quinta, 19/11 &nbsp;&middot;&nbsp; o terra é o exercício do dia "
+                 "&nbsp;&middot;&nbsp; 23 séries",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 52, 44, 46],
+    "abertura":
+        "<b>Mudei uma coisa na sua lista e preciso que você veja antes de "
+        "imprimir: o stiff não vai a 4 repetições máximas hoje.</b> Pela sua "
+        "própria tabela, 4 repetições são 90% do 1RM — e terra a 90% seguido de "
+        "stiff a 90% é a mesma lombar no limite duas vezes, com a elevação "
+        "pélvica logo atrás. <b>Hoje o terra é o exercício do dia e leva a "
+        "carga; o stiff e a pélvica são acessórios dele.</b> O stiff mantém as "
+        "4 repetições que você pediu, mas a 70%, onde elas saem fáceis.",
+    "aquecimento_titulo": "Aquecimento — a lombar, que hoje trabalha nos três primeiros",
+    "aquecimento_nota": "Ontem foi dia de recorde e o clean e a remada curvada já "
+                        "cobraram essa lombar. Hoje ela abre a sessão carregada: "
+                        "a rampa do terra não é opcional.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda e mobilidade de quadril e tornozelo",
+         "10 min", "a do app"],
+        ["Ponte de glúteo, bird-dog e prancha lateral", "2 × 10 / 2 × 20 s",
+         "acorda o que vai segurar a coluna"],
+        ["Terra com barra vazia e depois a 40%, 60% e 75%",
+         "8, 5, 3 e 2", "nenhuma delas conta como série"],
+    ],
+    "exercicios": [
+        ("Terra",
+         "máximo do dia &middot; 4 saem, a 5ª não sairia igual",
+         "4 × 4", "3 min", "pesada"),
+        ("Stiff",
+         "acessório &middot; 70%, e as 4 têm de sair fáceis",
+         "4 × 4", "2,5 min", "70%"),
+        ("Elevação pélvica unilateral",
+         "acessório &middot; 4 em CADA lado, quadril alto no topo",
+         "4 × 4", "2 min", "média"),
+        ("Barra fixa",
+         "máximo &middot; 3 séries até não sair mais uma limpa",
+         "3 × máx", "2,5 min", "corpo"),
+        ("Remada baixa",
+         "puxar &middot; tronco parado, puxa até o umbigo",
+         "4 × 4", "2 min", "pesada"),
+        ("Agachamento lateral no banco",
+         "plano de lado &middot; 8 em CADA lado, desce no controle",
+         "4 × 8", "90 s", "leve"),
+    ],
+    "nota_tabela":
+        "<b>Só o stiff sai da sua tabela de 1RM.</b> Os outros cinco não estão "
+        "nela, então a carga vem por instrução e não por porcentagem — a grade "
+        "do verso diz como achar cada uma e qual é o sinal de que passou do "
+        "ponto. <b>Anote o peso que usou em todas</b>: é assim que a tabela vai "
+        "existir da próxima vez.",
+    "caixa_duracao":
+        "<b>Duração prevista: 75 a 85 minutos</b> — 23 séries. <b>Se o tempo "
+        "apertar, corte a remada baixa</b> (a 5): a barra fixa já cobre puxar no "
+        "dia. <b>Não corte o agachamento lateral</b> — é o único exercício da "
+        "sessão que sai do plano da frente, e é justamente o que o vôlei cobra "
+        "na defesa.",
+    "verso": [
+        ("h", "Onde achar a carga dos cinco que não estão na tabela"),
+        ("grade", ["EXERCÍCIO", "COMO ACHAR A CARGA", "O SINAL DE QUE PASSOU"], [
+            ["<b>Terra</b>",
+             "a maior com que as 4 saem com a coluna reta e você faria <b>mais "
+             "uma</b>, não mais três. Sobe de 5 em 5 kg entre séries só se a "
+             "anterior saiu limpa",
+             "a lombar arredonda na saída do chão, ou o quadril sobe antes da "
+             "barra"],
+            ["<b>Elevação pélvica<br/>unilateral</b>",
+             "a maior com que você segura o quadril <b>nivelado</b> nas 4 — os "
+             "dois lados do quadril na mesma altura no topo",
+             "o lado solto cai, ou você empurra com a lombar em vez do glúteo"],
+            ["<b>Barra fixa</b>",
+             "o seu peso. <b>Máximo</b> é até não sair mais uma repetição limpa, "
+             "não até não sair mais nenhuma",
+             "queixo não passa da barra, ou você começa a dar impulso com as "
+             "pernas"],
+            ["<b>Remada baixa</b>",
+             "a maior com que o tronco fica <b>parado</b> nas 4 e a barra chega "
+             "ao umbigo",
+             "o tronco abre para trás para ajudar a puxada"],
+            ["<b>Agachamento lateral</b>",
+             "leve de propósito. Aqui o que limita é a amplitude de quadril, não "
+             "a força",
+             "o joelho da perna que agacha entra para dentro"],
+        ], [0.20, 0.46, 0.34]),
+        ("espaco", 2),
+        ("caixa", "<b>Os três primeiros são o mesmo posterior, um atrás do "
+                  "outro:</b> terra, stiff e elevação pélvica. Por isso só o "
+                  "primeiro leva carga máxima. <b>Se no stiff a 70% as 4 "
+                  "repetições não saírem fáceis, o terra de hoje foi pesado "
+                  "demais</b> — não force o stiff, reduza. E a pélvica, que vem "
+                  "em terceiro, é a primeira a cair: se o quadril não ficar "
+                  "nivelado, tire peso.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Três coisas sobre hoje"),
+        ("notas", [
+            ("Ontem foi dia de recorde", "O clean e a remada curvada de ontem já "
+             "passaram por esta lombar, e hoje ela abre a sessão com o exercício "
+             "mais pesado da pasta. <b>Quem acordou com a lombar dura faz o terra "
+             "a 70% e 3 séries, e segue o resto normal</b> — não troca o terra "
+             "por outra coisa, apenas tira a carga. Avise a comissão antes, não "
+             "depois."),
+            ("O terra não tem repetição feia", "Nos outros exercícios a última "
+             "repetição pode ser difícil. <b>No terra, não:</b> a série acaba na "
+             "repetição anterior à que fosse sair com a coluna arredondada. Isso "
+             "quase sempre significa parar na 3ª em alguma série, e está certo. "
+             "Quatro repetições limpas valem mais do que quatro escritas."),
+            ("Cinco exercícios sem tabela é muito", "Hoje você não tem como "
+             "prescrever carga por porcentagem em cinco dos seis, e ontem foi a "
+             "mesma coisa com a remada alta. <b>O terra é o que mais falta:</b> "
+             "é o exercício mais pesado que o grupo faz e não tem registro "
+             "nenhum. Anotem o peso de hoje — é o que transforma a folha de "
+             "amanhã em prescrição de verdade."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3642,7 +3767,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "stiff_combinados": STIFF_COMBINADOS,
           "explosivo_combinado": EXPLOSIVO_COMBINADO,
           "potencia_velocidade": POTENCIA_VELOCIDADE,
-          "buscar_recorde": BUSCAR_RECORDE}
+          "buscar_recorde": BUSCAR_RECORDE,
+          "terra_posterior": TERRA_POSTERIOR}
 
 
 def main():
