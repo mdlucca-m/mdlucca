@@ -71,3 +71,19 @@ Gerador: `corrigidos/modelo_mdpi/gerar_ijerph.py` (figuras novas em `figs_ijerph
 - Dois parágrafos novos na Discussão: o que fazer em cada componente fraco e a relação entre qualidade e resultado.
 - Quadro B2 com a justificativa da nota de cada estudo.
 - Autoria do estudo de 1998 corrigida para Gil Martínez, Capafons Bonet e Labrador Encinas (Psicothema 10(2):271-280).
+
+## Fechamento de 19/11/2026
+- Versão atual e única: `MAPPING REVIEW FINAL.docx` / `.pdf` (ABNT, 117 páginas). As versões anteriores, que não têm as
+  revisões do orientador, o EPHPP e as correções abaixo, foram movidas para `versoes_anteriores/`.
+- Tomar e Allen (2021) localizado: Medical Science, v. 25, n. 117, p. 2804-2812. O texto completo não foi obtido; os dados
+  vêm da revisão sistemática que incluiu o estudo (Khaleghi et al., 2026, doi:10.3389/fspor.2026.1746309): 24 estudantes,
+  12 semanas de handebol recreativo, qualidade do sono melhor que no controle. Direção: efeito (sono). Qualidade EPHPP não
+  avaliada. Intervenções: 13 com efeito, 10 mistas, 1 descritiva.
+- Delineamentos dos 199 estudos alinhados ao Quadro A1: 163 observacionais (81,9%), 28 experimentais (14,1%), 6 outros,
+  2 sem informação.
+- Figura 7 refeita (`figura7_delineamentos_intervencoes.py`): 7A sem a barra de metanálise; 7B com a classificação
+  conferida de cada intervenção por domínio (`dominios_intervencoes.py`): 22 das 42 combinações sem estudo.
+- Figura 3: selos de "certeza da evidência" e legenda de triangulação retirados (a certeza não foi avaliada); alerta de
+  ansiedade corrigido (`figura3_remover_certeza.py`).
+- Duração das intervenções corrigida: informada em semanas em 13 das 24 (4 a 12 semanas, mediana de 7).
+- Script do fechamento: `fechar_mapping.py`.

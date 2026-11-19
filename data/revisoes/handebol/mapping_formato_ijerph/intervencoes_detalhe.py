@@ -286,5 +286,19 @@ ATUALIZA = {
     199: dict(desc="Intervenção baseada em mindfulness (mPEAK e Headspace, 2,5 horas semanais e 20 minutos diários guiados) junto ao treino, comparada a controle ativo",
               pop="Jogadores de elite (56 homens e 23 mulheres)"),
 }
+ATUALIZA[111] = dict(
+    pais="Arábia Saudita", desc="Handebol recreativo em jogos reduzidos, comparado a um grupo controle",
+    dur="12 semanas", pop="Estudantes universitários do sexo masculino destreinados",
+    n="24 estudantes (14 no grupo de intervenção, 19,78 ± 1,05 anos; 10 no controle, 19,60 ± 0,96 anos)",
+    mod="Estudo de intervenção com grupo controle (quase-experimental, segundo a planilha de extração)",
+    tempo="Antes e depois das 12 semanas",
+    desf="Qualidade do sono (PSQI); bem-estar e características psicológicas (segundo o título)",
+    res="Segundo a revisão sistemática que incluiu o estudo (KHALEGHI et al., 2026), a qualidade do sono melhorou, com "
+        "diferença significativa entre os grupos após a intervenção (t = 3,776; p = 0,001). Essa fonte não relata os "
+        "resultados de bem-estar nem das características psicológicas, e o texto completo não foi obtido.",
+    dir="Efeito",
+    ref="TOMAR, R.; ALLEN, J. A. Effect of recreational handball on sleep, well-being and psychological characteristics "
+        "in untrained males. Medical Science, v. 25, n. 117, p. 2804-2812, 2021.")
+
 for _n, _d in ATUALIZA.items():
     EST[_n].update(_d)
