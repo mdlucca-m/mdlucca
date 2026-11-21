@@ -3754,7 +3754,7 @@ TERRA_POSTERIOR = {
 DIA_DO_JOGO = {
     "arquivo": "ELASE-dia-do-jogo.pdf",
     "meta_titulo": "ELASE - No dia do jogo",
-    "meta_assunto": "Potencia de membros inferiores e superiores no dia da partida",
+    "meta_assunto": "Potencia de inferiores e superiores no dia, sem medicine ball",
     "titulo": "No dia do jogo",
     "titulo_verso": "A hora certa é tudo nesta ficha",
     "protocolo": "Sábado, 21/11 &nbsp;&middot;&nbsp; potência de pernas e braço "
@@ -3786,9 +3786,9 @@ DIA_DO_JOGO = {
         ("Salto de ataque com aproximação",
          "potência &middot; perna — aproximação inteira, máximo",
          "2 × 3", "2 min", "corpo"),
-        ("Arremesso de medicine ball acima da cabeça",
-         "potência &middot; braço — o padrão do saque, longe e não alto",
-         "3 × 4", "2 min", "3 kg"),
+        ("Arremesso de bola na parede",
+         "potência &middot; braço — as duas mãos, acima da cabeça",
+         "3 × 4", "2 min", "bola"),
         ("Supino saindo do peito",
          "potência &middot; braço — barra PARADA no peito, sem quique",
          "2 × 3", "2,5 min", "50%"),
@@ -3799,9 +3799,11 @@ DIA_DO_JOGO = {
     "nota_tabela":
         "<b>Só o supino sai do seu 1RM, e o agachamento com salto</b> — os dois "
         "nas porcentagens mais baixas da pasta, 50% e 20%, de propósito: hoje a "
-        "barra tem de voar. <b>Não tente subir carga nenhuma.</b> São <b>15 "
-        "contatos de salto</b> no total, contra as 45 a 140 que você usa numa "
-        "semana — é de propósito que seja quase nada.",
+        "barra tem de voar, e não se tenta subir carga nenhuma. <b>Sem medicine "
+        "ball, o arremesso é com bola de vôlei na parede</b> — as duas mãos "
+        "acima da cabeça, o mais forte que der; como ela pesa 270 g e não 3 kg, "
+        "o que conta aqui não é a distância, é a <b>velocidade de saída</b>. São "
+        "<b>15 contatos de salto</b> no total, contra as 45 a 140 de uma semana.",
     "caixa_duracao":
         "<b>Duração prevista: 30 minutos, e é para acabar cedo.</b> O erro desta "
         "ficha nunca é fazer de menos: é achar pouco e acrescentar. <b>Nenhuma "
@@ -3838,7 +3840,7 @@ DIA_DO_JOGO = {
                   "só mais fadiga com nome bonito. Na dúvida, não faça: o custo "
                   "de pular é zero.", AMBAR_CLARO, AMBAR),
         ("espaco", 2),
-        ("h", "Duas coisas que vão parecer erradas"),
+        ("h", "Três coisas antes de começar"),
         ("notas", [
             ("Vai parecer leve demais, e é esse o ponto", "Vinte por cento no "
              "agachamento com salto e 50% no supino são as menores cargas da "
@@ -3847,9 +3849,17 @@ DIA_DO_JOGO = {
              "mais como ir embora antes do jogo. Repetir a carga da semana "
              "passada é o resultado certo; bater recorde hoje é o resultado "
              "errado."),
-            ("Não é a ficha Pré-competição", "Aquela é de <b>membros superiores "
-             "e 1 a 2 dias antes</b>, com 13 séries. Esta é <b>no dia</b>, tem "
-             "pernas e é mais curta. As duas não se somam: se a "
+            ("O arremesso sem medicine ball", "A bola de vôlei na parede faz o "
+             "mesmo padrão com 270 g em vez de 3 kg: perde força, ganha "
+             "velocidade — <b>o que, no dia do jogo, é a troca certa</b>. Duas "
+             "alternativas valem igual: <b>8 a 10 saques de potência na "
+             "quadra</b>, que é literalmente o movimento da partida, ou "
+             "<b>3 × 4 flexões explosivas com batida de mão</b> para quem quiser "
+             "mais força e menos padrão de saque. Escolha uma das três, não "
+             "duas."),
+            ("Não é a ficha Pré-competição", "Aquela é de <b>superiores e 1 a 2 "
+             "dias antes</b>, com 13 séries. Esta é <b>no dia</b>, tem pernas e "
+             "é mais curta. <b>As duas não se somam:</b> se a "
              "<i>Pré-competição</i> foi feita ontem, esta hoje entra na janela "
              "mais curta que couber — nunca inteira."),
         ]),
