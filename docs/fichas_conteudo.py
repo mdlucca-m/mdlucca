@@ -3749,6 +3749,114 @@ TERRA_POSTERIOR = {
     ],
 }
 
+
+
+DIA_DO_JOGO = {
+    "arquivo": "ELASE-dia-do-jogo.pdf",
+    "meta_titulo": "ELASE - No dia do jogo",
+    "meta_assunto": "Potencia de membros inferiores e superiores no dia da partida",
+    "titulo": "No dia do jogo",
+    "titulo_verso": "A hora certa é tudo nesta ficha",
+    "protocolo": "Sábado, 21/11 &nbsp;&middot;&nbsp; potência de pernas e braço "
+                 "&nbsp;&middot;&nbsp; 12 séries, 30 minutos",
+    "rotulo_carga": "CARGA",
+    "larguras": [196, 48, 44, 44],
+    "abertura":
+        "<b>Esta ficha não treina nada. Ela acorda.</b> Carga leve, repetição "
+        "baixa, descanso longo: o objetivo é chegar ao primeiro saque com o "
+        "sistema nervoso ligado, e nada mais. <b>A variável que decide se ela "
+        "ajuda ou atrapalha não é o exercício, é a hora</b> — a mesma sessão que "
+        "melhora o jogo feita de manhã o piora feita em cima da hora. O verso "
+        "traz as quatro janelas; <b>ache a sua antes de começar.</b>",
+    "aquecimento_titulo": "Aquecimento — oito minutos, e nem um a mais",
+    "aquecimento_nota": "Hoje o aquecimento não é preparação para treinar: é "
+                        "preparação para saltar e arremessar rápido meia hora "
+                        "depois. Nada de alongamento estático longo.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda leve e mobilidade de tornozelo, quadril e ombro",
+         "6 min", "a do app, sem cansar"],
+        ["Rotadores externos com elástico e 5 saltinhos no lugar", "1 série",
+         "sobe o ritmo e para"],
+    ],
+    "exercicios": [
+        ("Agachamento com salto com peso",
+         "potência &middot; perna — sai do chão, não é agachamento",
+         "3 × 3", "2,5 min", "20%"),
+        ("Salto de ataque com aproximação",
+         "potência &middot; perna — aproximação inteira, máximo",
+         "2 × 3", "2 min", "corpo"),
+        ("Arremesso de medicine ball acima da cabeça",
+         "potência &middot; braço — o padrão do saque, longe e não alto",
+         "3 × 4", "2 min", "3 kg"),
+        ("Supino saindo do peito",
+         "potência &middot; braço — barra PARADA no peito, sem quique",
+         "2 × 3", "2,5 min", "50%"),
+        ("Aceleração do braço com elástico",
+         "velocidade &middot; 6 em CADA braço — rápido, não forte",
+         "2 × 6", "60 s", "leve"),
+    ],
+    "nota_tabela":
+        "<b>Só o supino sai do seu 1RM, e o agachamento com salto</b> — os dois "
+        "nas porcentagens mais baixas da pasta, 50% e 20%, de propósito: hoje a "
+        "barra tem de voar. <b>Não tente subir carga nenhuma.</b> São <b>15 "
+        "contatos de salto</b> no total, contra as 45 a 140 que você usa numa "
+        "semana — é de propósito que seja quase nada.",
+    "caixa_duracao":
+        "<b>Duração prevista: 30 minutos, e é para acabar cedo.</b> O erro desta "
+        "ficha nunca é fazer de menos: é achar pouco e acrescentar. <b>Nenhuma "
+        "série vai até a falha, nenhum exercício é novo e nenhuma descida é "
+        "lenta</b> — se sobrar energia no fim, está exatamente certo. Guarde-a "
+        "para o jogo.",
+    "verso": [
+        ("h", "As quatro janelas — ache a sua antes de começar"),
+        ("grade", ["QUANTO ANTES DO JOGO", "O QUE FAZER", "POR QUÊ"], [
+            ["<b>5 a 8 horas</b><br/>manhã, com jogo à noite",
+             "<b>a ficha inteira</b>, 12 séries, 30 min",
+             "é a melhor janela que existe: a fadiga da sessão some em 2 a 3 "
+             "horas e o que fica é só o sistema nervoso acordado"],
+            ["<b>3 a 5 horas</b>",
+             "só os exercícios <b>1, 3 e 5</b>, em 2 séries cada",
+             "ainda dá tempo de limpar a fadiga, mas com menos folga — por isso "
+             "entra menos volume"],
+            ["<b>30 a 45 minutos</b><br/>junto do aquecimento",
+             "só os exercícios <b>1 e 3</b>, 2 séries cada, <b>terminando 20 min "
+             "antes do saque</b>",
+             "aqui não há tempo de recuperar nada: tudo o que entrar de fadiga "
+             "vai inteiro para dentro do jogo"],
+            ["<b>Menos de 2 horas</b><br/>sem aquecimento próprio depois",
+             "<b>nada</b>",
+             "não dá tempo de nada acontecer a favor. É melhor entrar descansado "
+             "do que acordado e cansado"],
+        ], [0.24, 0.26, 0.50]),
+        ("espaco", 2),
+        ("caixa", "<b>Quem não faz esta ficha hoje:</b> quem está com dor "
+                  "muscular de ontem, quem dormiu mal, quem sentiu qualquer coisa "
+                  "no treino da semana e quem vai jogar a partida inteira vindo "
+                  "de outra ontem. <b>Acordar o sistema nervoso só funciona em "
+                  "quem chega descansado</b> — em quem chega cansado, isto aqui é "
+                  "só mais fadiga com nome bonito. Na dúvida, não faça: o custo "
+                  "de pular é zero.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Duas coisas que vão parecer erradas"),
+        ("notas", [
+            ("Vai parecer leve demais, e é esse o ponto", "Vinte por cento no "
+             "agachamento com salto e 50% no supino são as menores cargas da "
+             "pasta. <b>O estímulo que acorda já está dado na terceira "
+             "série</b> — da quarta em diante você só acumula fadiga que não tem "
+             "mais como ir embora antes do jogo. Repetir a carga da semana "
+             "passada é o resultado certo; bater recorde hoje é o resultado "
+             "errado."),
+            ("Não é a ficha Pré-competição", "Aquela é de <b>membros superiores "
+             "e 1 a 2 dias antes</b>, com 13 séries. Esta é <b>no dia</b>, tem "
+             "pernas e é mais curta. As duas não se somam: se a "
+             "<i>Pré-competição</i> foi feita ontem, esta hoje entra na janela "
+             "mais curta que couber — nunca inteira."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3768,7 +3876,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "explosivo_combinado": EXPLOSIVO_COMBINADO,
           "potencia_velocidade": POTENCIA_VELOCIDADE,
           "buscar_recorde": BUSCAR_RECORDE,
-          "terra_posterior": TERRA_POSTERIOR}
+          "terra_posterior": TERRA_POSTERIOR,
+          "dia_do_jogo": DIA_DO_JOGO}
 
 
 def main():
