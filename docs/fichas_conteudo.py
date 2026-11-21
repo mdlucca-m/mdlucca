@@ -3867,6 +3867,130 @@ DIA_DO_JOGO = {
     ],
 }
 
+
+
+EMPURRAR_SALTAR_PUXAR = {
+    "arquivo": "ELASE-empurrar-saltar-puxar.pdf",
+    "meta_titulo": "ELASE - Empurrar, saltar e puxar",
+    "meta_assunto": "Sessao completa de oito exercicios com salto de bloqueio",
+    "titulo": "Empurrar, saltar e puxar",
+    "titulo_verso": "O exercício 6 e a carga dos cinco sem tabela",
+    "protocolo": "Sessão completa &nbsp;&middot;&nbsp; oito exercícios, corpo "
+                 "inteiro &nbsp;&middot;&nbsp; 27 séries",
+    "rotulo_carga": "CARGA",
+    "larguras": [190, 50, 44, 46],
+    "abertura":
+        "<b>Sessão completa, de dia cheio de semana:</b> 27 séries, 80 a 95 "
+        "minutos. <b>O agachamento vem logo antes dos saltos de bloqueio, e isso "
+        "é contraste</b> — o pesado antes do explosivo faz o salto sair mais "
+        "alto, desde que os <b>3 minutos</b> entre os dois sejam respeitados. "
+        "Menos que isso é só fadiga, e o salto sai pior.",
+    "aquecimento_titulo": "Aquecimento — ombro, quadril e tornozelo, porque o dia usa os três",
+    "aquecimento_nota": "O tornozelo entra na lista por causa dos saltos de "
+                        "bloqueio: aterrissagem é a parte do salto que machuca, "
+                        "e ela piora com tornozelo frio.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda, mobilidade de tornozelo, quadril e torácica, "
+         "rotadores e ponte de glúteo", "12 min", "a do app, mais ombro e quadril"],
+        ["Rampa do agachamento e do supino: 45%, 60% e 72%", "5, 3 e 2",
+         "não contam como série"],
+        ["5 saltos de bloqueio sem aproximação", "1 série",
+         "ensaia a aterrissagem antes da carga"],
+    ],
+    "exercicios": [
+        ("Supino",
+         "carga &middot; empurrar — 6 saem, a 7ª não sairia",
+         "4 × 6", "2,5 min", "80%"),
+        ("Extensão de cotovelo na polia",
+         "isolado &middot; tríceps — ver a nota do verso",
+         "3 × 12", "75 s", "média"),
+        ("Agachamento",
+         "carga &middot; perna — 6 limpas, nenhuma até a falha",
+         "4 × 6", "3 min", "80%"),
+        ("Saltos de bloqueio com aproximação",
+         "potência &middot; 4 máximos — 16 contatos no dia",
+         "4 × 4", "2 min", "corpo"),
+        ("Agachamento lateral",
+         "plano de lado &middot; 8 em CADA lado, joelho alinhado",
+         "3 × 8", "90 s", "leve"),
+        ("Stiff unilateral com remada na polia",
+         "combinado &middot; 8 em CADA lado — ver o verso",
+         "3 × 8", "90 s", "média"),
+        ("Desenvolvimento com halteres",
+         "carga &middot; empurrar acima da cabeça, lombar neutra",
+         "3 × 8", "90 s", "média"),
+        ("Remada serrote com halteres",
+         "carga &middot; puxar — 8 em CADA braço, tronco parado",
+         "3 × 8", "90 s", "75%"),
+    ],
+    "nota_tabela":
+        "<b>Três dos oito saem da tabela de 1RM:</b> supino, agachamento e "
+        "remada serrote; a caixa verde do verso dá a carga dos outros cinco. "
+        "<b>Nenhuma série vai à falha:</b> com 27 séries a conta não fecha se "
+        "cada uma for até o limite.",
+    "caixa_duracao":
+        "<b>80 a 95 minutos, 27 séries.</b> <b>Versão de 60 min:</b> tire a "
+        "extensão de cotovelo (2) e o agachamento lateral (5) e baixe o supino e "
+        "o agachamento para 3 séries — ficam 19. <b>Não corte os saltos nem o "
+        "exercício 6.</b>",
+    "verso": [
+        ("h", "6. Stiff unilateral com remada na polia"),
+        ("grade", ["O QUE FAZER", "COMO", "O ERRO QUE APARECE"], [
+            ["<b>A posição</b><br/>uma perna só",
+             "de frente para a polia baixa, em pé sobre uma perna. Dobra o "
+             "quadril até o tronco ficar perto do paralelo, a perna livre "
+             "estendida atrás. <b>Fica assim as 8 repetições.</b>",
+             "apoiar o pé de trás no chão para equilibrar — aí vira stiff "
+             "normal e o exercício perde a razão de existir"],
+            ["<b>As 8 remadas</b>",
+             "sem sair da posição, puxa a polia até perto do umbigo e volta no "
+             "controle. Oito, depois troca de perna.",
+             "o quadril gira para o lado da puxada. Os dois lados do quadril "
+             "ficam na mesma altura do começo ao fim"],
+            ["<b>Por que unilateral</b>",
+             "equilíbrio numa perna + puxada de um braço é o que mais se parece "
+             "com defender e sacar fora do eixo.",
+             "carga alta demais: aqui quem limita é o equilíbrio, e peso que "
+             "tire o equilíbrio tira o exercício"],
+        ], [0.22, 0.44, 0.34]),
+        ("espaco", 2),
+        ("caixa", "<b>A carga dos cinco que não estão na tabela.</b> "
+                  "<b>Extensão de cotovelo:</b> a maior com que as 12 saem sem o "
+                  "cotovelo sair do lugar. <b>Saltos de bloqueio:</b> só o seu "
+                  "peso — se o quarto salto for mais baixo que o primeiro, pare "
+                  "a série. <b>Agachamento lateral:</b> leve, quem limita é a "
+                  "amplitude de quadril. <b>Exercício 6:</b> a maior com que "
+                  "você não apoia o pé de trás. <b>Desenvolvimento:</b> a maior "
+                  "com que as 8 saem sem arquear a lombar.",
+                  VERDE_CLARO, VERDE),
+        ("espaco", 2),
+        ("h", "Três coisas sobre o dia"),
+        ("notas", [
+            ("O agachamento antes dos saltos é de propósito", "Carga pesada "
+             "deixa o sistema nervoso ligado por alguns minutos, e o salto que "
+             "vem depois sai mais alto — é o contraste da ficha de mesmo nome. "
+             "<b>Os 3 minutos entre a última série de agachamento e o primeiro "
+             "salto são obrigatórios:</b> menos que isso é só fadiga, mais que "
+             "isso o efeito já passou. E <b>a série de saltos acaba quando um "
+             "salto sai mais baixo</b>, não na quarta repetição escrita."),
+            ("A extensão de cotovelo está cedo demais", "Ela é o exercício 2 e o "
+             "desenvolvimento com halteres é o 7 — o tríceps chega ao "
+             "desenvolvimento já trabalhado. <b>Não é grave</b>, porque são "
+             "cinco exercícios de distância e a extensão é isolada e leve, mas "
+             "se puder trocar, ela rende mais no fim: a ordem vira "
+             "<b>1-3-4-5-6-7-8-2</b>. Mantive a sua na tabela."),
+            ("Oito exercícios pedem disciplina de carga", "Numa sessão de 27 "
+             "séries, <b>a carga certa é a que deixa a oitava repetição parecida "
+             "com a primeira</b>. Quem for à falha no supino não chega inteiro "
+             "na remada serrote, e os dois últimos exercícios são justamente os "
+             "que ninguém quer fazer mal feitos. Mande a PSE: numa sessão deste "
+             "tamanho ela é o único jeito de a comissão saber se a dose coube."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -3887,7 +4011,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "potencia_velocidade": POTENCIA_VELOCIDADE,
           "buscar_recorde": BUSCAR_RECORDE,
           "terra_posterior": TERRA_POSTERIOR,
-          "dia_do_jogo": DIA_DO_JOGO}
+          "dia_do_jogo": DIA_DO_JOGO,
+          "empurrar_saltar_puxar": EMPURRAR_SALTAR_PUXAR}
 
 
 def main():
