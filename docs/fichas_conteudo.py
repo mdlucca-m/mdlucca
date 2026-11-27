@@ -4108,6 +4108,122 @@ TRES_BLOCOS_QUATRO = {
     ],
 }
 
+
+
+DA_ATIVACAO_A_FORCA = {
+    "arquivo": "ELASE-da-ativacao-a-forca.pdf",
+    "meta_titulo": "ELASE - Da ativacao a forca",
+    "meta_assunto": "Rampa de recrutamento: estabilizar, saltar, acelerar e so entao levantar",
+    "titulo": "Da ativação à força",
+    "titulo_verso": "A rampa, o que ela custa e os quatro difíceis",
+    "protocolo": "Estabilizar &rarr; saltar &rarr; acelerar &rarr; levantar "
+                 "&nbsp;&middot;&nbsp; 12 exercícios, 11 rodadas",
+    "rotulo_carga": "CARGA",
+    "larguras": [186, 50, 48, 46],
+    "numerar": False,
+    "abertura":
+        "<b>Mesma matéria da ficha anterior, ordem invertida:</b> estabilizar, "
+        "saltar, acelerar e só então levantar. <b>Isso tem um preço, e ele está "
+        "na tabela:</b> agachamento e supino entram a 80% — depois de oito "
+        "exercícios, 88% não é 88%.",
+    "aquecimento_titulo": "Aquecimento — 12 minutos, porque o bloco A já é meio aquecimento",
+    "aquecimento_nota": "92 contatos de salto e uma excêntrica de isquiotibial no fim.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda, mobilidade de tornozelo, quadril e torácica, "
+         "rotadores e ponte de glúteo", "12 min",
+         "a rampa de barra fica para o bloco C"],
+    ],
+    "exercicios": [
+        ("A1. Prancha com remada", "estabilização &middot; antirrotacional, 6 cada braço",
+         "3 × 6", "segue", "leve"),
+        ("A2. Core triaxial no cabo", "estabilização &middot; três planos — ver o verso",
+         "3 × 6", "segue", "média"),
+        ("A3. Salto lateral numa perna", "pliometria &middot; a base muda a cada salto",
+         "3 × 6", "segue", "corpo"),
+        ("A4. Mudança de direção ao comando", "agilidade &middot; reage ao sinal, não ao cone",
+         "3 × 1", "2 min", "corpo"),
+        ("B1. Stiff unilateral com clean", "potência &middot; 4 cada lado — ver o verso",
+         "4 × 4", "segue", "média"),
+        ("B2. Búlgaro com salto", "potência &middot; cadeia fechada, 5 cada perna",
+         "4 × 5", "segue", "leve"),
+        ("B3. Agachamento com salto com peso", "potência &middot; a barra decide a série",
+         "4 × 4", "segue", "25%"),
+        ("B4. Arremesso de bola na parede", "velocidade &middot; braço, as duas mãos",
+         "4 × 5", "2,5 min", "bola"),
+        ("C1. Agachamento", "força pura &middot; 80%, e não 88% — ver o verso",
+         "4 × 4", "segue", "80%"),
+        ("C2. Supino", "força pura &middot; 4 limpas, nenhuma à falha",
+         "4 × 4", "segue", "80%"),
+        ("C3. Remada curvada", "força pura &middot; tronco parado, a barra é que corre",
+         "4 × 6", "segue", "75%"),
+        ("C4. Flexão nórdica", "isquios &middot; excêntrica — ver a caixa do verso",
+         "4 × 4", "3 min", "corpo"),
+    ],
+    "nota_tabela":
+        "<b>Agachamento, supino e remada curvada saem da tabela de 1RM; a carga "
+        "dos outros nove está no verso.</b> <b>“Segue” é sem descanso</b> — o "
+        "relógio só anda no quarto de cada bloco. <b>75 a 85 min, 92 contatos "
+        "de salto</b>: uma sessão dessas por semana. <b>Versão de 60 min:</b> "
+        "3 rodadas em B e C.",
+    "verso": [
+        ("h", "Por que esta ordem, e o que ela custa"),
+        ("grade", ["", "ESTA FICHA — a força no fim", "A ANTERIOR — a força no começo"], [
+            ["<b>O que ganha</b>",
+             "<b>pliometria e agilidade saem frescas</b>, e é nelas que a "
+             "qualidade mais importa: salto baixo treinado é salto baixo "
+             "aprendido. A força no fim pega um sistema nervoso já excitado",
+             "as barras saem pesadas de verdade, porque pegam o atleta inteiro"],
+            ["<b>O que paga</b>",
+             "<b>a carga do bloco C cai</b>: 80% em vez de 88%. Esta não é "
+             "sessão de recorde, e tentar fazê-la virar uma é o jeito de se "
+             "machucar no último bloco",
+             "o salto e a mudança de direção acontecem cansados, e é aí que o "
+             "joelho aprende errado"],
+            ["<b>Quando usar</b>",
+             "em semana de quadra pesada, quando saltar bem importa mais do que "
+             "levantar muito",
+             "em semana de base, quando o alvo é carga — e na "
+             "<i>Buscar o recorde</i>, onde o máximo tem de vir primeiro"],
+        ], [0.14, 0.45, 0.41]),
+        ("espaco", 2),
+        ("caixa", "<b>A flexão nórdica é o último exercício do dia, e isso é o "
+                  "ponto delicado desta ordem.</b> O isquiotibial chega nela "
+                  "depois do stiff unilateral e do búlgaro com salto. <b>Se o "
+                  "posterior já estiver tremendo, faça 2 rodadas de 3 e pare</b> "
+                  "— e, na primeira semana em que o grupo fizer nórdica, são 2 "
+                  "de 3 para todos. Excêntrica em músculo cansado é onde a lesão "
+                  "de isquiotibial acontece.", AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Os quatro que precisam de instrução"),
+        ("notas", [
+            ("A2. Core triaxial no cabo", "<b>6 em cada um dos três planos, "
+             "rápido:</b> rotação de tronco (transversal), flexão lateral "
+             "resistida (frontal) e puxada diagonal de cima para baixo (sagital "
+             "com rotação). Dois de cada lado em cada um. <b>Quem se move é o "
+             "cabo; o tronco fica parado</b> — é aqui que entram os planos e "
+             "eixos que você pediu."),
+            ("A3 e B2. Mudança de base", "No <b>salto lateral numa perna</b> "
+             "você sai de uma perna e aterrissa na outra: a base troca a cada "
+             "salto, e o joelho tem de chegar alinhado com o pé. No "
+             "<b>búlgaro com salto</b> a base é dividida e fixa, e a saída é "
+             "vertical. <b>São as duas formas de mudar a base</b> — uma trocando "
+             "o apoio no ar, a outra mantendo-o sob carga."),
+            ("B1. Stiff unilateral com clean", "Em pé numa perna, o halter desce "
+             "pela frente da canela até o tronco chegar perto do paralelo; <b>a "
+             "subida é explosiva e termina com o halter no ombro</b>. A descida "
+             "é controlada, a subida não — é dela que vem o recrutamento, e é "
+             "ela que transfere para o bloco C."),
+            ("C4. Flexão nórdica", "Ajoelhado com os tornozelos presos, o corpo "
+             "desce <b>reto, da perna à cabeça</b>, o mais devagar que der; as "
+             "mãos só amparam o fim. <b>Se o quadril dobrar, a série acabou</b>, "
+             "mesmo que falte repetição — quadril dobrado tira o isquiotibial do "
+             "exercício, que é a única razão de ele existir."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -4130,7 +4246,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "terra_posterior": TERRA_POSTERIOR,
           "dia_do_jogo": DIA_DO_JOGO,
           "empurrar_saltar_puxar": EMPURRAR_SALTAR_PUXAR,
-          "tres_blocos_quatro": TRES_BLOCOS_QUATRO}
+          "tres_blocos_quatro": TRES_BLOCOS_QUATRO,
+          "da_ativacao_a_forca": DA_ATIVACAO_A_FORCA}
 
 
 def main():
