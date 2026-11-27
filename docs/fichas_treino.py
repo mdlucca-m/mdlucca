@@ -227,8 +227,11 @@ def montar(f):
                            f.get("numerar", True)))
     h.append(Spacer(1, 7))
     h.append(Paragraph(f["nota_tabela"], PQ))
-    h.append(Spacer(1, 8))
-    h.append(caixa(f["caixa_duracao"], fundo=AMBAR_CLARO, borda=AMBAR))
+    # A caixa de duração é opcional: numa ficha com muitos exercícios a tabela
+    # ocupa a página inteira, e aí a duração vai dentro da própria nota.
+    if f.get("caixa_duracao"):
+        h.append(Spacer(1, 8))
+        h.append(caixa(f["caixa_duracao"], fundo=AMBAR_CLARO, borda=AMBAR))
 
     h.append(PageBreak())
 

@@ -3991,6 +3991,123 @@ EMPURRAR_SALTAR_PUXAR = {
     ],
 }
 
+
+
+TRES_BLOCOS_QUATRO = {
+    "arquivo": "ELASE-tres-blocos-de-quatro.pdf",
+    "meta_titulo": "ELASE - Tres blocos de quatro",
+    "meta_assunto": "Forca, potencia, core e agilidade em doze exercicios encadeados",
+    "titulo": "Três blocos de quatro",
+    "titulo_verso": "Os quatro que precisam de instrução",
+    "protocolo": "Doze exercícios em três blocos &nbsp;&middot;&nbsp; cada bloco é "
+                 "força &rarr; potência &rarr; unipodal &rarr; agilidade",
+    "rotulo_carga": "CARGA",
+    "larguras": [186, 50, 48, 46],
+    "numerar": False,
+    "abertura":
+        "<b>4 blocos de 3 e 3 blocos de 4 dão o mesmo 12 — adotei o segundo</b>, "
+        "que veio com “em sequência”. Dentro do bloco não há descanso: <b>cada "
+        "“série” é uma rodada do bloco inteiro</b>.",
+    "aquecimento_titulo": "Aquecimento — 15 minutos, nada dispensável hoje",
+    "aquecimento_nota": "88 contatos de salto e uma excêntrica de isquiotibial.",
+    "aquecimento_cab": ["O QUE", "QUANTO", "OBSERVAÇÃO"],
+    "aquecimento": [
+        ["Bicicleta ou corda, mobilidade de tornozelo, quadril e torácica, "
+         "rotadores, ponte de glúteo e a rampa de supino e agachamento",
+         "15 min", "a rampa não conta como rodada"],
+    ],
+    "exercicios": [
+        ("A1. Supino", "força pura &middot; 3 limpas, nenhuma à falha",
+         "4 × 3", "segue", "88%"),
+        ("A2. Flexão explosiva com batida", "potência &middot; as mãos saem do chão",
+         "4 × 5", "segue", "corpo"),
+        ("A3. Prancha com remada", "core antirrotacional &middot; 6 cada braço",
+         "4 × 6", "segue", "leve"),
+        ("A4. Deslocamento em losango", "agilidade &middot; 1 percurso, máximo",
+         "4 × 1", "2,5 min", "corpo"),
+        ("B1. Stiff unilateral com clean", "unipodal &middot; 4 cada lado — ver o verso",
+         "3 × 4", "segue", "média"),
+        ("B2. Flexão nórdica", "isquios &middot; excêntrica — ver o verso",
+         "3 × 5", "segue", "corpo"),
+        ("B3. Búlgaro com salto", "cadeia fechada &middot; 6 cada perna",
+         "3 × 6", "segue", "leve"),
+        ("B4. Salto lateral numa perna", "pliometria com agilidade &middot; 6 cada lado",
+         "3 × 6", "2,5 min", "corpo"),
+        ("C1. Agachamento", "força pura &middot; 3 limpas, cadeia fechada",
+         "4 × 3", "segue", "88%"),
+        ("C2. Agachamento com salto com peso", "potência &middot; a transferência do C1",
+         "4 × 4", "segue", "25%"),
+        ("C3. Core triaxial no cabo", "estabilidade &middot; três planos — ver o verso",
+         "4 × 6", "segue", "média"),
+        ("C4. Mudança de direção ao comando", "agilidade e coordenação &middot; 1 percurso",
+         "4 × 1", "3 min", "corpo"),
+    ],
+    "nota_tabela":
+        "<b>Supino e agachamento a 88% saem da tabela de 1RM; a carga dos "
+        "outros dez está no verso.</b> <b>“Segue” é sem descanso</b> — o relógio "
+        "só anda no quarto exercício do bloco. <b>75 a 85 min, 11 rodadas, 88 "
+        "contatos de salto</b>, quase dois terços do orçamento semanal: uma "
+        "sessão dessas por semana, não duas. <b>Versão de 60 min:</b> 3 rodadas "
+        "em A e em C.",
+    "verso": [
+        ("h", "Os quatro exercícios que ninguém acerta sem instrução"),
+        ("grade", ["EXERCÍCIO", "COMO SE FAZ", "O ERRO QUE APARECE"], [
+            ["<b>B1. Stiff unilateral<br/>com clean</b>",
+             "em pé numa perna, o halter desce pela frente da canela até o tronco "
+             "chegar perto do paralelo; <b>a subida é explosiva e termina com o "
+             "halter no ombro</b>, como um clean de um braço só. Quatro, troca.",
+             "subir devagar. A descida é controlada, a subida não — é dela que "
+             "sai o recrutamento"],
+            ["<b>B2. Flexão nórdica</b>",
+             "ajoelhado com os tornozelos presos, o corpo desce <b>reto, da "
+             "perna à cabeça</b>, o mais devagar que der; as mãos só amparam o "
+             "fim. Volta empurrando o chão.",
+             "dobrar o quadril na descida. Se dobrou, a série acabou — mesmo "
+             "que falte repetição"],
+            ["<b>B3. Búlgaro com salto</b>",
+             "pé de trás no banco, desce até a coxa da frente ficar paralela e "
+             "<b>sobe saltando</b>, saindo do chão. Aterrissa na mesma perna, "
+             "joelho alinhado com o pé.",
+             "joelho da frente entrando para dentro na aterrissagem — ali é "
+             "onde o salto unipodal machuca"],
+            ["<b>C3. Core triaxial<br/>no cabo</b>",
+             "<b>6 em cada um dos três planos, rápido:</b> rotação de tronco "
+             "(transversal), flexão lateral resistida (frontal) e puxada "
+             "diagonal alta-baixa (sagital com rotação). Dois de cada lado.",
+             "fazer os três devagar. Aqui é velocidade com o tronco parado — "
+             "quem se move é o cabo"],
+        ], [0.22, 0.46, 0.32]),
+        ("espaco", 2),
+        ("caixa", "<b>A nórdica é a maior produtora de dor tardia da pasta.</b> "
+                  "Se o grupo nunca a fez, <b>na primeira semana são 2 rodadas "
+                  "de 3</b>, e não 3 de 5 — e nada de jogo nos 3 dias seguintes. "
+                  "O bloco B tem três isquiotibiais seguidos (B1, B2, B3) e é "
+                  "o mais pesado dos três; por isso ele tem 3 rodadas e não 4.",
+                  AMBAR_CLARO, AMBAR),
+        ("espaco", 2),
+        ("h", "Por que os blocos são assim"),
+        ("notas", [
+            ("A transferência mora dentro do bloco", "Em cada bloco o explosivo "
+             "vem <b>logo depois</b> do pesado: A1 antes de A2, C1 antes de C2. "
+             "A carga alta deixa mais unidades motoras disponíveis por alguns "
+             "minutos, e o movimento rápido que vem a seguir usa essa janela. "
+             "<b>É por isso que não há descanso dentro do bloco</b> — o descanso "
+             "fecharia justamente a janela que se quer usar."),
+            ("Cada bloco tem os quatro papéis", "Força pura, potência, unipodal "
+             "e agilidade aparecem nos três, em ordens diferentes de músculo: "
+             "<b>A é empurrar, B é posterior unipodal, C é agachar e girar.</b> "
+             "Assim nenhum bloco repete o anterior e o core entra duas vezes por "
+             "vias diferentes — antirrotacional em A3, triaxial e rápido em C3."),
+            ("O que fazer se a rodada desandar", "Numa rodada sem descanso, "
+             "quem cede primeiro é a qualidade do último exercício. <b>Se o "
+             "percurso de agilidade sair devagar ou o salto sair baixo, a rodada "
+             "acabou ali</b> — anote quantas rodadas completas saíram, e é esse "
+             "número, não o da folha, que vai para a análise."),
+        ]),
+        ("espaco", 1),
+    ],
+}
+
 FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "onda": FORCA_ONDA, "potencia_barra": POTENCIA_BARRA,
           "registro": REGISTRO, "pliometria": PLIOMETRIA,
@@ -4012,7 +4129,8 @@ FICHAS = {"forca": FORCA, "potencia": POTENCIA, "volei": FORCA_VOLEI,
           "buscar_recorde": BUSCAR_RECORDE,
           "terra_posterior": TERRA_POSTERIOR,
           "dia_do_jogo": DIA_DO_JOGO,
-          "empurrar_saltar_puxar": EMPURRAR_SALTAR_PUXAR}
+          "empurrar_saltar_puxar": EMPURRAR_SALTAR_PUXAR,
+          "tres_blocos_quatro": TRES_BLOCOS_QUATRO}
 
 
 def main():
